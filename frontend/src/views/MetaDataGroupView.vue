@@ -222,15 +222,3 @@ const executeDelete = async () => {
 
 onMounted(loadData)
 </script>
-
-<style scoped>
-.text-muted { color: #bdc3c7; font-style: italic; }
-.badge-container { display: flex; flex-wrap: wrap; gap: 6px; }
-.form-row { display: flex; gap: 20px; align-items: flex-start; }
-.half-width { flex: 1; }
-.info-banner { background-color: #e8f4fd; color: #2980b9; padding: 12px; border-radius: 6px; font-size: 0.9rem; margin-bottom: 15px; border-left: 4px solid #3498db; }
-.searchable-select { position: relative; }
-.dropdown-list { position: absolute; top: 100%; left: 0; right: 0; background: white; border: 1px solid #ddd; border-radius: 4px; max-height: 200px; overflow-y: auto; z-index: 10; padding: 0; margin: 5px 0 0 0; list-style: none; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
-.dropdown-list li { padding: 10px; cursor: pointer; border-bottom: 1px solid #eee; font-size: 0.85rem;}
-.dropdown-list li:hover { background-color: #f8f9fa; color: #3498db; }
-</style>
