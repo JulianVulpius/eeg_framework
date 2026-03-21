@@ -1,17 +1,17 @@
 <template>
-  <div class="form-group custom-select-wrapper" @click.stop>
+  <div class="form-group custom-select-wrapper" @click.stop style="margin-bottom: 0;">
     <label v-if="label">{{ label }}</label>
     <input 
       type="text" 
       v-model="searchQuery" 
       class="form-control"
       :class="{ 'input-invalid': error }" 
-      @focus="isOpen = true"
-      :placeholder="placeholder || $t('common.search')" 
+      @focus="onFocus"
+      :placeholder="displayPlaceholder" 
     />
     
     <ul v-if="isOpen" class="dropdown-list">
-      <li @click="selectOption(null)">{{ $t('master_data.none') }}</li>
+      <li @click="selectOption(null)">{{ nullLabel || $t('master_data.none') }}</li>
       <li v-for="opt in filteredOptions" :key="opt.id" @click="selectOption(opt)">
         {{ opt.name }}
       </li>
@@ -45,6 +45,10 @@ const props = defineProps({
   placeholder: {
     type: String,
     default: ''
+  },
+  nullLabel: {
+    type: String,
+    default: ''
   }
 })
 
@@ -53,13 +57,24 @@ const emit = defineEmits(['update:modelValue'])
 const isOpen = ref(false)
 const searchQuery = ref('')
 
-// filter the options based on the input text
+const displayPlaceholder = computed(() => {
+  if (isOpen.value) {
+    const selected = props.options.find(o => o.id === props.modelValue)
+    return selected ? selected.name : (props.placeholder || 'Search...')
+  }
+  return props.placeholder || 'Search...'
+})
+
+const onFocus = () => {
+  isOpen.value = true
+  searchQuery.value = ''
+}
+
 const filteredOptions = computed(() => {
   const q = searchQuery.value.toLowerCase()
   return props.options.filter(opt => opt.name.toLowerCase().includes(q))
 })
 
-// update the selected value and close dropdown
 const selectOption = (opt) => {
   if (opt) {
     emit('update:modelValue', opt.id)
@@ -71,23 +86,21 @@ const selectOption = (opt) => {
   isOpen.value = false
 }
 
-// keep local search text in sync if parent changes the v-model directly (e.g. on form reset or edit)
 watch(() => props.modelValue, (newVal) => {
-  if (!newVal) {
-    searchQuery.value = ''
-  } else {
-    const selected = props.options.find(o => o.id === newVal)
-    if (selected) {
-      searchQuery.value = selected.name
+  if (!isOpen.value) {
+    if (!newVal) {
+      searchQuery.value = ''
+    } else {
+      const selected = props.options.find(o => o.id === newVal)
+      if (selected) {
+        searchQuery.value = selected.name
+      }
     }
   }
 }, { immediate: true })
 
-// close the dropdown when clicking anywhere else on the page
 const closeDropdown = () => {
   isOpen.value = false
-  
-  // if user typed something but didn't click an option, revert text to current selection
   const selected = props.options.find(o => o.id === props.modelValue)
   searchQuery.value = selected ? selected.name : ''
 }

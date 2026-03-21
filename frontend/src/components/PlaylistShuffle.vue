@@ -3,20 +3,37 @@
     <div class="shuffle-box">
       <div class="shuffle-header">
         {{ $t('views.playlist.available_stimuli') }}
-        <input type="text" v-model="searchAvailable" :placeholder="$t('views.playlist.search_placeholder')" class="shuffle-search" />
+        <div style="margin: 10px 10px 0 10px; width: calc(100% - 20px);">
+          <BaseSearchSelect
+            v-model="filterCategoryAvailable"
+            :options="categories"
+            :placeholder="$t('views.metadata.search_category')"
+            :nullLabel="$t('views.metadata.filter_category_all')"
+          />
+        </div>
+        <input type="text" v-model="searchAvailable" :placeholder="$t('views.playlist.search_placeholder')" class="shuffle-search" style="margin-top: 10px; margin-bottom: 10px;" />
       </div>
       <ul class="shuffle-list">
         <li v-for="s in filteredAvailable" :key="s.id" @click="addStimulus(s.id)">
           <span>{{ s.name }}</span>
           <span class="add-btn">+</span>
         </li>
+        <li v-if="filteredAvailable.length === 0" class="shuffle-empty">-</li>
       </ul>
     </div>
 
     <div class="shuffle-box">
       <div class="shuffle-header">
         {{ $t('views.playlist.selected_items') }}
-        <input type="text" v-model="searchSelected" :placeholder="$t('views.playlist.search_placeholder')" class="shuffle-search" />
+        <div style="margin: 10px 10px 0 10px; width: calc(100% - 20px);">
+          <BaseSearchSelect
+            v-model="filterCategorySelected"
+            :options="categories"
+            :placeholder="$t('views.metadata.search_category')"
+            :nullLabel="$t('views.metadata.filter_category_all')"
+          />
+        </div>
+        <input type="text" v-model="searchSelected" :placeholder="$t('views.playlist.search_placeholder')" class="shuffle-search" style="margin-top: 10px; margin-bottom: 10px;" />
       </div>
       <ul class="shuffle-list">
         <li v-for="item in mappedSelected" :key="'selected-' + item.originalIndex" 
@@ -43,11 +60,16 @@
 
 <script setup>
 import { ref, computed } from 'vue'
+import BaseSearchSelect from './BaseSearchSelect.vue'
 
 const props = defineProps({
   availableItems: {
     type: Array,
     required: true
+  },
+  categories: {
+    type: Array,
+    default: () => []
   },
   modelValue: {
     type: Array,
@@ -59,21 +81,41 @@ const emit = defineEmits(['update:modelValue'])
 
 const searchAvailable = ref('')
 const searchSelected = ref('')
+const filterCategoryAvailable = ref(null)
+const filterCategorySelected = ref(null)
 const draggedItemIndex = ref(null)
 
 const filteredAvailable = computed(() => {
-  if (!searchAvailable.value) return props.availableItems
-  const q = searchAvailable.value.toLowerCase()
-  return props.availableItems.filter(s => s.name.toLowerCase().includes(q))
+  let list = props.availableItems
+  if (filterCategoryAvailable.value) {
+    list = list.filter(s => s.category === filterCategoryAvailable.value)
+  }
+  if (searchAvailable.value) {
+    const q = searchAvailable.value.toLowerCase()
+    list = list.filter(s => s.name.toLowerCase().includes(q))
+  }
+  return list
 })
 
-const getStimulusName = (id) => {
-  const s = props.availableItems.find(st => st.id === id)
-  return s ? s.name : `Unknown (ID: ${id})`
+const getStimulusData = (id) => {
+  return props.availableItems.find(st => st.id === id)
 }
 
 const mappedSelected = computed(() => {
-  let mapped = props.modelValue.map((id, index) => ({ id: id, originalIndex: index, name: getStimulusName(id) }))
+  let mapped = props.modelValue.map((id, index) => {
+    const s = getStimulusData(id)
+    return {
+      id: id,
+      originalIndex: index,
+      name: s ? s.name : `Unknown (ID: ${id})`,
+      category: s ? s.category : null
+    }
+  })
+  
+  if (filterCategorySelected.value) {
+    mapped = mapped.filter(item => item.category === filterCategorySelected.value)
+  }
+  
   if (searchSelected.value) {
     const q = searchSelected.value.toLowerCase()
     mapped = mapped.filter(item => item.name.toLowerCase().includes(q))

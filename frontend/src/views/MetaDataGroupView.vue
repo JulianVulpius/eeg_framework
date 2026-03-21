@@ -82,14 +82,26 @@
           :searchPlaceholder="$t('common.search')"
           :enableOrdering="true"
           :leftFilterFn="(item) => filterDefCategory ? item.category === filterDefCategory : true"
+          :rightFilterFn="(item) => filterDefCategoryRight ? item.category === filterDefCategoryRight : true"
         >
           <template #left-filters>
-            <div class="searchable-select filter-select" v-click-outside="() => showCatDropdown = false" style="margin-bottom: 10px;">
-              <input type="text" v-model="catSearchQuery" @focus="showCatDropdown = true" :placeholder="$t('views.metadata.search_category')" class="form-control" />
-              <ul v-if="showCatDropdown" class="dropdown-list">
-                <li @click="selectDefCategory(null)">{{ $t('views.metadata.filter_category_all') }}</li>
-                <li v-for="cat in filteredDefCats" :key="cat.id" @click="selectDefCategory(cat)">{{ cat.name }}</li>
-              </ul>
+            <div style="margin: 0 10px 10px 10px;">
+              <BaseSearchSelect
+                v-model="filterDefCategory"
+                :options="defCategories"
+                :placeholder="$t('views.metadata.search_category')"
+                :nullLabel="$t('views.metadata.filter_category_all')"
+              />
+            </div>
+          </template>
+          <template #right-filters>
+            <div style="margin: 0 10px 10px 10px;">
+              <BaseSearchSelect
+                v-model="filterDefCategoryRight"
+                :options="defCategories"
+                :placeholder="$t('views.metadata.search_category')"
+                :nullLabel="$t('views.metadata.filter_category_all')"
+              />
             </div>
           </template>
         </BaseTransferList>
@@ -124,17 +136,6 @@ import CrudHeader from '@/components/CrudHeader.vue'
 import TableActionButtons from '@/components/TableActionButtons.vue'
 
 const { t } = useI18n()
-
-const vClickOutside = {
-  mounted(el, binding) {
-    el.clickOutsideEvent = function(event) {
-      if (!(el === event.target || el.contains(event.target))) binding.value(event)
-    }
-    document.body.addEventListener('click', el.clickOutsideEvent)
-  },
-  unmounted(el) { document.body.removeEventListener('click', el.clickOutsideEvent) }
-}
-
 const items = ref([])
 const groupCategories = ref([])
 const definitions = ref([])
@@ -157,17 +158,16 @@ const filteredItems = computed(() => {
 
 const formData = ref({ name: '', category: null, description: '', definitions: [] })
 
-const showCatDropdown = ref(false)
-const catSearchQuery = ref('')
 const filterDefCategory = ref(null)
+const filterDefCategoryRight = ref(null)
 
 const resetForm = () => { 
   formData.value = { name: '', category: null, description: '', definitions: [] } 
-  filterDefCategory.value = null; catSearchQuery.value = '';
+  filterDefCategory.value = null; filterDefCategoryRight.value = null;
 }
 const populateForm = (item) => { 
   formData.value = { name: item.name, category: item.category, description: item.description, definitions: item.assigned_definitions ? [...item.assigned_definitions] : [] } 
-  filterDefCategory.value = null; catSearchQuery.value = '';
+  filterDefCategory.value = null; filterDefCategoryRight.value = null;
 }
 
 const loadData = async () => {
@@ -186,9 +186,6 @@ const loadData = async () => {
 
 const getGroupCategoryName = (id) => { const cat = groupCategories.value.find(c => c.id === id); return cat ? cat.name : 'Unknown' }
 const getDefinitionName = (id) => { const def = definitions.value.find(d => d.id === id); return def ? def.name : `ID:${id}` }
-
-const filteredDefCats = computed(() => !catSearchQuery.value ? defCategories.value : defCategories.value.filter(c => c.name.toLowerCase().includes(catSearchQuery.value.toLowerCase())))
-const selectDefCategory = (cat) => { if (cat === null) { filterDefCategory.value = null; catSearchQuery.value = '' } else { filterDefCategory.value = cat.id; catSearchQuery.value = cat.name }; showCatDropdown.value = false }
 
 const saveRecord = async () => {
   crud.clearErrors()

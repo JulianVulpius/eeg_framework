@@ -77,6 +77,10 @@ const props = defineProps({
   leftFilterFn: {
     type: Function,
     default: () => true
+  },
+  rightFilterFn: {
+    type: Function,
+    default: () => true
   }
 })
 
@@ -99,6 +103,7 @@ const leftOptions = computed(() => {
 const rightOptions = computed(() => {
   let items = props.modelValue.map(id => props.options.find(o => o.id === id)).filter(Boolean)
   return items.filter(opt => {
+    if (!props.rightFilterFn(opt)) return false
     if (searchRight.value && !opt.name.toLowerCase().includes(searchRight.value.toLowerCase())) return false
     return true
   })

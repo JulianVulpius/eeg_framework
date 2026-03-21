@@ -61,6 +61,7 @@
           <label>Assigned Stimuli (Click to Add / Remove)</label>
           <PlaylistShuffle 
             :availableItems="allStimuli"
+            :categories="stimulusCategories"
             v-model="formData.stimuli"
           />
         </div>
@@ -105,6 +106,7 @@ import PlaylistShuffle from '@/components/PlaylistShuffle.vue'
 const { t } = useI18n()
 const items = ref([])
 const allStimuli = ref([])
+const stimulusCategories = ref([])
 const crud = useCrud()
 
 const showWarningModal = ref(false)
@@ -136,12 +138,14 @@ const populateForm = (item) => {
 
 const loadData = async () => {
   try {
-    const [resPlaylists, resStimuli] = await Promise.all([
+    const [resPlaylists, resStimuli, resCats] = await Promise.all([
       api.get('playlists/'),
-      api.get('stimuli/')
+      api.get('stimuli/'),
+      api.get('category/stimulus-categories/')
     ])
     items.value = resPlaylists.data
     allStimuli.value = resStimuli.data
+    stimulusCategories.value = resCats.data
   } catch (error) { 
     warningMessage.value = crud.parseApiError(error, t, 'errors.load_failed')
     showWarningModal.value = true
