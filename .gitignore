@@ -1,0 +1,17 @@
+# OS generated files
+.DS_Store
+Thumbs.db
+
+# Environment variables & secrets
+.env
+
+# Node.js (Frontend)
+node_modules/
+dist/
+npm-debug.log*
+
+# Python (Backend & Services)
+__pycache__/
+*.py[cod]
+venv/
+db.sqlite3

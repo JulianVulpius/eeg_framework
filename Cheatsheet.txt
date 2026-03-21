@@ -1,0 +1,14 @@
+# Cheatsheet
+
+venv\Scripts\activate
+
+python manage.py makemigrations && python manage.py migrate && python manage.py runserver
+
+uvicorn main:app --port 8001 --reload
+
+
+
+python -m pip install
+
+python -m pip freeze > requirements.txt
+

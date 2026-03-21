@@ -1,0 +1,118 @@
+<template>
+  <div class="column-header-filter">
+    <div class="th-content" @click="toggleSearch">
+      <span>{{ title }}</span>
+      <button class="icon-btn" :class="{ 'has-filter': modelValue }" :title="placeholder">
+        🔍
+      </button>
+    </div>
+    
+    <div v-show="isExpanded || modelValue" class="filter-wrapper">
+      <input 
+        type="text" 
+        ref="inputRef"
+        :value="modelValue" 
+        @input="$emit('update:modelValue', $event.target.value)"
+        :placeholder="placeholder || '...'" 
+        class="column-search-input"
+        @click.stop
+      />
+      <button v-if="modelValue" class="clear-btn" @click.stop="clearSearch">✕</button>
+    </div>
+  </div>
+</template>
+
+<script setup>
+import { ref, nextTick } from 'vue'
+
+defineProps({
+  title: { type: String, required: true },
+  modelValue: { type: String, default: '' },
+  placeholder: { type: String, default: 'Search...' }
+})
+
+const emit = defineEmits(['update:modelValue'])
+
+const isExpanded = ref(false)
+const inputRef = ref(null)
+
+// toggle input and focus it if opened
+const toggleSearch = async () => {
+  isExpanded.value = !isExpanded.value
+  if (isExpanded.value) {
+    await nextTick()
+    inputRef.value?.focus()
+  }
+}
+
+// clear the search string
+const clearSearch = () => {
+  emit('update:modelValue', '')
+  isExpanded.value = false
+}
+</script>
+
+<style scoped>
+.column-header-filter {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.th-content {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  cursor: pointer;
+  user-select: none;
+}
+
+.icon-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 0.9rem;
+  opacity: 0.5;
+  transition: opacity 0.2s;
+  padding: 0 4px;
+}
+
+.icon-btn:hover, .icon-btn.has-filter {
+  opacity: 1;
+}
+
+.filter-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.column-search-input {
+  width: 100%;
+  padding: 4px 24px 4px 8px;
+  font-size: 0.85rem;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-weight: normal; /* override th bold */
+}
+
+.column-search-input:focus {
+  outline: none;
+  border-color: #3498db;
+}
+
+.clear-btn {
+  position: absolute;
+  right: 4px;
+  background: none;
+  border: none;
+  color: #999;
+  cursor: pointer;
+  font-size: 0.8rem;
+  padding: 0 4px;
+}
+
+.clear-btn:hover {
+  color: #e74c3c;
+}
+</style>
