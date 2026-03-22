@@ -17,7 +17,7 @@ from .models.ui import ComponentType
 from .models import (
     MetaDataCategory, StimulusCategory, ComponentCategory,
     CustomScriptCategory, DataProcessCategory, DataDisplayCategory,
-    MetaDataGroupCategory, DeviceModelCategory, PageCategory, PageGroupCategory
+    MetaDataGroupCategory, DeviceModelCategory, PageCategory, PageGroupCategory, EventCategory
 )
 
 # maps the Vue frontend URL slugs to  Django Models
@@ -32,6 +32,7 @@ CATEGORY_MODEL_MAP = {
     'device-model-categories': DeviceModelCategory,
     'page-categories': PageCategory,
     'page-group-categories': PageGroupCategory,
+    'event-categories': EventCategory,
 }
 
 class GenericCategoryViewSet(viewsets.ModelViewSet):

@@ -117,13 +117,22 @@ class PageComponent(models.Model):
     def __str__(self):
         return f"{self.page.name} - {self.component.name} (Pos: {self.order})"
 
-class Event(AuditBaseModel):
-    """
-    An Event represents a specific experimental task or sequence 
-    that a Subject will undergo during a Session.
-    """
-    name = models.CharField(max_length=150)
+class EventCategory(models.Model):
+    name = models.CharField(max_length=100, unique=True)
     description = models.TextField(blank=True, null=True)
+
+    class Meta:
+        db_table = 'EventCategory'
+
+    def __str__(self):
+        return self.name
+
+class Event(AuditBaseModel):
+    name = models.CharField(max_length=150, unique=True)
+    category = models.ForeignKey(EventCategory, on_delete=models.PROTECT)
+    description = models.TextField(blank=True, null=True)
+    event_start = models.DateTimeField(null=True, blank=True)
+    event_end = models.DateTimeField(null=True, blank=True)
 
     page_groups = models.ManyToManyField(
         'PageGroup', 

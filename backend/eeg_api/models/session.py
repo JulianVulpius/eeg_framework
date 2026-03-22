@@ -2,7 +2,7 @@ from django.db import models
 from .base import AuditBaseModel
 from .subject import SubjectProfile
 from .ui import Event
-from .device import DeviceInstance
+from .device import DeviceInstance, DeviceModel
 from .trigger import TriggerGroup
 
 # -----------------------------------------------------------------------------
@@ -78,6 +78,7 @@ class EEGDataFileTriggerGroup(models.Model):
 
 class HeartRateDataFile(AuditBaseModel):
     session = models.ForeignKey(Session, on_delete=models.CASCADE, related_name='heart_rate_files')
+    device_model = models.ForeignKey(DeviceModel, on_delete=models.PROTECT)
     source = models.CharField(max_length=500, help_text="File path or URI to the heart rate data")
     note = models.TextField(blank=True, null=True)
 
