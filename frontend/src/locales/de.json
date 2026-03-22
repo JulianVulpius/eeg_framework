@@ -121,7 +121,11 @@
       "parameters": "Parameter (JSON)",
       "param_placeholder": "z.B. {\"text\": \"Hallo Welt\"}",
       "select_metadata_group": "Metadaten-Gruppe zuweisen",
-      "metadata_auto_hint": "Das Parameter-JSON wird für Formulare automatisch generiert."
+      "metadata_auto_hint": "Das Parameter-JSON wird für Formulare automatisch generiert.",
+      "text_content": "Textinhalt",
+      "text_auto_hint": "Nutze den Editor zur Formatierung. Bösartige Skripte werden bei der Anzeige im System automatisch blockiert (XSS-Schutz).",
+      "select_type_prompt": "Bitte wähle oben einen Komponenten-Typ aus, um die Einstellungen zu konfigurieren.",
+      "no_config_needed": "Für diesen Komponenten-Typ sind keine weiteren Einstellungen erforderlich."
     },
     "report": {
       "title": "Sitzungsbericht (Metadaten)",

@@ -1,6 +1,6 @@
 <template>
   <div class="text-block-card">
-    <div class="content" v-html="parameters.text || parameters.content || '...'"></div>
+    <div class="content" v-html="sanitizedContent"></div>
     <div class="action-footer">
       <button class="btn-secondary" @click="$emit('go-back')" style="margin-right: 15px;">{{ $t('actions.back') }}</button>
       <button class="btn-primary" @click="$emit('completed')">{{ $t('actions.continue') }}</button>
@@ -9,10 +9,18 @@
 </template>
 
 <script setup>
-defineProps({
+import { computed } from 'vue'
+import DOMPurify from 'dompurify'
+
+const props = defineProps({
   parameters: { type: Object, default: () => ({}) }
 })
-defineEmits(['completed'])
+defineEmits(['completed', 'go-back'])
+
+const sanitizedContent = computed(() => {
+  const rawText = props.parameters.text || props.parameters.content || '...'
+  return DOMPurify.sanitize(rawText)
+})
 </script>
 
 <style scoped>

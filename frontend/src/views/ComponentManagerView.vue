@@ -24,7 +24,7 @@
       </table>
     </div>
 
-    <BaseModal :isOpen="crud.isDialogOpen.value" :title="crud.isEditing.value ? $t('modal.edit_record') : $t('modal.add_record')" @close="crud.closeDialog">
+    <BaseModal :isOpen="crud.isDialogOpen.value" :title="crud.isEditing.value ? $t('modal.edit_record') : $t('modal.add_record')" @close="crud.closeDialog" customClass="large-modal">
       <form @submit.prevent="saveRecord">
         <div class="form-group">
           <label>{{ $t('common.name') }} *</label>
@@ -43,26 +43,41 @@
           </div>
         </div>
 
-        <div class="form-group">
+        <div class="form-group" style="margin-bottom: 20px;">
           <label>{{ $t('common.description') }}</label>
           <textarea v-model="formData.description" rows="2" class="form-control"></textarea>
         </div>
 
-        <div v-if="isMetadataFormSelected" class="form-group" style="margin-bottom: 1.5rem; background: #f8f9fa; padding: 15px; border-radius: 6px; border: 1px solid #e0e0e0;">
-          <label style="color: #2980b9;">{{ $t('views.components.select_metadata_group') }} *</label>
-          <BaseSearchSelect 
-            v-model="selectedMetadataGroupId" 
-            :options="metadataGroups" 
-            :placeholder="$t('common.search')"
-            @update:modelValue="updateMetadataParameter"
-          />
-          <small style="color: #7f8c8d; display: block; margin-top: 5px;">{{ $t('views.components.metadata_auto_hint') }}</small>
-        </div>
+        <div style="border-top: 2px solid #f4f7f6; padding-top: 20px; margin-bottom: 1.5rem;">
+          
+          <div v-if="isMetadataFormSelected" class="dynamic-config-box">
+            <label style="color: #2980b9; font-weight: bold; margin-bottom: 10px; display: block;">{{ $t('views.components.select_metadata_group') }} *</label>
+            <BaseSearchSelect 
+              v-model="selectedMetadataGroupId" 
+              :options="metadataGroups" 
+              :placeholder="$t('common.search')"
+              @update:modelValue="updateMetadataParameter"
+            />
+            <small class="hint-text">{{ $t('views.components.metadata_auto_hint') }}</small>
+          </div>
 
-        <div v-else class="form-group" style="margin-bottom: 1.5rem;">
-          <label>{{ $t('views.components.parameters') }}</label>
-          <textarea v-model="formData.parameter" rows="4" class="form-control" style="font-family: monospace;" :placeholder="$t('views.components.param_placeholder')"></textarea>
-          <BaseInputError :message="jsonError" />
+          <div v-else-if="isTextBlockSelected" class="dynamic-config-box">
+            <label style="color: #27ae60; font-weight: bold; margin-bottom: 10px; display: block;">{{ $t('views.components.text_content') }} *</label>
+            <div class="editor-container" style="background: white;">
+              <QuillEditor 
+                v-model:content="textContent" 
+                contentType="html" 
+                theme="snow" 
+                @update:content="updateTextParameter"
+                style="min-height: 200px;"
+              />
+            </div>
+            <small class="hint-text">{{ $t('views.components.text_auto_hint') }}</small>
+          </div>
+
+          <div v-else class="empty-config-box">
+            {{ formData.component_type ? $t('views.components.no_config_needed') : $t('views.components.select_type_prompt') }}
+          </div>
         </div>
 
         <div class="modal-actions">
@@ -78,10 +93,13 @@
 </template>
 
 <script setup>
-import { ref, onMounted, computed, watch } from 'vue'
+import { ref, onMounted, computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import api from '@/services/api'
 import { useCrud } from '@/composables/useCrud'
+
+import { QuillEditor } from '@vueup/vue-quill'
+import '@vueup/vue-quill/dist/vue-quill.snow.css'
 
 import BaseModal from '@/components/BaseModal.vue'
 import BaseInputError from '@/components/BaseInputError.vue'
@@ -96,10 +114,11 @@ const crud = useCrud()
 
 const items = ref([]); const categories = ref([]); const types = ref([]); const metadataGroups = ref([])
 const showWarningModal = ref(false); const warningMessage = ref('')
-const jsonError = ref('')
 
 const formData = ref({ name: '', category: null, component_type: null, description: '', parameter: '{}' })
+
 const selectedMetadataGroupId = ref(null)
+const textContent = ref('')
 
 const getTypeName = (id) => { const t = types.value.find(x => x.id === id); return t ? t.name : id }
 
@@ -109,34 +128,42 @@ const isMetadataFormSelected = computed(() => {
   return selectedType && selectedType.identifier === 'METADATA_FORM'
 })
 
+const isTextBlockSelected = computed(() => {
+  if (!formData.value.component_type) return false
+  const selectedType = types.value.find(t => t.id === formData.value.component_type)
+  return selectedType && selectedType.identifier === 'TEXT_BLOCK'
+})
+
 const updateMetadataParameter = (groupId) => {
-  if (groupId) {
-    formData.value.parameter = JSON.stringify({ metadata_group_id: groupId }, null, 2)
-  } else {
-    formData.value.parameter = '{}'
-  }
+  formData.value.parameter = groupId ? JSON.stringify({ metadata_group_id: groupId }) : '{}'
+}
+
+const updateTextParameter = () => {
+  formData.value.parameter = JSON.stringify({ text: textContent.value })
 }
 
 const resetForm = () => { 
   formData.value = { name: '', category: null, component_type: null, description: '', parameter: '{}' }
   selectedMetadataGroupId.value = null
-  jsonError.value = '' 
+  textContent.value = ''
 }
 
 const populateForm = (item) => {
-  let paramStr = typeof item.parameter === 'object' ? JSON.stringify(item.parameter, null, 2) : item.parameter
+  let paramStr = typeof item.parameter === 'object' ? JSON.stringify(item.parameter) : (item.parameter || '{}')
   formData.value = { ...item, parameter: paramStr }
-  jsonError.value = ''
   
-  // Try to parse out the group ID if it's a metadata form
+  selectedMetadataGroupId.value = null
+  textContent.value = ''
+  
   try {
     const parsed = JSON.parse(paramStr)
     if (parsed && parsed.metadata_group_id) {
       selectedMetadataGroupId.value = parsed.metadata_group_id
-    } else {
-      selectedMetadataGroupId.value = null
     }
-  } catch(e) { selectedMetadataGroupId.value = null }
+    if (parsed && parsed.text) {
+      textContent.value = parsed.text
+    }
+  } catch(e) { console.error("Could not parse parameters on edit.") }
 }
 
 const loadData = async () => {
@@ -152,16 +179,13 @@ const loadData = async () => {
 }
 
 const saveRecord = async () => {
-  crud.clearErrors(); jsonError.value = ''; let hasError = false
+  crud.clearErrors(); let hasError = false
   if (!formData.value.name) { crud.fieldErrors.value.name = t('errors.required_field'); hasError = true }
   
-  let parsedJson = {}
-  try { parsedJson = JSON.parse(formData.value.parameter || '{}') } 
-  catch (e) { jsonError.value = t('errors.invalid_input') + " (Invalid JSON)"; hasError = true }
-
   if (hasError) return
 
-  const payload = { ...formData.value, parameter: parsedJson }
+  const payload = { ...formData.value, parameter: JSON.parse(formData.value.parameter || '{}') }
+  
   try {
     if (crud.isEditing.value) await api.put(`components/${crud.editingId.value}/`, payload)
     else await api.post('components/', payload)
@@ -176,3 +200,35 @@ const executeDelete = async () => {
 
 onMounted(loadData)
 </script>
+
+<style scoped>
+.large-modal { max-width: 900px; width: 90vw; }
+
+.dynamic-config-box {
+  background: #fdfdfd; 
+  padding: 15px 20px; 
+  border-radius: 6px; 
+  border: 1px solid #e0e0e0;
+  box-shadow: inset 0 2px 4px rgba(0,0,0,0.02);
+}
+
+.empty-config-box {
+  padding: 30px 20px; 
+  text-align: center; 
+  background: #f8f9fa; 
+  border: 2px dashed #dcdde1; 
+  border-radius: 6px; 
+  color: #7f8c8d;
+  font-style: italic;
+}
+
+.hint-text {
+  color: #95a5a6; 
+  display: block; 
+  margin-top: 8px;
+  font-size: 0.85rem;
+}
+
+:deep(.ql-toolbar) { border-top-left-radius: 4px; border-top-right-radius: 4px; background: #fdfdfd; }
+:deep(.ql-container) { border-bottom-left-radius: 4px; border-bottom-right-radius: 4px; font-size: 1rem; }
+</style>
