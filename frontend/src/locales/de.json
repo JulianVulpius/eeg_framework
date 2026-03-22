@@ -53,7 +53,8 @@
     "continue": "Weiter",
     "saving": "Speichere...",
     "loading": "Lädt...",
-    "yes": "Ja"
+    "yes": "Ja",
+    "no": "Nein"
   },
   "actions": {
     "add_new": "+ Neu hinzufügen",
@@ -136,19 +137,24 @@
       "page": "Seite",
       "finished_title": "Sitzung abgeschlossen",
       "finished_desc": "Alle Phasen dieses Events wurden erfolgreich beendet und die Daten gesichert.",
-      "back_home": "Zurück zum Dashboard",
+      "back_home": "Zurück zur Übersicht",
       "unknown_component": "Unbekannter Komponententyp",
       "empty_page": "Diese Seite hat keinen konfigurierten Inhalt.",
       "view_report": "Erfasste Daten ansehen"
     },
     "launcher": {
       "select_event": "1. Event / Studie auswählen",
-      "select_subject": "2. Proband auswählen",
+      "select_phase": "2. Phase (Page Group) auswählen",
+      "select_subject": "3. Proband auswählen",
       "create_subject": "Neuen Probanden anlegen",
       "start_session": "Sitzung jetzt starten",
       "no_event_selected": "Bitte zuerst ein Event auswählen",
       "no_subject_selected": "Bitte einen Probanden auswählen",
-      "subject_created": "Proband erfolgreich angelegt!"
+      "subject_created": "Proband erfolgreich angelegt!",
+      "session_exists_title": "Sitzung existiert bereits",
+      "session_exists_desc": "Für diesen Probanden wurde in dieser Phase bereits eine Sitzung gestartet. Möchtest du die Sitzung fortsetzen oder alle bisherigen Eingaben löschen und neu beginnen?",
+      "btn_resume": "Fortsetzen",
+      "btn_reset": "Reset & Neu starten"
     },
     "events": {
       "start": "Startdatum",

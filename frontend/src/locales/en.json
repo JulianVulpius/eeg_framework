@@ -53,7 +53,8 @@
     "continue": "Continue",
     "saving": "Saving...",
     "loading": "Loading...",
-    "yes": "Yes"
+    "yes": "Yes",
+    "no": "No"
   },
   "actions": {
     "add_new": "+ Add New",
@@ -136,19 +137,24 @@
       "page": "Page",
       "finished_title": "Session Completed",
       "finished_desc": "All phases of this event have been successfully completed and the data is saved.",
-      "back_home": "Back to Dashboard",
+      "back_home": "Back to Overview",
       "unknown_component": "Unknown component type",
       "empty_page": "This page has no configured content.",
       "view_report": "View Recorded Data"
     },
     "launcher": {
       "select_event": "1. Select Event / Study",
-      "select_subject": "2. Select Subject",
+      "select_phase": "2. Select Phase (Page Group)",
+      "select_subject": "3. Select Subject",
       "create_subject": "Create New Subject",
       "start_session": "Start Session Now",
       "no_event_selected": "Please select an event first",
       "no_subject_selected": "Please select a subject",
-      "subject_created": "Subject successfully created!"
+      "subject_created": "Subject successfully created!",
+      "session_exists_title": "Session Already Exists",
+      "session_exists_desc": "A session for this subject in this phase has already been started. Would you like to resume the session or delete all previous inputs and start over?",
+      "btn_resume": "Resume Session",
+      "btn_reset": "Reset & Restart"
     },
     "events": {
       "start": "Start Date",

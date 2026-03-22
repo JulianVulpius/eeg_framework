@@ -4,11 +4,11 @@
     <div class="runner-header">
       <div class="breadcrumb">
         <span class="event-name">{{ blueprint?.event_name || '...' }}</span>
-        <span v-if="currentGroup" class="separator">/</span>
-        <span v-if="currentGroup" class="group-name">{{ currentGroup.name }}</span>
+        <span class="separator">/</span>
+        <span class="group-name">{{ blueprint?.page_group_name || '...' }}</span>
       </div>
-      <div v-if="currentGroup" class="progress">
-        {{ $t('views.runner.page') }} {{ currentPageIndex + 1 }} / {{ currentGroup.pages.length }}
+      <div v-if="blueprint" class="progress">
+        {{ $t('views.runner.page') }} {{ currentPageIndex + 1 }} / {{ blueprint.pages.length }}
       </div>
     </div>
 
@@ -16,48 +16,64 @@
       {{ $t('common.loading') }}
     </div>
 
-    <div v-else-if="isFinished" class="finished-state card">
-      <h2>🎉 {{ $t('views.runner.finished_title') }}</h2>
-      <p>{{ $t('views.runner.finished_desc') }}</p>
+    <template v-else-if="blueprint">
       
-      <div style="margin-top: 30px; display: flex; gap: 15px; justify-content: center;">
-        <router-link :to="'/session/report/' + id" class="btn-primary" style="text-decoration: none;">
-          📊 {{ $t('views.runner.view_report') }}
-        </router-link>
-        <router-link to="/dashboard" class="btn-secondary" style="text-decoration: none;">
-          {{ $t('views.runner.back_home') }}
-        </router-link>
-      </div>
-    </div>
-
-    <div v-else-if="currentPage" class="page-container">
-      <div v-for="comp in currentPage.components" :key="comp.id" class="component-wrapper">
-
-        <StandardTextBlock 
-          v-if="comp.type === 'TEXT_BLOCK'" 
-          :parameters="comp.parameters" 
-          @completed="nextPage" 
-          @go-back="prevPage"
-        />
-        <StandardMetadataForm 
-          v-else-if="comp.type === 'METADATA_FORM'" 
-          :parameters="comp.parameters" 
-          :sessionId="id"
-          @completed="nextPage" 
-          @go-back="prevPage"
-        />
+      <div v-show="isFinished" class="finished-state card">
+        <h2>🎉 {{ $t('views.runner.finished_title') }}</h2>
+        <p>{{ $t('views.runner.finished_desc') }}</p>
         
-        <div v-else class="unknown-component card">
-          ⚠️ {{ $t('views.runner.unknown_component') }}: {{ comp.type }}
+        <div style="margin-top: 30px; display: flex; gap: 15px; justify-content: center; align-items: center;">
+          <button class="btn-secondary" @click="goBackFromFinished" style="margin-right: auto;">
+            &larr; {{ $t('actions.back') }}
+          </button>
+
+          <router-link :to="'/session/report/' + id" class="btn-primary" style="text-decoration: none;">
+            📊 {{ $t('views.runner.view_report') }}
+          </router-link>
+          <router-link to="/session-history" class="btn-secondary" style="text-decoration: none;">
+            {{ $t('views.runner.back_home') }}
+          </router-link>
         </div>
-        
       </div>
 
-      <div v-if="currentPage.components.length === 0" class="empty-page card">
-        <p>{{ $t('views.runner.empty_page') }}</p>
-        <button class="btn-secondary" @click="nextPage">{{ $t('actions.continue') }}</button>
+      <div v-show="!isFinished" class="page-container">
+        <div 
+          v-for="(page, index) in blueprint.pages" 
+          :key="page.id" 
+          v-show="index === currentPageIndex"
+        >
+          <div v-for="comp in page.components" :key="comp.id" class="component-wrapper">
+            
+            <StandardTextBlock 
+              v-if="comp.type === 'TEXT_BLOCK'" 
+              :parameters="comp.parameters" 
+              @completed="nextPage" 
+              @go-back="prevPage"
+            />
+            
+            <StandardMetadataForm 
+              v-else-if="comp.type === 'METADATA_FORM'" 
+              :parameters="comp.parameters" 
+              :sessionId="id"
+              @completed="nextPage" 
+              @go-back="prevPage"
+            />
+            
+            <div v-else class="unknown-component card">
+              ⚠️ {{ $t('views.runner.unknown_component') }}: {{ comp.type }}
+            </div>
+            
+          </div>
+
+          <div v-if="page.components.length === 0" class="empty-page card">
+            <p>{{ $t('views.runner.empty_page') }}</p>
+            <button class="btn-secondary" @click="prevPage" style="margin-right: 15px;">{{ $t('actions.back') }}</button>
+            <button class="btn-primary" @click="nextPage">{{ $t('actions.continue') }}</button>
+          </div>
+        </div>
       </div>
-    </div>
+
+    </template>
 
   </div>
 </template>
@@ -66,73 +82,36 @@
 import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import api from '@/services/api'
-
 import StandardTextBlock from '@/components/runner/StandardTextBlock.vue'
 import StandardMetadataForm from '@/components/runner/StandardMetadataForm.vue'
 
 const props = defineProps({ id: { type: [String, Number], required: true } })
 const router = useRouter()
-
-const blueprint = ref(null)
-const isLoading = ref(true)
-const isFinished = ref(false)
-
-const currentGroupIndex = ref(0)
+const blueprint = ref(null); const isLoading = ref(true); const isFinished = ref(false)
 const currentPageIndex = ref(0)
 
-const currentGroup = computed(() => {
-  if (!blueprint.value || !blueprint.value.page_groups) return null
-  return blueprint.value.page_groups[currentGroupIndex.value] || null
-})
-
-const currentPage = computed(() => {
-  if (!currentGroup.value) return null
-  return currentGroup.value.pages[currentPageIndex.value] || null
-})
+const currentPage = computed(() => blueprint.value ? blueprint.value.pages[currentPageIndex.value] : null)
 
 const loadBlueprint = async () => {
   try {
     const response = await api.get(`sessions/${props.id}/blueprint/`)
     blueprint.value = response.data
-    
-    if (blueprint.value.page_groups.length === 0) {
-      isFinished.value = true
-    }
-  } catch (error) {
-    console.error(error)
-  } finally {
-    isLoading.value = false
-  }
+    if (blueprint.value.pages.length === 0) isFinished.value = true
+  } catch (error) { console.error(error) } finally { isLoading.value = false }
 }
 
 const nextPage = () => {
-  if (!currentGroup.value) return
-
-  if (currentPageIndex.value < currentGroup.value.pages.length - 1) {
-    currentPageIndex.value++
-  } else {
-    if (currentGroupIndex.value < blueprint.value.page_groups.length - 1) {
-      currentGroupIndex.value++
-      currentPageIndex.value = 0
-    } else {
-      isFinished.value = true
-    }
-  }
+  if (currentPageIndex.value < blueprint.value.pages.length - 1) currentPageIndex.value++
+  else isFinished.value = true
 }
 
 const prevPage = () => {
-  if (!currentGroup.value) return
+  if (currentPageIndex.value > 0) currentPageIndex.value--
+  else router.push('/launcher')
+}
 
-  if (currentPageIndex.value > 0) {
-    currentPageIndex.value--
-  } else {
-    if (currentGroupIndex.value > 0) {
-      currentGroupIndex.value--
-      currentPageIndex.value = blueprint.value.page_groups[currentGroupIndex.value].pages.length - 1
-    } else {
-      router.push('/launcher')
-    }
-  }
+const goBackFromFinished = () => {
+  isFinished.value = false;
 }
 
 onMounted(loadBlueprint)

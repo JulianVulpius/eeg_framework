@@ -36,7 +36,7 @@ const props = defineProps({
   parameters: { type: Object, required: true },
   sessionId: { type: [String, Number], required: true }
 })
-const emit = defineEmits(['completed'])
+const emit = defineEmits(['completed', 'go-back'])
 
 const isLoading = ref(true)
 const isSaving = ref(false)
@@ -49,9 +49,10 @@ const loadFormDefinition = async () => {
     const groupId = props.parameters.metadata_group_id
     if (!groupId) return
 
-    const [groupRes, defRes] = await Promise.all([
+    const [groupRes, defRes, savedRes] = await Promise.all([
       api.get(`metadata/groups/${groupId}/`),
-      api.get(`metadata/definitions/`)
+      api.get(`metadata/definitions/`),
+      api.get(`sessions/${props.sessionId}/saved_metadata/`)
     ])
     
     groupData.value = groupRes.data
@@ -59,8 +60,24 @@ const loadFormDefinition = async () => {
     
     activeDefinitions.value = assignedIds.map(id => defRes.data.find(d => d.id === id)).filter(Boolean)
     
+    const savedData = savedRes.data || {}
+
     activeDefinitions.value.forEach(def => {
-      formValues.value[def.id] = def.expected_data_type === 'BOOLEAN' ? false : ''
+      if (savedData[def.id] !== undefined) {
+        let val = savedData[def.id]
+        
+        if (def.expected_data_type === 'BOOLEAN') {
+          formValues.value[def.id] = (val === 'true' || val === 'True')
+        } else if (def.expected_data_type === 'INTEGER') {
+          formValues.value[def.id] = parseInt(val, 10)
+        } else if (def.expected_data_type === 'FLOAT') {
+          formValues.value[def.id] = parseFloat(val)
+        } else {
+          formValues.value[def.id] = val
+        }
+      } else {
+        formValues.value[def.id] = def.expected_data_type === 'BOOLEAN' ? false : ''
+      }
     })
   } catch (error) {
     console.error(error)
@@ -72,10 +89,16 @@ const loadFormDefinition = async () => {
 const submitForm = async () => {
   isSaving.value = true
   try {
-    const valuesArray = Object.keys(formValues.value).map(defId => ({
-      definition_id: parseInt(defId),
-      value: formValues.value[defId]
-    }))
+    const valuesArray = Object.keys(formValues.value).map(defId => {
+      let val = formValues.value[defId]
+      if (typeof val === 'boolean') {
+        val = val ? 'true' : 'false'
+      }
+      return {
+        definition_id: parseInt(defId),
+        value: val
+      }
+    })
 
     await api.post(`sessions/${props.sessionId}/save_metadata/`, {
       group_id: props.parameters.metadata_group_id,
