@@ -31,7 +31,14 @@
     "page_categories": "Page Categories",
     "page_group_categories": "Page Group Categories",
     "component_types": "Component Types",
-    "event_categories": "Event Categories"
+    "event_categories": "Event Categories",
+    "events": "Events / Studies",
+    "page_groups": "Page Groups",
+    "session_launcher": "Launch Session",
+    "pages": "Pages",
+    "components": "Components",
+    "session_history": "Session History",
+    "report":"Report"
   },
   "common": {
     "name": "Name",
@@ -42,7 +49,11 @@
     "no_data": "No data found. Click '+ Add New' to create a record.",
     "managing": "Managing: {table}",
     "eeg_channel": "EEG Channel",
-    "warning": "Warning"
+    "warning": "Warning",
+    "continue": "Continue",
+    "saving": "Saving...",
+    "loading": "Loading...",
+    "yes": "Yes"
   },
   "actions": {
     "add_new": "+ Add New",
@@ -51,7 +62,9 @@
     "cancel": "Cancel",
     "save": "Save to Database",
     "clear": "Clear",
-    "actions": "Actions"
+    "actions": "Actions",
+    "continue": "Weiter",
+    "back": "Zurück"
   },
   "errors": {
     "save_failed": "Error saving record.",
@@ -92,6 +105,59 @@
     "none": "None"
   },
   "views": {
+    "page_groups": {
+      "assign_pages": "Assign Pages",
+      "available_pages": "Available Pages",
+      "selected_pages": "Assigned Pages (Order)"
+    },
+    "pages": {
+      "assign_components": "Assign Components",
+      "available_components": "Available Components",
+      "selected_components": "Page Content (Order)"
+    },
+    "components": {
+      "type": "Component Type",
+      "parameters": "Parameters (JSON)",
+      "param_placeholder": "e.g. {\"text\": \"Hello World\"}",
+      "select_metadata_group": "Assign Metadata Group",
+      "metadata_auto_hint": "The parameter JSON is generated automatically for forms."
+    },
+    "report": {
+      "title": "Session Report (Metadata)",
+      "session_id": "Session ID",
+      "event": "Study / Event",
+      "subject": "Subject (ID)",
+      "date": "Timestamp",
+      "no_data": "No metadata forms were completed during this session.",
+      "question": "Recorded Field",
+      "answer": "Saved Value"
+    },
+    "runner": {
+      "page": "Page",
+      "finished_title": "Session Completed",
+      "finished_desc": "All phases of this event have been successfully completed and the data is saved.",
+      "back_home": "Back to Dashboard",
+      "unknown_component": "Unknown component type",
+      "empty_page": "This page has no configured content.",
+      "view_report": "View Recorded Data"
+    },
+    "launcher": {
+      "select_event": "1. Select Event / Study",
+      "select_subject": "2. Select Subject",
+      "create_subject": "Create New Subject",
+      "start_session": "Start Session Now",
+      "no_event_selected": "Please select an event first",
+      "no_subject_selected": "Please select a subject",
+      "subject_created": "Subject successfully created!"
+    },
+    "events": {
+      "start": "Start Date",
+      "end": "End Date",
+      "assign_groups": "Assign Page Groups",
+      "available_groups": "Available Groups",
+      "selected_groups": "Assigned Groups",
+      "select_category": "- Select Category -"
+    },
     "triggers": {
       "available": "Available",
       "selected": "Selected",

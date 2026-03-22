@@ -16,6 +16,14 @@ import MetaDataGroupView from '../views/MetaDataGroupView.vue'
 import ManufacturerView from '../views/ManufacturerView.vue'
 import EEGChannelView from '../views/EEGChannelView.vue' 
 import ComponentTypeView from '../views/ComponentTypeView.vue'
+import EventManagementView from '../views/EventManagementView.vue'
+import PageGroupView from '../views/PageGroupView.vue'
+import SessionLauncherView from '../views/SessionLauncherView.vue'
+import SessionRunnerView from '../views/SessionRunnerView.vue'
+import ComponentManagerView from '../views/ComponentManagerView.vue'
+import PageManagerView from '../views/PageManagerView.vue'
+import SessionReportView from '../views/SessionReportView.vue'
+import SessionHistoryView from '../views/SessionHistoryView.vue'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -105,6 +113,48 @@ const router = createRouter({
           path: '/component-types',
           name: 'ComponentTypes',
           component: ComponentTypeView
+        },
+        {
+          path: 'events',
+          name: 'events',
+          component: EventManagementView
+        },
+        {
+          path: 'page-groups',
+          name: 'page-groups',
+          component: PageGroupView
+        },
+        {
+          path: 'launcher',
+          name: 'session-launcher',
+          component: SessionLauncherView
+        },
+        {
+          path: 'session/run/:id',
+          name: 'session-runner',
+          component: SessionRunnerView,
+          props: true
+        },
+        {
+          path: 'session/report/:id',
+          name: 'session-report',
+          component: SessionReportView,
+          props: true
+        },
+        {
+          path: 'components',
+          name: 'components',
+          component: ComponentManagerView
+        },
+        {
+          path: 'pages',
+          name: 'pages',
+          component: PageManagerView
+        },
+        {
+          path: 'session-history',
+          name: 'session-history',
+          component: SessionHistoryView
         },
         {
           // dynamic route that powers all category CRUD tables

@@ -31,7 +31,14 @@
     "page_categories": "Seiten-Kategorien",
     "page_group_categories": "Page Group Kategorien",
     "component_types": "Komponenten-Typen",
-    "event_categories": "Event-Kategorien"
+    "event_categories": "Event-Kategorien",
+    "events": "Events / Studien",
+    "page_groups": "Page Groups",
+    "session_launcher": "Session starten",
+    "pages": "Seiten",
+    "components": "Bausteine",
+    "session_history": "Session Historie",
+    "report":"Bericht"
   },
   "common": {
     "name": "Name",
@@ -42,7 +49,11 @@
     "no_data": "Keine Daten gefunden. Klicken Sie auf '+ Neu hinzufügen', um einen Datensatz zu erstellen.",
     "managing": "Verwaltung: {table}",
     "eeg_channel": "EEG Kanäle",
-    "warning": "Warnung"
+    "warning": "Warnung",
+    "continue": "Weiter",
+    "saving": "Speichere...",
+    "loading": "Lädt...",
+    "yes": "Ja"
   },
   "actions": {
     "add_new": "+ Neu hinzufügen",
@@ -51,7 +62,9 @@
     "cancel": "Abbrechen",
     "save": "In Datenbank speichern",
     "clear": "Leeren",
-    "actions": "Aktionen"
+    "actions": "Aktionen",
+    "continue": "Weiter",
+    "back": "Zurück"
   },
   "errors": {
     "save_failed": "Fehler beim Speichern des Datensatzes.",
@@ -92,6 +105,59 @@
     "none": "Keine Angabe"
   },
   "views": {
+    "page_groups": {
+      "assign_pages": "Seiten (Pages) zuweisen",
+      "available_pages": "Verfügbare Seiten",
+      "selected_pages": "Zugeordnete Seiten (Reihenfolge)"
+    },
+    "pages": {
+      "assign_components": "Bausteine zuweisen",
+      "available_components": "Verfügbare Bausteine",
+      "selected_components": "Seiteninhalt (Reihenfolge)"
+    },
+    "components": {
+      "type": "Komponenten-Typ",
+      "parameters": "Parameter (JSON)",
+      "param_placeholder": "z.B. {\"text\": \"Hallo Welt\"}",
+      "select_metadata_group": "Metadaten-Gruppe zuweisen",
+      "metadata_auto_hint": "Das Parameter-JSON wird für Formulare automatisch generiert."
+    },
+    "report": {
+      "title": "Sitzungsbericht (Metadaten)",
+      "session_id": "Session ID",
+      "event": "Studie / Event",
+      "subject": "Proband (ID)",
+      "date": "Zeitpunkt",
+      "no_data": "Für diese Sitzung wurden keine Metadaten-Formulare ausgefüllt.",
+      "question": "Erfasstes Feld",
+      "answer": "Gespeicherter Wert"
+    },
+    "runner": {
+      "page": "Seite",
+      "finished_title": "Sitzung abgeschlossen",
+      "finished_desc": "Alle Phasen dieses Events wurden erfolgreich beendet und die Daten gesichert.",
+      "back_home": "Zurück zum Dashboard",
+      "unknown_component": "Unbekannter Komponententyp",
+      "empty_page": "Diese Seite hat keinen konfigurierten Inhalt.",
+      "view_report": "Erfasste Daten ansehen"
+    },
+    "launcher": {
+      "select_event": "1. Event / Studie auswählen",
+      "select_subject": "2. Proband auswählen",
+      "create_subject": "Neuen Probanden anlegen",
+      "start_session": "Sitzung jetzt starten",
+      "no_event_selected": "Bitte zuerst ein Event auswählen",
+      "no_subject_selected": "Bitte einen Probanden auswählen",
+      "subject_created": "Proband erfolgreich angelegt!"
+    },
+    "events": {
+      "start": "Startdatum",
+      "end": "Enddatum",
+      "assign_groups": "Page Groups zuweisen",
+      "available_groups": "Verfügbare Gruppen",
+      "selected_groups": "Zugewiesene Gruppen",
+      "select_category": "- Kategorie wählen -"
+    },
     "triggers": {
       "available": "Verfügbar",
       "selected": "Ausgewählt",

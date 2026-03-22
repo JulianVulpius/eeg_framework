@@ -6,13 +6,17 @@ from django.http import Http404
 from rest_framework import serializers
 from .models import TriggerGroup, TriggerPair
 from .models.device import DeviceModel, Manufacturer, EEGChannel, DeviceModelEEGChannel
-from .models.session import FrequencyBand
+from .models.session import FrequencyBand, Session
 from .models.subject import SubjectProfile
 from .models.trigger import TriggerHotkeyMapping
 from .models.stimulus import Stimulus, StimulusPlaylist, StimulusPlaylistStimulus
 from django.contrib.contenttypes.models import ContentType
-from .models.metadata import EntityMetaDataRegistry, MetaDataDefinition, MetaDataGroup, MetaDataGroupDefinition
-from .models.ui import ComponentType
+from .models.metadata import EntityMetaDataRegistry, MetaDataDefinition, MetaDataGroup, MetaDataGroupDefinition, MetaDataGroupInstance, MetaDataValue
+from .models.ui import ComponentType, Event, PageGroup, EventPageGroup, Component, Page, PageComponent, PageGroupPage
+from rest_framework.decorators import action
+from rest_framework.response import Response
+import json
+from rest_framework.exceptions import ValidationError
 
 from .models import (
     MetaDataCategory, StimulusCategory, ComponentCategory,
@@ -72,7 +76,6 @@ class TriggerDefinitionViewSet(viewsets.ModelViewSet):
     queryset = TriggerDefinition.objects.all().order_by('id')
     serializer_class = TriggerDefinitionSerializer
 
-# handles the many-to-many junction table automatically
 class TriggerGroupSerializer(serializers.ModelSerializer):
     triggers = serializers.PrimaryKeyRelatedField(
         queryset=TriggerDefinition.objects.all(),
@@ -238,7 +241,7 @@ class EntityMetaDataRegistrySerializer(serializers.ModelSerializer):
         model = EntityMetaDataRegistry
         fields = ['id', 'target_table', 'allowed_category', 'description', 'is_active']
 
-# read-only view for tables. filter by your app to avoid cluttering the dropdown with standard django tables
+# read-only view for tables. filter to avoid cluttering the dropdown with standard django tables
 class ContentTypeViewSet(viewsets.ReadOnlyModelViewSet):
     # only get models from our specific eeg app
     queryset = ContentType.objects.filter(app_label='eeg_api').order_by('model')
@@ -348,3 +351,276 @@ class ComponentTypeSerializer(serializers.ModelSerializer):
 class ComponentTypeViewSet(viewsets.ModelViewSet):
     queryset = ComponentType.objects.all().order_by('name')
     serializer_class = ComponentTypeSerializer
+
+class EventSerializer(serializers.ModelSerializer):
+    page_groups = serializers.PrimaryKeyRelatedField(
+        queryset=PageGroup.objects.all(),
+        many=True,
+        required=False
+    )
+
+    class Meta:
+        model = Event
+        fields = ['id', 'name', 'category', 'description', 'event_start', 'event_end', 'page_groups']
+
+    def create(self, validated_data):
+        page_groups_data = validated_data.pop('page_groups', [])
+        event = Event.objects.create(**validated_data)
+        
+        for page_group in page_groups_data:
+            EventPageGroup.objects.create(event=event, page_group=page_group)
+        return event
+
+    def update(self, instance, validated_data):
+        if 'page_groups' in validated_data:
+            page_groups_data = validated_data.pop('page_groups')
+            
+
+            EventPageGroup.objects.filter(event=instance).delete()
+            for page_group in page_groups_data:
+                EventPageGroup.objects.create(event=instance, page_group=page_group)
+
+        instance.name = validated_data.get('name', instance.name)
+        instance.category = validated_data.get('category', instance.category)
+        instance.description = validated_data.get('description', instance.description)
+        instance.event_start = validated_data.get('event_start', instance.event_start)
+        instance.event_end = validated_data.get('event_end', instance.event_end)
+        instance.save()
+        
+        return instance
+
+class EventViewSet(viewsets.ModelViewSet):
+    queryset = Event.objects.all().order_by('-created_at')
+    serializer_class = EventSerializer
+
+class PageSerializer(serializers.ModelSerializer):
+    components = serializers.PrimaryKeyRelatedField(
+        queryset=Component.objects.all(),
+        many=True,
+        required=False
+    )
+
+    class Meta:
+        model = Page
+        fields = ['id', 'name', 'category', 'description', 'components']
+
+    def create(self, validated_data):
+        components_data = validated_data.pop('components', [])
+        page = Page.objects.create(**validated_data)
+        for index, comp in enumerate(components_data):
+            PageComponent.objects.create(page=page, component=comp, order=index + 1)
+        return page
+
+    def update(self, instance, validated_data):
+        if 'components' in validated_data:
+            components_data = validated_data.pop('components')
+            PageComponent.objects.filter(page=instance).delete()
+            for index, comp in enumerate(components_data):
+                PageComponent.objects.create(page=instance, component=comp, order=index + 1)
+        
+        instance.name = validated_data.get('name', instance.name)
+        instance.category = validated_data.get('category', instance.category)
+        instance.description = validated_data.get('description', instance.description)
+        instance.save()
+        return instance
+
+class PageViewSet(viewsets.ModelViewSet):
+    queryset = Page.objects.all().order_by('-created_at')
+    serializer_class = PageSerializer
+
+class PageGroupSerializer(serializers.ModelSerializer):
+    pages = serializers.PrimaryKeyRelatedField(
+        queryset=Page.objects.all(),
+        many=True,
+        required=False
+    )
+
+    class Meta:
+        model = PageGroup
+        fields = ['id', 'name', 'category', 'description', 'pages']
+
+    def create(self, validated_data):
+        pages_data = validated_data.pop('pages', [])
+        group = PageGroup.objects.create(**validated_data)
+        for index, page in enumerate(pages_data):
+            PageGroupPage.objects.create(page_group=group, page=page, order=index + 1)
+        return group
+
+    def update(self, instance, validated_data):
+        if 'pages' in validated_data:
+            pages_data = validated_data.pop('pages')
+            PageGroupPage.objects.filter(page_group=instance).delete()
+            for index, page in enumerate(pages_data):
+                PageGroupPage.objects.create(page_group=instance, page=page, order=index + 1)
+                
+        instance.name = validated_data.get('name', instance.name)
+        instance.category = validated_data.get('category', instance.category)
+        instance.description = validated_data.get('description', instance.description)
+        instance.save()
+        return instance
+
+class PageGroupViewSet(viewsets.ModelViewSet):
+    queryset = PageGroup.objects.all().order_by('id')
+    serializer_class = PageGroupSerializer
+
+
+class EventSerializer(serializers.ModelSerializer):
+    page_groups = serializers.PrimaryKeyRelatedField(
+        queryset=PageGroup.objects.all(),
+        many=True,
+        required=False
+    )
+
+    class Meta:
+        model = Event
+        fields = ['id', 'name', 'category', 'description', 'event_start', 'event_end', 'page_groups']
+
+    def create(self, validated_data):
+        page_groups_data = validated_data.pop('page_groups', [])
+        event = Event.objects.create(**validated_data)
+        
+        for page_group in page_groups_data:
+            EventPageGroup.objects.create(event=event, page_group=page_group)
+        return event
+
+    def update(self, instance, validated_data):
+        if 'page_groups' in validated_data:
+            page_groups_data = validated_data.pop('page_groups')
+            
+            EventPageGroup.objects.filter(event=instance).delete()
+            for page_group in page_groups_data:
+                EventPageGroup.objects.create(event=instance, page_group=page_group)
+
+        instance.name = validated_data.get('name', instance.name)
+        instance.category = validated_data.get('category', instance.category)
+        instance.description = validated_data.get('description', instance.description)
+        instance.event_start = validated_data.get('event_start', instance.event_start)
+        instance.event_end = validated_data.get('event_end', instance.event_end)
+        instance.save()
+        
+        return instance
+
+class EventViewSet(viewsets.ModelViewSet):
+    queryset = Event.objects.all().order_by('-created_at')
+    serializer_class = EventSerializer
+
+class SessionSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Session
+        fields = '__all__'
+
+class SessionViewSet(viewsets.ModelViewSet):
+    queryset = Session.objects.all().order_by('-start_datetime')
+    serializer_class = SessionSerializer
+
+    @action(detail=True, methods=['get'])
+    def blueprint(self, request, pk=None):
+        session = self.get_object()
+        event = session.event
+        
+        blueprint_data = {
+            "session_id": session.id,
+            "event_name": event.name,
+            "page_groups": []
+        }
+        
+        epgs = event.eventpagegroup_set.all().order_by('id')
+        for epg in epgs:
+            pg = epg.page_group
+            pg_data = {"id": pg.id, "name": pg.name, "pages": []}
+            
+            pgps = pg.pagegrouppage_set.all().order_by('order')
+            for pgp in pgps:
+                page = pgp.page
+                page_data = {"id": page.id, "name": page.name, "components": []}
+                
+                pcs = page.pagecomponent_set.all().order_by('order')
+                for pc in pcs:
+                    comp = pc.component
+                    page_data["components"].append({
+                        "id": comp.id,
+                        "type": comp.component_type.identifier,
+                        "parameters": comp.parameter
+                    })
+                pg_data["pages"].append(page_data)
+            blueprint_data["page_groups"].append(pg_data)
+            
+        return Response(blueprint_data)
+
+    @action(detail=True, methods=['post', 'put'])
+    def save_metadata(self, request, pk=None):
+        session = self.get_object()
+        group_id = request.data.get('group_id')
+        values = request.data.get('values', [])
+        
+        group = MetaDataGroup.objects.get(id=group_id)
+        session_ct = ContentType.objects.get_for_model(Session)
+        
+        instance, created = MetaDataGroupInstance.objects.get_or_create(
+            group=group,
+            content_type=session_ct,
+            object_id=session.id
+        )
+        
+        for val in values:
+            definition = MetaDataDefinition.objects.get(id=val['definition_id'])
+            MetaDataValue.objects.update_or_create(
+                instance=instance,
+                definition=definition,
+                defaults={'value': str(val['value'])}
+            )
+            
+        return Response({"status": "success", "updated": not created})
+        
+    @action(detail=True, methods=['get'])
+    def report(self, request, pk=None):
+        session = self.get_object()
+        session_ct = ContentType.objects.get_for_model(Session)
+        
+        # Hole alle gespeicherten Metadaten-Instanzen für diese spezifische Session
+        instances = MetaDataGroupInstance.objects.filter(
+            content_type=session_ct, 
+            object_id=session.id
+        ).order_by('created_at')
+        
+        report_data = []
+        for inst in instances:
+            group_data = {
+                "group_name": inst.group.name,
+                "timestamp": inst.created_at,
+                "answers": []
+            }
+            # Hole alle beantworteten Felder (values) dieser Instanz
+            for val in inst.values.all().order_by('definition__name'):
+                group_data["answers"].append({
+                    "question": val.definition.name,
+                    "answer": val.value,
+                    "type": val.definition.expected_data_type
+                })
+            report_data.append(group_data)
+            
+        return Response({
+            "session_id": session.id,
+            "event_name": session.event.name,
+            "subject_identifier": session.subject.identifier,
+            "start_time": session.start_datetime,
+            "metadata_groups": report_data
+        })
+
+class ComponentSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Component
+        fields = ['id', 'name', 'category', 'component_type', 'description', 'parameter']
+
+    def validate_parameter(self, value):
+        # Ensure it's valid JSON if passed as string, though DRF usually handles dicts here
+        if isinstance(value, str):
+            try:
+                return json.loads(value)
+            except ValueError:
+                raise ValidationError("Invalid JSON format for parameters.")
+        return value
+
+class ComponentViewSet(viewsets.ModelViewSet):
+    queryset = Component.objects.all().order_by('-created_at')
+    serializer_class = ComponentSerializer

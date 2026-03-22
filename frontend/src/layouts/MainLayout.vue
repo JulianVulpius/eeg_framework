@@ -9,9 +9,31 @@
       <nav class="sidebar-nav">
 
       <div class="nav-section" style="padding: 10px 20px;">
+          <router-link to="/launcher" class="btn-play-sync" style="margin-bottom: 10px; background: linear-gradient(135deg, #3498db, #2980b9); border-color: #2980b9; box-shadow: 0 4px 6px rgba(52, 152, 219, 0.3);">
+            ▶ {{ $t('nav.session_launcher') }}
+          </router-link>
+          
+          <router-link to="/session-history" class="btn-play-sync" style="margin-bottom: 10px; background: #f1f3f5; color: #333; border-color: #ddd; box-shadow: none;">
+            📊 {{ $t('nav.session_history') }}
+          </router-link>
+
           <router-link to="/session-control" class="btn-play-sync">
             <span class="play-icon">▶</span> {{ $t('nav.unicorn_sync') }}
           </router-link>
+        </div>
+
+        <div class="nav-section">
+          <button class="section-toggle" @click="toggleSection('studies')">
+            {{ $t('nav.events') }}
+            <span class="chevron">{{ openSections.studies ? '▼' : '▶' }}</span>
+          </button>
+          
+          <div class="section-links" v-show="openSections.studies">
+            <router-link to="/events" class="nav-link">{{ $t('nav.events') }}</router-link>
+            <router-link to="/page-groups" class="nav-link">{{ $t('nav.page_groups') }}</router-link>
+            <router-link to="/pages" class="nav-link">{{ $t('nav.pages') }}</router-link>
+            <router-link to="/components" class="nav-link">{{ $t('nav.components') }}</router-link>
+          </div>
         </div>
 
         <div class="nav-section">
@@ -125,7 +147,8 @@ const openSections = reactive({
   masterData: false,
   categories: false,
   metadata: false,
-  triggers: false
+  triggers: false,
+  studies: false
 })
 
 const toggleSidebar = () => {

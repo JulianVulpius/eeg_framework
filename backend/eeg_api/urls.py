@@ -1,7 +1,8 @@
 from django.urls import path, include
 from rest_framework.routers import DefaultRouter
 from .views import GenericCategoryViewSet, TriggerDefinitionViewSet,  TriggerGroupViewSet, TriggerPairViewSet, FrequencyBandViewSet, DeviceModelViewSet, SubjectProfileViewSet, TriggerHotkeyMappingViewSet, StimulusViewSet, StimulusPlaylistViewSet
-from .views import ContentTypeViewSet, EntityMetaDataRegistryViewSet, MetaDataDefinitionViewSet, MetaDataGroupViewSet, ManufacturerViewSet, EEGChannelViewSet, ComponentTypeViewSet
+from .views import ContentTypeViewSet, EntityMetaDataRegistryViewSet, MetaDataDefinitionViewSet, MetaDataGroupViewSet, ManufacturerViewSet, EEGChannelViewSet, ComponentTypeViewSet, EventViewSet, PageGroupViewSet, SessionViewSet
+from .views import ComponentViewSet, PageViewSet
 
 router = DefaultRouter()
 
@@ -106,7 +107,37 @@ router.register(
     r'component-types', 
     ComponentTypeViewSet, 
     basename='componenttype'
-    )
+)
+
+router.register(
+    r'events', 
+    EventViewSet, 
+    basename='events'
+)
+
+router.register(
+    r'page-groups', 
+    PageGroupViewSet, 
+    basename='page-groups'
+)
+
+router.register(
+    r'sessions', 
+    SessionViewSet, 
+    basename='sessions'
+)
+
+router.register(
+    r'components', 
+    ComponentViewSet, 
+    basename='components'
+)
+
+router.register(
+    r'pages', 
+    PageViewSet, 
+    basename='pages'
+)
 
 urlpatterns = [
     path('', include(router.urls)),
