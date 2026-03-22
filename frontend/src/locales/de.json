@@ -30,7 +30,8 @@
     "metadata_groups": "Metadaten-Gruppen",
     "page_categories": "Seiten-Kategorien",
     "page_group_categories": "Page Group Kategorien",
-    "component_types": "Komponenten-Typen"
+    "component_types": "Komponenten-Typen",
+    "event_categories": "Event-Kategorien"
   },
   "common": {
     "name": "Name",
