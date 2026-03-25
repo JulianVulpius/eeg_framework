@@ -154,6 +154,7 @@ class DeviceModelSerializer(serializers.ModelSerializer):
         instance.name = validated_data.get('name', instance.name)
         instance.manufacturer = validated_data.get('manufacturer', instance.manufacturer)
         instance.category = validated_data.get('category', instance.category)
+        instance.is_eeg = validated_data.get('is_eeg', instance.is_eeg)
         instance.save()
         
         return instance

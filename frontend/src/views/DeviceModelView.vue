@@ -100,7 +100,12 @@
           :error="crud.fieldErrors.value.category"
         />
 
-        <div class="form-group">
+        <div class="form-group inline-flex">
+          <input type="checkbox" v-model="formData.is_eeg" id="isEegDevice" />
+          <label for="isEegDevice">{{ $t('master_data.is_eeg') }}</label>
+        </div>
+
+        <div class="form-group" v-if="formData.is_eeg">
           <label>{{ $t('common.eeg_channel') }}</label>
           <BaseCheckboxGroup 
             v-model="formData.channels" 
@@ -146,7 +151,7 @@ import BaseCheckboxGroup from '@/components/BaseCheckboxGroup.vue'
 import ConfirmDeleteModal from '@/components/ConfirmDeleteModal.vue'
 import WarningModal from '@/components/WarningModal.vue'
 import ColumnHeaderFilter from '@/components/ColumnHeaderFilter.vue'
-import ColumnHeaderMultiFilter from '@/components/ColumnHeaderMultiFilter.vue' // new multi-filter component
+import ColumnHeaderMultiFilter from '@/components/ColumnHeaderMultiFilter.vue'
 import CrudHeader from '@/components/CrudHeader.vue'
 import TableActionButtons from '@/components/TableActionButtons.vue'
 
@@ -165,32 +170,28 @@ const columnFilters = ref({
   name: '',
   manufacturer: '',
   category: '',
-  channels: [] // added array to hold selected required channels
+  channels: [] 
 })
 
 const filteredItems = computed(() => {
   return items.value.filter(item => {
-    // filter by name
     if (columnFilters.value.name) {
       const q = columnFilters.value.name.toLowerCase()
       if (!item.name.toLowerCase().includes(q)) return false
     }
     
-    // filter by manufacturer
     if (columnFilters.value.manufacturer) {
       const q = columnFilters.value.manufacturer.toLowerCase()
       const mName = getManufacturerName(item.manufacturer).toLowerCase()
       if (!mName.includes(q)) return false
     }
 
-    // filter by category
     if (columnFilters.value.category) {
       const q = columnFilters.value.category.toLowerCase()
       const cName = getCategoryName(item.category).toLowerCase()
       if (!cName.includes(q)) return false
     }
 
-    // strict 'must include' filter for eeg channels
     if (columnFilters.value.channels && columnFilters.value.channels.length > 0) {
       const itemChannels = item.assigned_channels || []
       const hasAllRequired = columnFilters.value.channels.every(reqId => itemChannels.includes(reqId))
@@ -201,10 +202,10 @@ const filteredItems = computed(() => {
   })
 })
 
-const formData = ref({ name: '', manufacturer: null, category: null, channels: [] })
+const formData = ref({ name: '', manufacturer: null, category: null, is_eeg: false, channels: [] })
 
 const resetForm = () => { 
-  formData.value = { name: '', manufacturer: null, category: null, channels: [] } 
+  formData.value = { name: '', manufacturer: null, category: null, is_eeg: false, channels: [] } 
 }
 
 const populateForm = (item) => { 
@@ -212,6 +213,7 @@ const populateForm = (item) => {
     name: item.name, 
     manufacturer: item.manufacturer, 
     category: item.category,
+    is_eeg: item.is_eeg !== undefined ? item.is_eeg : false, // populate is_eeg safely
     channels: item.assigned_channels || [] 
   } 
 }
@@ -229,7 +231,6 @@ const loadData = async () => {
     manufacturers.value = resManuf.data
     channels.value = resChannels.data 
   } catch (error) { 
-    console.error(error)
     warningMessage.value = crud.parseApiError(error, t, 'errors.load_failed')
     showWarningModal.value = true
   }
@@ -255,13 +256,17 @@ const saveRecord = async () => {
     return
   }
 
+  const payload = { ...formData.value }
+  if (!payload.is_eeg) {
+    payload.channels = []
+  }
+
   try {
-    if (crud.isEditing.value) await api.put(`device-models/${crud.editingId.value}/`, formData.value)
-    else await api.post('device-models/', formData.value)
+    if (crud.isEditing.value) await api.put(`device-models/${crud.editingId.value}/`, payload)
+    else await api.post('device-models/', payload)
     crud.closeDialog()
     loadData()
   } catch (error) {
-    // let the crud composable do all the hard work handling backend errors
     crud.handleFormError(error, t, 'errors.save_failed')
   }
 }
@@ -284,8 +289,29 @@ onMounted(() => {
 </script>
 
 <style scoped>
-/* override global table overflow to prevent the absolute dropdown from getting clipped */
 .table-container {
   overflow: visible !important;
+}
+
+/* styles for the inline checkbox */
+.inline-flex {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 15px;
+  margin-bottom: 15px;
+}
+.inline-flex input {
+  margin: 0;
+  width: auto;
+  cursor: pointer;
+  height: 18px;
+  width: 18px;
+}
+.inline-flex label {
+  margin: 0;
+  font-weight: 600;
+  cursor: pointer;
+  color: #34495e;
 }
 </style>

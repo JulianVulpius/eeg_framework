@@ -106,7 +106,8 @@
     "gender_male": "Male",
     "gender_female": "Female",
     "gender_other": "Other",
-    "none": "None"
+    "none": "None",
+    "is_eeg": "Is EEG Device"
   },
   "views": {
     "page_groups": {
