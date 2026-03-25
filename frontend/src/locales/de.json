@@ -54,7 +54,8 @@
     "saving": "Speichere...",
     "loading": "Lädt...",
     "yes": "Ja",
-    "no": "Nein"
+    "no": "Nein",
+    "must_include": "Muss beinhalten"
   },
   "actions": {
     "add_new": "+ Neu hinzufügen",

@@ -3,7 +3,6 @@
     <div class="page-header">
       <h1>{{ $t('nav.registry_setup') }}</h1>
       <div class="header-actions">
-        <input type="text" v-model="mainSearchQuery" :placeholder="$t('common.search')" class="search-input" />
         <button class="btn-primary" @click="openAddDialog">{{ $t('actions.add_new') }}</button>
       </div>
     </div>
@@ -12,9 +11,30 @@
       <table class="data-table">
         <thead>
           <tr>
-            <th>{{ $t('views.registry.target_table') }}</th>
-            <th>{{ $t('views.registry.allowed_categories') }}</th>
-            <th>{{ $t('views.registry.active') }}</th>
+            <th style="width: 30%;">
+              <ColumnHeaderFilter 
+                :title="$t('views.registry.target_table')" 
+                v-model="columnFilters.target_table" 
+                :placeholder="$t('common.search')" 
+              />
+            </th>
+            <th style="width: 40%;">
+              <ColumnHeaderMultiFilter 
+                :title="$t('views.registry.allowed_categories')" 
+                v-model="columnFilters.categories" 
+                :options="categories"
+                :placeholder="$t('common.search')" 
+                :filterTitle="$t('common.must_include')"
+              />
+            </th>
+            <th style="width: 15%;">
+              <ColumnHeaderSelectFilter 
+                :title="$t('views.registry.active')" 
+                v-model="columnFilters.is_active" 
+                :options="activeOptions"
+                :placeholder="$t('master_data.none')" 
+              />
+            </th>
             <th class="actions-column">{{ $t('actions.actions') }}</th>
           </tr>
         </thead>
@@ -24,11 +44,15 @@
           </tr>
           <tr v-for="group in filteredGroupedItems" :key="group.target_table">
             <td><strong>{{ group.tableName }}</strong></td>
+            
             <td>
-              <span class="category-badge" v-for="catId in group.categories" :key="catId">
-                {{ getCategoryName(catId) }}
-              </span>
+              <div class="badge-container">
+                <span class="badge category-badge" v-for="catId in group.categories" :key="catId">
+                  {{ getCategoryName(catId) }}
+                </span>
+              </div>
             </td>
+            
             <td>
               <span :style="{ color: group.isActive ? '#2ecc71' : '#e74c3c', fontWeight: 'bold' }">
                 {{ group.isActive ? $t('views.registry.yes') : $t('views.registry.no') }}
@@ -110,6 +134,10 @@ import BaseTransferList from '@/components/BaseTransferList.vue'
 import ConfirmDeleteModal from '@/components/ConfirmDeleteModal.vue'
 import WarningModal from '@/components/WarningModal.vue'
 
+import ColumnHeaderFilter from '@/components/ColumnHeaderFilter.vue'
+import ColumnHeaderMultiFilter from '@/components/ColumnHeaderMultiFilter.vue'
+import ColumnHeaderSelectFilter from '@/components/ColumnHeaderSelectFilter.vue'
+
 const { t } = useI18n()
 const crud = useCrud() 
 
@@ -117,7 +145,13 @@ const rawRegistryItems = ref([])
 const categories = ref([])
 const contentTypes = ref([])
 
-const mainSearchQuery = ref('')
+// Column Filter State
+const columnFilters = ref({
+  target_table: '',
+  categories: [],
+  is_active: ''
+})
+
 const isDialogOpen = ref(false)
 const isEditing = ref(false)
 const isConfirmOpen = ref(false)
@@ -131,6 +165,11 @@ const showTableDropdown = ref(false)
 const tableSearchQuery = ref('')
 
 const formData = ref({ target_table: null, selected_categories: [], original_registry_items: [], is_active: true })
+
+const activeOptions = computed(() => [
+  { value: 'true', label: t('views.registry.yes') },
+  { value: 'false', label: t('views.registry.no') }
+])
 
 const loadData = async () => {
   try {
@@ -161,8 +200,24 @@ const groupedRegistry = computed(() => {
 })
 
 const filteredGroupedItems = computed(() => {
-  if (!mainSearchQuery.value) return groupedRegistry.value
-  return groupedRegistry.value.filter(group => group.tableName.toLowerCase().includes(mainSearchQuery.value.toLowerCase()))
+  return groupedRegistry.value.filter(group => {
+    if (columnFilters.value.target_table) {
+      const q = columnFilters.value.target_table.toLowerCase()
+      if (!group.tableName.toLowerCase().includes(q)) return false
+    }
+
+    if (columnFilters.value.categories && columnFilters.value.categories.length > 0) {
+      const hasAllRequired = columnFilters.value.categories.every(reqId => group.categories.includes(reqId))
+      if (!hasAllRequired) return false
+    }
+
+    if (columnFilters.value.is_active !== '') {
+      const isFilterActive = columnFilters.value.is_active === 'true'
+      if (group.isActive !== isFilterActive) return false
+    }
+
+    return true
+  })
 })
 
 const usedTableIds = computed(() => groupedRegistry.value.map(group => group.target_table))
@@ -261,3 +316,25 @@ const executeDelete = async () => {
 
 onMounted(() => { loadData() })
 </script>
+
+<style scoped>
+/* Stellt sicher, dass das Multi-Select-Dropdown nicht von der Tabelle abgeschnitten wird */
+.table-container {
+  overflow: visible !important;
+}
+
+.inline-flex {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 20px;
+}
+.inline-flex input {
+  margin: 0;
+  width: auto;
+}
+.inline-flex label {
+  margin: 0;
+  font-weight: normal;
+}
+</style>

@@ -1,18 +1,35 @@
 <template>
-  <div class="checkbox-grid-container">
-    <label v-for="option in options" :key="option.id" class="checkbox-item">
-      <span class="item-name">{{ option.name }}</span>
+  <div class="checkbox-group-wrapper">
+    <div v-if="searchable" class="checkbox-search">
       <input 
-        type="checkbox" 
-        :value="option.id"
-        :checked="modelValue.includes(option.id)"
-        @change="onChange($event, option.id)"
+        type="text" 
+        v-model="searchQuery" 
+        :placeholder="searchPlaceholder || $t('common.search')" 
+        class="form-control"
       />
-    </label>
+    </div>
+
+    <div class="checkbox-grid-container">
+      <label v-for="option in filteredOptions" :key="option.id" class="checkbox-item">
+        <span class="item-name">{{ option.name }}</span>
+        <input 
+          type="checkbox" 
+          :value="option.id"
+          :checked="modelValue.includes(option.id)"
+          @change="onChange($event, option.id)"
+        />
+      </label>
+      
+      <div v-if="filteredOptions.length === 0" class="no-results">
+        {{ $t('common.no_data') }}
+      </div>
+    </div>
   </div>
 </template>
 
 <script setup>
+import { ref, computed } from 'vue'
+
 const props = defineProps({
   modelValue: {
     type: Array,
@@ -21,10 +38,26 @@ const props = defineProps({
   options: {
     type: Array,
     required: true
+  },
+  searchable: {
+    type: Boolean,
+    default: false
+  },
+  searchPlaceholder: {
+    type: String,
+    default: ''
   }
 })
 
 const emit = defineEmits(['update:modelValue'])
+
+const searchQuery = ref('')
+
+const filteredOptions = computed(() => {
+  if (!searchQuery.value) return props.options
+  const q = searchQuery.value.toLowerCase()
+  return props.options.filter(opt => opt.name.toLowerCase().includes(q))
+})
 
 const onChange = (event, id) => {
   const isChecked = event.target.checked
@@ -41,11 +74,30 @@ const onChange = (event, id) => {
 </script>
 
 <style scoped>
+.checkbox-group-wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.checkbox-search input {
+  width: 100%;
+  padding: 6px 10px;
+  font-size: 0.85rem;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+}
+
+.checkbox-search input:focus {
+  outline: none;
+  border-color: #3498db;
+}
+
 .checkbox-grid-container {
   display: grid;
-  grid-template-columns: 1fr 1fr; /* 2 equal columns */
+  grid-template-columns: 1fr 1fr; 
   gap: 0.5rem 1rem;
-  max-height: 200px; /* Scrolling */
+  max-height: 200px; 
   overflow-y: auto;
   border: 1px solid var(--color-border, #ccc);
   padding: 10px;
@@ -55,10 +107,9 @@ const onChange = (event, id) => {
 
 .checkbox-item {
   display: grid;
-  /* Columns: Text takes all space (1fr), Checkbox has fixed width (25px) */
   grid-template-columns: 1fr 25px; 
-  align-items: center; /* Vertically center */
-  gap: 10px; /* Space between text and checkbox area */
+  align-items: center; 
+  gap: 10px; 
   cursor: pointer;
   padding: 4px 8px;
   border-radius: 4px;
@@ -71,18 +122,25 @@ const onChange = (event, id) => {
 
 .item-name {
   font-size: 0.9rem;
-  /* Truncate text if it's too long for the column */
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
 
-/* Ensure checkbox is right-aligned in its 25px grid cell */
 .checkbox-item input[type="checkbox"] {
   justify-self: end;
   margin: 0;
   cursor: pointer;
   width: 16px;
   height: 16px;
+}
+
+.no-results {
+  grid-column: 1 / -1;
+  text-align: center;
+  color: #999;
+  font-size: 0.85rem;
+  padding: 10px 0;
+  font-style: italic;
 }
 </style>

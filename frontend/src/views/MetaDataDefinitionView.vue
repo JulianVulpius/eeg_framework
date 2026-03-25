@@ -25,7 +25,16 @@
                 :placeholder="$t('common.search')" 
               />
             </th>
-            <th>{{ $t('views.metadata.data_type') }}</th>
+            
+            <th style="width: 20%;">
+               <ColumnHeaderSelectFilter 
+                :title="$t('views.metadata.data_type')" 
+                v-model="columnFilters.data_type" 
+                :options="dataTypes"
+                :placeholder="$t('master_data.none')" 
+              />
+            </th>
+            
             <th style="width: 30%;">
               <ColumnHeaderFilter 
                 :title="$t('common.description')" 
@@ -139,6 +148,7 @@ import BaseSearchSelect from '@/components/BaseSearchSelect.vue'
 import ConfirmDeleteModal from '@/components/ConfirmDeleteModal.vue'
 import WarningModal from '@/components/WarningModal.vue'
 import ColumnHeaderFilter from '@/components/ColumnHeaderFilter.vue'
+import ColumnHeaderSelectFilter from '@/components/ColumnHeaderSelectFilter.vue' // import new component
 import CrudHeader from '@/components/CrudHeader.vue'
 import TableActionButtons from '@/components/TableActionButtons.vue'
 
@@ -153,26 +163,8 @@ const warningMessage = ref('')
 const columnFilters = ref({
   name: '',
   category: '',
-  description: ''
-})
-
-const filteredItems = computed(() => {
-  return items.value.filter(item => {
-    if (columnFilters.value.name) {
-      const q = columnFilters.value.name.toLowerCase()
-      if (!item.name.toLowerCase().includes(q)) return false
-    }
-    if (columnFilters.value.category) {
-      const q = columnFilters.value.category.toLowerCase()
-      const cName = getCategoryName(item.category).toLowerCase()
-      if (!cName.includes(q)) return false
-    }
-    if (columnFilters.value.description) {
-      const q = columnFilters.value.description.toLowerCase()
-      if (!item.description || !item.description.toLowerCase().includes(q)) return false
-    }
-    return true
-  })
+  description: '',
+  data_type: '' // new filter state
 })
 
 const dataTypes = computed(() => [
@@ -182,6 +174,32 @@ const dataTypes = computed(() => [
   { value: 'BOOLEAN', label: t('views.metadata.type_boolean') },
   { value: 'JSON', label: t('views.metadata.type_json') }
 ])
+
+const filteredItems = computed(() => {
+  return items.value.filter(item => {
+    if (columnFilters.value.name) {
+      const q = columnFilters.value.name.toLowerCase()
+      if (!item.name.toLowerCase().includes(q)) return false
+    }
+    
+    if (columnFilters.value.category) {
+      const q = columnFilters.value.category.toLowerCase()
+      const cName = getCategoryName(item.category).toLowerCase()
+      if (!cName.includes(q)) return false
+    }
+    
+    if (columnFilters.value.description) {
+      const q = columnFilters.value.description.toLowerCase()
+      if (!item.description || !item.description.toLowerCase().includes(q)) return false
+    }
+
+    if (columnFilters.value.data_type) {
+      if (item.expected_data_type !== columnFilters.value.data_type) return false
+    }
+
+    return true
+  })
+})
 
 const formData = ref({ name: '', category: null, expected_data_type: 'STRING', description: '' })
 

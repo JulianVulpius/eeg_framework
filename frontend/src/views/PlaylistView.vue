@@ -63,6 +63,7 @@
             :availableItems="allStimuli"
             :categories="stimulusCategories"
             v-model="formData.stimuli"
+            boxHeight="550px"
           />
         </div>
 

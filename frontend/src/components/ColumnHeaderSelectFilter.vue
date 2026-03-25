@@ -8,16 +8,20 @@
     </div>
     
     <div v-show="isExpanded || modelValue" class="filter-wrapper">
-      <input 
-        type="text" 
-        ref="inputRef"
+      <select 
+        ref="selectRef"
         :value="modelValue" 
-        @input="$emit('update:modelValue', $event.target.value)"
-        :placeholder="placeholder || '...'" 
+        @change="$emit('update:modelValue', $event.target.value)"
         class="column-search-input"
         @click.stop
-      />
-      <button v-if="modelValue" class="clear-btn" @click.stop="clearSearch">✕</button>
+      >
+        <option value="">{{ placeholder || '...' }}</option>
+        <option v-for="opt in options" :key="opt.value" :value="opt.value">
+          {{ opt.label }}
+        </option>
+      </select>
+      
+      <button v-if="modelValue" class="clear-btn select-clear-btn" @click.stop="clearSearch">✕</button>
     </div>
   </div>
 </template>
@@ -28,19 +32,20 @@ import { ref, nextTick } from 'vue'
 defineProps({
   title: { type: String, required: true },
   modelValue: { type: String, default: '' },
+  options: { type: Array, required: true }, // expects array of { value, label }
   placeholder: { type: String, default: 'Search...' }
 })
 
 const emit = defineEmits(['update:modelValue'])
 
 const isExpanded = ref(false)
-const inputRef = ref(null)
+const selectRef = ref(null)
 
 const toggleSearch = async () => {
   isExpanded.value = !isExpanded.value
   if (isExpanded.value) {
     await nextTick()
-    inputRef.value?.focus()
+    selectRef.value?.focus()
   }
 }
 
@@ -60,8 +65,8 @@ const clearSearch = () => {
 .th-content {
   display: flex;
   align-items: center;
-  justify-content: flex-start; 
-  gap: 8px; 
+  justify-content: flex-start;
+  gap: 8px;
   cursor: pointer;
   user-select: none;
 }
@@ -78,6 +83,7 @@ const clearSearch = () => {
 
 .icon-btn:hover, .icon-btn.has-filter {
   opacity: 1;
+  color: #3498db;
 }
 
 .filter-wrapper {
@@ -88,11 +94,13 @@ const clearSearch = () => {
 
 .column-search-input {
   width: 100%;
-  padding: 4px 24px 4px 8px;
+  padding: 4px 24px 4px 8px; 
   font-size: 0.85rem;
   border: 1px solid #ddd;
   border-radius: 4px;
   font-weight: normal; 
+  background-color: white;
+  appearance: auto; 
 }
 
 .column-search-input:focus {
@@ -109,6 +117,10 @@ const clearSearch = () => {
   cursor: pointer;
   font-size: 0.8rem;
   padding: 0 4px;
+}
+
+.select-clear-btn {
+  right: 22px; 
 }
 
 .clear-btn:hover {

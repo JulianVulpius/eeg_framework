@@ -1,6 +1,6 @@
 <template>
   <div class="shuffle-container">
-    <div class="shuffle-box">
+    <div class="shuffle-box" :style="{ height: boxHeight }">
       <div class="shuffle-header">
         {{ $t('views.playlist.available_stimuli') }}
         <div style="margin: 10px 10px 0 10px; width: calc(100% - 20px);">
@@ -22,7 +22,7 @@
       </ul>
     </div>
 
-    <div class="shuffle-box">
+    <div class="shuffle-box" :style="{ height: boxHeight }">
       <div class="shuffle-header">
         {{ $t('views.playlist.selected_items') }}
         <div style="margin: 10px 10px 0 10px; width: calc(100% - 20px);">
@@ -74,6 +74,10 @@ const props = defineProps({
   modelValue: {
     type: Array,
     required: true
+  },
+  boxHeight: {
+    type: String,
+    default: '450px' 
   }
 })
 
@@ -155,7 +159,7 @@ const onDragEnd = () => {
 
 <style scoped>
 .shuffle-container { display: flex; gap: 15px; }
-.shuffle-box { flex: 1; border: 1px solid #ddd; border-radius: 4px; height: 250px; overflow-y: auto; background: #fdfdfd; }
+.shuffle-box { flex: 1; border: 1px solid #ddd; border-radius: 4px; overflow-y: auto; background: #fdfdfd; }
 .shuffle-header { padding: 10px; background: #f4f7f6; border-bottom: 1px solid #ddd; font-weight: bold; position: sticky; top: 0; display: flex; flex-direction: column; gap: 8px; z-index: 2; }
 .shuffle-list { list-style: none; padding: 0; margin: 0; }
 .shuffle-list li { padding: 10px; border-bottom: 1px solid #eee; display: flex; justify-content: space-between; align-items: center; cursor: pointer; }

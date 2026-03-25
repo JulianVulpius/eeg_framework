@@ -12,29 +12,36 @@
           <tr>
             <th v-if="crud.showIdColumn.value" class="id-column">{{ $t('common.id') }}</th>
             
-            <th style="width: 25%;">
+            <th style="width: 20%;">
               <ColumnHeaderFilter 
                 :title="$t('common.name')" 
                 v-model="columnFilters.name" 
                 :placeholder="$t('common.search')" 
               />
             </th>
-            <th style="width: 25%;">
+            <th style="width: 20%;">
               <ColumnHeaderFilter 
                 :title="$t('master_data.manufacturer')" 
                 v-model="columnFilters.manufacturer" 
                 :placeholder="$t('common.search')" 
               />
             </th>
-            <th style="width: 25%;">
+            <th style="width: 20%;">
               <ColumnHeaderFilter 
                 :title="$t('master_data.category')" 
                 v-model="columnFilters.category" 
                 :placeholder="$t('common.search')" 
               />
             </th>
-            
-            <th>{{ $t('common.eeg_channel') }}</th> 
+            <th style="width: 25%;">
+              <ColumnHeaderMultiFilter 
+                :title="$t('common.eeg_channel')" 
+                v-model="columnFilters.channels" 
+                :options="channels"
+                :placeholder="$t('common.search')" 
+                :filterTitle="$t('common.must_include')" 
+              />
+            </th> 
             <th class="actions-column">{{ $t('actions.actions') }}</th>
           </tr>
         </thead>
@@ -98,6 +105,8 @@
           <BaseCheckboxGroup 
             v-model="formData.channels" 
             :options="channels" 
+            :searchable="true"
+            :searchPlaceholder="$t('common.search')"
           />
           <BaseInputError :message="crud.fieldErrors.value.channels" />
         </div>
@@ -137,6 +146,7 @@ import BaseCheckboxGroup from '@/components/BaseCheckboxGroup.vue'
 import ConfirmDeleteModal from '@/components/ConfirmDeleteModal.vue'
 import WarningModal from '@/components/WarningModal.vue'
 import ColumnHeaderFilter from '@/components/ColumnHeaderFilter.vue'
+import ColumnHeaderMultiFilter from '@/components/ColumnHeaderMultiFilter.vue' // new multi-filter component
 import CrudHeader from '@/components/CrudHeader.vue'
 import TableActionButtons from '@/components/TableActionButtons.vue'
 
@@ -154,26 +164,37 @@ const warningMessage = ref('')
 const columnFilters = ref({
   name: '',
   manufacturer: '',
-  category: ''
+  category: '',
+  channels: [] // added array to hold selected required channels
 })
 
 const filteredItems = computed(() => {
   return items.value.filter(item => {
+    // filter by name
     if (columnFilters.value.name) {
       const q = columnFilters.value.name.toLowerCase()
       if (!item.name.toLowerCase().includes(q)) return false
     }
     
+    // filter by manufacturer
     if (columnFilters.value.manufacturer) {
       const q = columnFilters.value.manufacturer.toLowerCase()
       const mName = getManufacturerName(item.manufacturer).toLowerCase()
       if (!mName.includes(q)) return false
     }
 
+    // filter by category
     if (columnFilters.value.category) {
       const q = columnFilters.value.category.toLowerCase()
       const cName = getCategoryName(item.category).toLowerCase()
       if (!cName.includes(q)) return false
+    }
+
+    // strict 'must include' filter for eeg channels
+    if (columnFilters.value.channels && columnFilters.value.channels.length > 0) {
+      const itemChannels = item.assigned_channels || []
+      const hasAllRequired = columnFilters.value.channels.every(reqId => itemChannels.includes(reqId))
+      if (!hasAllRequired) return false
     }
 
     return true
@@ -261,3 +282,10 @@ onMounted(() => {
   loadData()
 })
 </script>
+
+<style scoped>
+/* override global table overflow to prevent the absolute dropdown from getting clipped */
+.table-container {
+  overflow: visible !important;
+}
+</style>
