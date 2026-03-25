@@ -1,4 +1,5 @@
 from django.db import models
+from .base import AuditBaseModel
 
 class StimulusCategory(models.Model):
     name = models.CharField(max_length=100, unique=True)
@@ -11,7 +12,7 @@ class StimulusCategory(models.Model):
         return self.name
 
 
-class Stimulus(models.Model):
+class Stimulus(AuditBaseModel):
     category = models.ForeignKey(StimulusCategory, on_delete=models.PROTECT)
     name = models.CharField(max_length=150)
     duration = models.PositiveIntegerField(default=10, help_text="Duration in seconds")
@@ -26,7 +27,7 @@ class Stimulus(models.Model):
         return self.name
 
 
-class StimulusPlaylist(models.Model):
+class StimulusPlaylist(AuditBaseModel):
     name = models.CharField(max_length=150)
     
     stimuli = models.ManyToManyField(

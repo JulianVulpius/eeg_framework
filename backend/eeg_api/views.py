@@ -12,7 +12,7 @@ from .models.trigger import TriggerHotkeyMapping
 from .models.stimulus import Stimulus, StimulusPlaylist, StimulusPlaylistStimulus
 from django.contrib.contenttypes.models import ContentType
 from .models.metadata import EntityMetaDataRegistry, MetaDataDefinition, MetaDataGroup, MetaDataGroupDefinition, MetaDataGroupInstance, MetaDataValue
-from .models.ui import ComponentType, Event, PageGroup, EventPageGroup, Component, Page, PageComponent, PageGroupPage
+from .models.ui import ComponentType, Event, PageGroup, EventPageGroup, Component, Page, PageComponent, PageGroupPage, Location
 from rest_framework.decorators import action
 from rest_framework.response import Response
 import json
@@ -122,7 +122,7 @@ class DeviceModelSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = DeviceModel
-        fields = ['id', 'name', 'manufacturer', 'category', 'channels', 'assigned_channels', 'channel_names']
+        fields = ['id', 'name', 'manufacturer', 'category', 'is_eeg', 'channels', 'assigned_channels', 'channel_names']
 
     def get_assigned_channels(self, obj):
         return [c.id for c in obj.channels.all()]
@@ -361,7 +361,7 @@ class EventSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Event
-        fields = ['id', 'name', 'category', 'description', 'event_start', 'event_end', 'page_groups']
+        fields = ['id', 'name', 'category', 'description', 'location', 'event_start', 'event_end', 'page_groups']
 
     def create(self, validated_data):
         page_groups_data = validated_data.pop('page_groups', [])
@@ -374,8 +374,6 @@ class EventSerializer(serializers.ModelSerializer):
     def update(self, instance, validated_data):
         if 'page_groups' in validated_data:
             page_groups_data = validated_data.pop('page_groups')
-            
-
             EventPageGroup.objects.filter(event=instance).delete()
             for page_group in page_groups_data:
                 EventPageGroup.objects.create(event=instance, page_group=page_group)
@@ -383,6 +381,7 @@ class EventSerializer(serializers.ModelSerializer):
         instance.name = validated_data.get('name', instance.name)
         instance.category = validated_data.get('category', instance.category)
         instance.description = validated_data.get('description', instance.description)
+        instance.location = validated_data.get('location', instance.location) 
         instance.event_start = validated_data.get('event_start', instance.event_start)
         instance.event_end = validated_data.get('event_end', instance.event_end)
         instance.save()
@@ -463,47 +462,6 @@ class PageGroupViewSet(viewsets.ModelViewSet):
     queryset = PageGroup.objects.all().order_by('id')
     serializer_class = PageGroupSerializer
 
-
-class EventSerializer(serializers.ModelSerializer):
-    page_groups = serializers.PrimaryKeyRelatedField(
-        queryset=PageGroup.objects.all(),
-        many=True,
-        required=False
-    )
-
-    class Meta:
-        model = Event
-        fields = ['id', 'name', 'category', 'description', 'event_start', 'event_end', 'page_groups']
-
-    def create(self, validated_data):
-        page_groups_data = validated_data.pop('page_groups', [])
-        event = Event.objects.create(**validated_data)
-        
-        for page_group in page_groups_data:
-            EventPageGroup.objects.create(event=event, page_group=page_group)
-        return event
-
-    def update(self, instance, validated_data):
-        if 'page_groups' in validated_data:
-            page_groups_data = validated_data.pop('page_groups')
-            
-            EventPageGroup.objects.filter(event=instance).delete()
-            for page_group in page_groups_data:
-                EventPageGroup.objects.create(event=instance, page_group=page_group)
-
-        instance.name = validated_data.get('name', instance.name)
-        instance.category = validated_data.get('category', instance.category)
-        instance.description = validated_data.get('description', instance.description)
-        instance.event_start = validated_data.get('event_start', instance.event_start)
-        instance.event_end = validated_data.get('event_end', instance.event_end)
-        instance.save()
-        
-        return instance
-
-class EventViewSet(viewsets.ModelViewSet):
-    queryset = Event.objects.all().order_by('-created_at')
-    serializer_class = EventSerializer
-
 class SessionSerializer(serializers.ModelSerializer):
     class Meta:
         model = Session
@@ -517,14 +475,23 @@ class SessionViewSet(viewsets.ModelViewSet):
         event_id = request.data.get('event')
         subject_id = request.data.get('subject')
         page_group_id = request.data.get('page_group')
+        location_id = request.data.get('location')
         start_datetime = request.data.get('start_datetime')
 
         session, created = Session.objects.get_or_create(
             event_id=event_id,
             subject_id=subject_id,
             page_group_id=page_group_id,
-            defaults={'start_datetime': start_datetime}
+            defaults={
+                'start_datetime': start_datetime,
+                'location_id': location_id
+            }
         )
+        
+        if not created:
+            session.location_id = location_id
+            session.start_datetime = start_datetime
+            session.save()
         
         serializer = self.get_serializer(session)
         from rest_framework import status
@@ -668,3 +635,12 @@ class ComponentSerializer(serializers.ModelSerializer):
 class ComponentViewSet(viewsets.ModelViewSet):
     queryset = Component.objects.all().order_by('-created_at')
     serializer_class = ComponentSerializer
+
+class LocationSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Location
+        fields = '__all__'
+
+class LocationViewSet(viewsets.ModelViewSet):
+    queryset = Location.objects.all().order_by('name')
+    serializer_class = LocationSerializer

@@ -1,9 +1,6 @@
 from django.db import models
 from .base import AuditBaseModel
 
-# -----------------------------------------------------------------------------
-# 1. STANDARDIZED CHANNELS
-# -----------------------------------------------------------------------------
 class EEGChannel(models.Model):
     name = models.CharField(
         max_length=50, 
@@ -17,9 +14,6 @@ class EEGChannel(models.Model):
     def __str__(self):
         return self.name
 
-# -----------------------------------------------------------------------------
-# 2. DEVICE MODELS (+ Manufacturer)
-# -----------------------------------------------------------------------------
 class Manufacturer(models.Model):
     name = models.CharField(
         max_length=150, 
@@ -61,6 +55,8 @@ class DeviceModel(models.Model):
         blank=True, 
         related_name='device_models'
     )
+
+    is_eeg = models.BooleanField(default=True)
     
     channels = models.ManyToManyField(
         EEGChannel,
@@ -75,9 +71,6 @@ class DeviceModel(models.Model):
         return f"{self.manufacturer} {self.name}" if self.manufacturer else self.name
 
 class DeviceModelEEGChannel(models.Model):
-    """
-    Lists every single standard channel that this specific hardware model is capable of recording.
-    """
     device_model = models.ForeignKey(DeviceModel, on_delete=models.CASCADE)
     eeg_channel = models.ForeignKey(EEGChannel, on_delete=models.CASCADE)
 
@@ -88,11 +81,7 @@ class DeviceModelEEGChannel(models.Model):
     def __str__(self):
         return f"{self.device_model.name} supports {self.eeg_channel.name}"
 
-# -----------------------------------------------------------------------------
-# 3. DEVICE INSTANCES (The "Physical Units")
-# -----------------------------------------------------------------------------
 class DeviceInstance(AuditBaseModel):
-    # Using PROTECT so you can't accidentally delete a Model if you still own physical Instances of it
     model = models.ForeignKey(DeviceModel, on_delete=models.PROTECT)
     
     name = models.CharField(
@@ -113,9 +102,6 @@ class DeviceInstance(AuditBaseModel):
         return f"{self.name} ({self.model.name})"
 
 class DeviceInstanceEEGChannel(models.Model):
-    """
-    Tells application exactly where to find a channel's data in an incoming stream or file.
-    """
     device_instance = models.ForeignKey(DeviceInstance, on_delete=models.CASCADE)
     eeg_channel = models.ForeignKey(EEGChannel, on_delete=models.CASCADE)
     

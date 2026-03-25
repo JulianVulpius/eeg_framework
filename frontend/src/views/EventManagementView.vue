@@ -11,26 +11,40 @@
         <thead>
           <tr>
             <th v-if="crud.showIdColumn.value" class="id-column">{{ $t('common.id') }}</th>
-            <th style="width: 25%;">
+            <th style="width: 15%;">
               <ColumnHeaderFilter 
                 :title="$t('common.name')" 
                 v-model="columnFilters.name" 
                 :placeholder="$t('common.search')" 
               />
             </th>
-            <th style="width: 20%;">
+            <th style="width: 15%;">
               <ColumnHeaderDateFilter 
                 :title="$t('views.events.start')" 
                 v-model="columnFilters.event_start" 
               />
             </th>
-            <th style="width: 20%;">
+            <th style="width: 15%;">
               <ColumnHeaderDateFilter 
                 :title="$t('views.events.end')" 
                 v-model="columnFilters.event_end" 
               />
             </th>
-            <th style="width: 20%;">
+            <th style="width: 15%;">
+              <ColumnHeaderFilter 
+                :title="$t('nav.locations')" 
+                v-model="columnFilters.location" 
+                :placeholder="$t('common.search')" 
+              />
+            </th>
+            <th style="width: 15%;">
+              <ColumnHeaderFilter 
+                :title="$t('master_data.category')" 
+                v-model="columnFilters.category" 
+                :placeholder="$t('common.search')" 
+              />
+            </th>
+            <th style="width: 15%;">
               <ColumnHeaderFilter 
                 :title="$t('common.creator')" 
                 v-model="columnFilters.creator" 
@@ -42,13 +56,15 @@
         </thead>
         <tbody>
           <tr v-if="filteredItems.length === 0">
-            <td :colspan="crud.showIdColumn.value ? 6 : 5" class="empty-state">{{ $t('common.no_data') }}</td>
+            <td :colspan="crud.showIdColumn.value ? 8 : 7" class="empty-state">{{ $t('common.no_data') }}</td>
           </tr>
           <tr v-for="item in filteredItems" :key="item.id">
             <td v-if="crud.showIdColumn.value" class="id-column">{{ item.id }}</td>
             <td><strong>{{ item.name }}</strong></td>
             <td>{{ formatDisplayDate(item.event_start) }}</td>
             <td>{{ formatDisplayDate(item.event_end) }}</td>
+            <td>{{ getLocationName(item.location) }}</td>
+            <td><span class="badge category-badge">{{ getCategoryName(item.category) }}</span></td>
             <td>{{ item.creator || '-' }}</td>
             <TableActionButtons 
               @edit="crud.openEditDialog(item.id, () => populateForm(item))"
@@ -90,7 +106,22 @@
           </div>
         </div>
 
-        <div class="form-row" style="display: flex; gap: 1rem; margin-bottom: 1rem;">
+        <div class="form-group" style="margin-bottom: 1rem;">
+          <label>{{ $t('nav.locations') }}</label>
+          <BaseSearchSelect
+            v-model="formData.location"
+            :options="locations"
+            :placeholder="$t('common.search')"
+            :nullLabel="$t('master_data.none')"
+          />
+        </div>
+
+        <div class="form-group" style="margin-bottom: 1.5rem;">
+          <label>{{ $t('common.description') }}</label>
+          <textarea v-model="formData.description" rows="2" class="form-control"></textarea>
+        </div>
+
+        <div class="form-row" style="display: flex; gap: 1rem; margin-bottom: 1.5rem;">
           <div class="form-group" style="flex: 1;">
             <label>{{ $t('views.events.start') }}</label>
             <div style="display: flex; gap: 10px;">
@@ -120,11 +151,6 @@
               />
             </div>
           </div>
-        </div>
-
-        <div class="form-group" style="margin-bottom: 1.5rem;">
-          <label>{{ $t('common.description') }}</label>
-          <textarea v-model="formData.description" rows="2" class="form-control"></textarea>
         </div>
 
         <div class="form-group">
@@ -175,6 +201,7 @@ const crud = useCrud()
 const items = ref([])
 const categories = ref([])
 const pageGroups = ref([])
+const locations = ref([]) 
 
 const showWarningModal = ref(false)
 const warningMessage = ref('')
@@ -183,8 +210,22 @@ const columnFilters = ref({
   name: '',
   event_start: '',
   event_end: '',
+  location: '',
+  category: '', // added category filter state
   creator: ''
 })
+
+const getLocationName = (id) => {
+  if (!id) return '-'
+  const loc = locations.value.find(l => l.id === id)
+  return loc ? loc.name : id
+}
+
+const getCategoryName = (id) => {
+  if (!id) return '-'
+  const cat = categories.value.find(c => c.id === id)
+  return cat ? cat.name : id
+}
 
 const filteredItems = computed(() => {
   return items.value.filter(item => {
@@ -201,6 +242,18 @@ const filteredItems = computed(() => {
       if (!item.event_end || !item.event_end.startsWith(columnFilters.value.event_end)) return false
     }
 
+    if (columnFilters.value.location) {
+      const q = columnFilters.value.location.toLowerCase()
+      const locName = getLocationName(item.location).toLowerCase()
+      if (!locName.includes(q)) return false
+    }
+
+    if (columnFilters.value.category) {
+      const q = columnFilters.value.category.toLowerCase()
+      const catName = getCategoryName(item.category).toLowerCase()
+      if (!catName.includes(q)) return false
+    }
+
     if (columnFilters.value.creator) {
       const q = columnFilters.value.creator.toLowerCase()
       const creatorName = item.creator ? item.creator.toLowerCase() : ''
@@ -215,6 +268,7 @@ const formData = ref({
   name: '',
   category: null,
   description: '',
+  location: null,
   event_start: '',
   event_start_time: '',
   event_end: '',
@@ -229,16 +283,13 @@ const extractDatePart = (isoString) => {
 
 const extractTimePart = (isoString) => {
   if (!isoString || !isoString.includes('T')) return ''
-  const timePart = isoString.split('T')[1]
-  return timePart.substring(0, 5) // get hh:mm
+  return isoString.split('T')[1].substring(0, 5)
 }
 
 const formatDisplayDate = (isoString) => {
   if (!isoString) return '-'
   const date = new Date(isoString)
-  
   const timeString = extractTimePart(isoString)
-  
   if (timeString === '00:00') {
     return date.toLocaleDateString(undefined, { year: 'numeric', month: '2-digit', day: '2-digit' })
   } else {
@@ -248,13 +299,9 @@ const formatDisplayDate = (isoString) => {
 
 const resetForm = () => {
   formData.value = { 
-    name: '', 
-    category: null, 
-    description: '', 
-    event_start: '', 
-    event_start_time: '', 
-    event_end: '', 
-    event_end_time: '', 
+    name: '', category: null, description: '', location: null,
+    event_start: '', event_start_time: '', 
+    event_end: '', event_end_time: '', 
     page_groups: [] 
   }
 }
@@ -264,6 +311,7 @@ const populateForm = (item) => {
     name: item.name,
     category: item.category,
     description: item.description || '',
+    location: item.location || null,
     event_start: extractDatePart(item.event_start),
     event_start_time: extractTimePart(item.event_start),
     event_end: extractDatePart(item.event_end),
@@ -274,14 +322,16 @@ const populateForm = (item) => {
 
 const loadData = async () => {
   try {
-    const [eventsRes, catRes, pgRes] = await Promise.all([
+    const [eventsRes, catRes, pgRes, locRes] = await Promise.all([
       api.get('events/'),
       api.get('category/event-categories/'),
-      api.get('page-groups/')
+      api.get('page-groups/'),
+      api.get('locations/')
     ])
     items.value = eventsRes.data
     categories.value = catRes.data
     pageGroups.value = pgRes.data
+    locations.value = locRes.data
   } catch (error) {
     warningMessage.value = crud.parseApiError(error, t, 'errors.load_failed')
     showWarningModal.value = true

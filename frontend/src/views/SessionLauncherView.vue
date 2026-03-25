@@ -24,6 +24,11 @@
           <button class="btn-secondary" @click="isSubjectModalOpen = true" :disabled="!selectedPageGroupId">{{ $t('actions.add_new') }}</button>
         </div>
       </div>
+
+      <div class="card" :class="{ 'disabled-card': !selectedEventId }">
+        <h2>{{ $t('views.launcher.select_location') }} (Optional)</h2>
+        <BaseSearchSelect v-model="selectedLocationId" :options="locations" :placeholder="$t('common.search')" :disabled="!selectedEventId" />
+      </div>
     </div>
 
     <div class="action-footer">
@@ -107,10 +112,12 @@ const router = useRouter()
 const rawEvents = ref([])
 const rawSubjects = ref([])
 const rawPageGroups = ref([])
+const rawLocations = ref([])
 
 const selectedEventId = ref(null)
 const selectedPageGroupId = ref(null)
 const selectedSubjectId = ref(null)
+const selectedLocationId = ref(null)
 
 const isSubjectModalOpen = ref(false)
 const isResumeModalOpen = ref(false)
@@ -122,6 +129,7 @@ const warningMessage = ref('')
 const subjectForm = ref({ identifier: '', first_name: '', last_name: '', date_of_birth: '', gender: 'N' })
 
 const events = computed(() => rawEvents.value.map(e => ({ id: e.id, name: e.name })))
+const locations = computed(() => rawLocations.value.map(l => ({ id: l.id, name: l.name }))) // format locations for dropdown
 
 const subjects = computed(() => rawSubjects.value.map(s => ({ 
   id: s.id, 
@@ -142,10 +150,13 @@ watch(selectedEventId, () => { selectedPageGroupId.value = null })
 
 const loadData = async () => {
   try {
-    const [eventsRes, subjectsRes, pgRes] = await Promise.all([
-      api.get('events/'), api.get('subjects/'), api.get('page-groups/')
+    const [eventsRes, subjectsRes, pgRes, locRes] = await Promise.all([
+      api.get('events/'), api.get('subjects/'), api.get('page-groups/'), api.get('locations/')
     ])
-    rawEvents.value = eventsRes.data; rawSubjects.value = subjectsRes.data; rawPageGroups.value = pgRes.data
+    rawEvents.value = eventsRes.data
+    rawSubjects.value = subjectsRes.data
+    rawPageGroups.value = pgRes.data
+    rawLocations.value = locRes.data
   } catch (error) { showError(t('errors.load_failed')) }
 }
 
@@ -171,11 +182,12 @@ const startSession = async () => {
       event: selectedEventId.value,
       page_group: selectedPageGroupId.value,
       subject: selectedSubjectId.value,
+      location: selectedLocationId.value, // added location to payload
       start_datetime: new Date().toISOString()
     }
     const response = await api.post('sessions/', payload)
     
-    // Status 200 means get_or_create returned an existing session
+    // status 200 means get_or_create returned an existing session
     if (response.status === 200) {
       existingSessionId.value = response.data.id
       isResumeModalOpen.value = true

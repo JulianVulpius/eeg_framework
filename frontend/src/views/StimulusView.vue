@@ -11,39 +11,49 @@
         <thead>
           <tr>
             <th v-if="crud.showIdColumn.value" class="id-column">{{ $t('common.id') }}</th>
-            <th style="width: 30%;">
+            <th style="width: 20%;">
               <ColumnHeaderFilter 
                 :title="$t('common.name')" 
                 v-model="columnFilters.name" 
                 :placeholder="$t('common.search')" 
               />
             </th>
-            <th style="width: 25%;">
+            <th style="width: 20%;">
               <ColumnHeaderFilter 
                 :title="$t('master_data.category')" 
                 v-model="columnFilters.category" 
                 :placeholder="$t('common.search')" 
               />
             </th>
-            <th style="width: 30%;">
+            <th style="width: 25%;">
               <ColumnHeaderFilter 
                 :title="$t('views.stimulus.source')" 
                 v-model="columnFilters.source" 
                 :placeholder="$t('common.search')" 
               />
             </th>
+            
+            <th style="width: 20%;">
+              <ColumnHeaderFilter 
+                :title="$t('common.creator')" 
+                v-model="columnFilters.creator" 
+                :placeholder="$t('common.search')" 
+              />
+            </th>
+
             <th class="actions-column">{{ $t('actions.actions') }}</th>
           </tr>
         </thead>
         <tbody>
           <tr v-if="filteredItems.length === 0">
-            <td :colspan="crud.showIdColumn.value ? 5 : 4" class="empty-state">{{ $t('common.no_data') }}</td>
+            <td :colspan="crud.showIdColumn.value ? 6 : 5" class="empty-state">{{ $t('common.no_data') }}</td>
           </tr>
           <tr v-for="item in filteredItems" :key="item.id">
             <td v-if="crud.showIdColumn.value" class="id-column">{{ item.id }}</td>
             <td><strong>{{ item.name }}</strong></td>
             <td><span class="badge category-badge">{{ getCategoryName(item.category) }}</span></td>
             <td>{{ item.source }}</td>
+            <td>{{ item.creator || '-' }}</td>
             <TableActionButtons 
               @edit="crud.openEditDialog(item.id, () => populateForm(item))"
               @delete="crud.requestDelete(item.id)"
@@ -153,7 +163,8 @@ const warningMessage = ref('')
 const columnFilters = ref({
   name: '',
   category: '',
-  source: ''
+  source: '',
+  creator: '' 
 })
 
 const filteredItems = computed(() => {
@@ -170,6 +181,11 @@ const filteredItems = computed(() => {
     if (columnFilters.value.source) {
       const q = columnFilters.value.source.toLowerCase()
       if (!item.source || !item.source.toLowerCase().includes(q)) return false
+    }
+    if (columnFilters.value.creator) {
+      const q = columnFilters.value.creator.toLowerCase()
+      const creatorName = item.creator ? item.creator.toLowerCase() : ''
+      if (!creatorName.includes(q)) return false
     }
     return true
   })

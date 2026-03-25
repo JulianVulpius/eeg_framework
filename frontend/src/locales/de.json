@@ -38,7 +38,8 @@
     "pages": "Seiten",
     "components": "Bausteine",
     "session_history": "Session Historie",
-    "report":"Bericht"
+    "report":"Bericht",
+    "locations": "Standorte"
   },
   "common": {
     "name": "Name",
@@ -160,7 +161,8 @@
       "session_exists_title": "Sitzung existiert bereits",
       "session_exists_desc": "Für diesen Probanden wurde in dieser Phase bereits eine Sitzung gestartet. Möchtest du die Sitzung fortsetzen oder alle bisherigen Eingaben löschen und neu beginnen?",
       "btn_resume": "Fortsetzen",
-      "btn_reset": "Reset & Neu starten"
+      "btn_reset": "Reset & Neu starten",
+      "select_location": "Standort auswählen"
     },
     "events": {
       "start": "Startdatum",

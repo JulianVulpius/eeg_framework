@@ -1,7 +1,7 @@
 from django.db import models
 from .base import AuditBaseModel
 from .subject import SubjectProfile
-from .ui import Event, PageGroup
+from .ui import Event, PageGroup, Location
 from .device import DeviceInstance, DeviceModel
 from .trigger import TriggerGroup
 
@@ -23,7 +23,13 @@ class Session(AuditBaseModel):
     page_group = models.ForeignKey(PageGroup, on_delete=models.PROTECT, related_name='sessions')
     
     start_datetime = models.DateTimeField()
-    location = models.CharField(max_length=255, blank=True, null=True)
+    location = models.ForeignKey(
+        Location, 
+        on_delete=models.SET_NULL, 
+        null=True, 
+        blank=True, 
+        related_name='sessions'
+    )
 
     class Meta:
         db_table = 'Session'

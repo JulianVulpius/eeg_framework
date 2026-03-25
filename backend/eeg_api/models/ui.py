@@ -2,6 +2,16 @@ from django.db import models
 from .base import AuditBaseModel
 from .script import DataProcess, DataDisplay
 
+class Location(models.Model):
+    name = models.CharField(max_length=150, unique=True)
+    description = models.TextField(blank=True, null=True)
+
+    class Meta:
+        db_table = 'Location'
+
+    def __str__(self):
+        return self.name
+
 class ComponentType(models.Model):
     name = models.CharField(max_length=100, unique=True, help_text="e.g., 'Text Input Field'")
     
@@ -43,9 +53,6 @@ class Component(AuditBaseModel):
         return f"{self.name} [{self.component_type.identifier}]"
 
 class ComponentDataProcess(models.Model):
-    """
-    Junction table mapping DataProcesses to Components with a specific execution order.
-    """
     component = models.ForeignKey(Component, on_delete=models.CASCADE)
     data_process = models.ForeignKey(DataProcess, on_delete=models.CASCADE)
     
@@ -61,9 +68,6 @@ class ComponentDataProcess(models.Model):
 
 
 class ComponentDataDisplay(models.Model):
-    """
-    Junction table mapping DataDisplays to Components with a specific render order.
-    """
     component = models.ForeignKey(Component, on_delete=models.CASCADE)
     data_display = models.ForeignKey(DataDisplay, on_delete=models.CASCADE)
     
@@ -133,6 +137,14 @@ class Event(AuditBaseModel):
     description = models.TextField(blank=True, null=True)
     event_start = models.DateTimeField(null=True, blank=True)
     event_end = models.DateTimeField(null=True, blank=True)
+
+    location = models.ForeignKey(
+        Location, 
+        on_delete=models.SET_NULL, 
+        null=True, 
+        blank=True, 
+        related_name='events'
+    )
 
     page_groups = models.ManyToManyField(
         'PageGroup', 

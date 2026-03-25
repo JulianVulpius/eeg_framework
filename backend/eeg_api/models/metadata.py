@@ -13,7 +13,7 @@ class MetaDataCategory(models.Model):
     def __str__(self):
         return self.name
 
-class MetaDataDefinition(models.Model):
+class MetaDataDefinition(AuditBaseModel):
     # Restricts what types of data the frontend should expect
     class DataType(models.TextChoices):
         STRING = 'STRING', 'String / Text'

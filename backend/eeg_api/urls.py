@@ -2,7 +2,7 @@ from django.urls import path, include
 from rest_framework.routers import DefaultRouter
 from .views import GenericCategoryViewSet, TriggerDefinitionViewSet,  TriggerGroupViewSet, TriggerPairViewSet, FrequencyBandViewSet, DeviceModelViewSet, SubjectProfileViewSet, TriggerHotkeyMappingViewSet, StimulusViewSet, StimulusPlaylistViewSet
 from .views import ContentTypeViewSet, EntityMetaDataRegistryViewSet, MetaDataDefinitionViewSet, MetaDataGroupViewSet, ManufacturerViewSet, EEGChannelViewSet, ComponentTypeViewSet, EventViewSet, PageGroupViewSet, SessionViewSet
-from .views import ComponentViewSet, PageViewSet
+from .views import ComponentViewSet, PageViewSet, LocationViewSet
 
 router = DefaultRouter()
 
@@ -137,6 +137,12 @@ router.register(
     r'pages', 
     PageViewSet, 
     basename='pages'
+)
+
+router.register(
+    r'locations', 
+    LocationViewSet, 
+    basename='locations'
 )
 
 urlpatterns = [

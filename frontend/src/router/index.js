@@ -24,6 +24,7 @@ import ComponentManagerView from '../views/ComponentManagerView.vue'
 import PageManagerView from '../views/PageManagerView.vue'
 import SessionReportView from '../views/SessionReportView.vue'
 import SessionHistoryView from '../views/SessionHistoryView.vue'
+import LocationView from '../views/LocationView.vue'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -155,6 +156,11 @@ const router = createRouter({
           path: 'session-history',
           name: 'session-history',
           component: SessionHistoryView
+        },
+        {
+          path: '/locations',
+          name: 'Locations',
+          component: LocationView
         },
         {
           // dynamic route that powers all category CRUD tables

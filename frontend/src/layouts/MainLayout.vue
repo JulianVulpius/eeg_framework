@@ -61,6 +61,7 @@
             <router-link to="/master-data/manufacturers" class="nav-link">{{ $t('nav.manufacturers') }}</router-link>
             <router-link to="/master-data/eeg-channels" class="nav-link">{{ $t('nav.eeg_channels') }}</router-link>
             <router-link to="/component-types" class="nav-link">{{ $t('nav.component_types') }}</router-link>
+            <router-link to="/locations" class="nav-link" active-class="active">{{ $t('nav.locations') }}</router-link>
           </div>
         </div>
 

@@ -38,7 +38,8 @@
     "pages": "Pages",
     "components": "Components",
     "session_history": "Session History",
-    "report":"Report"
+    "report":"Report",
+    "locations": "Locations"
   },
   "common": {
     "name": "Name",
@@ -160,7 +161,8 @@
       "session_exists_title": "Session Already Exists",
       "session_exists_desc": "A session for this subject in this phase has already been started. Would you like to resume the session or delete all previous inputs and start over?",
       "btn_resume": "Resume Session",
-      "btn_reset": "Reset & Restart"
+      "btn_reset": "Reset & Restart",
+      "select_location": "Select Location"
     },
     "events": {
       "start": "Start Date",

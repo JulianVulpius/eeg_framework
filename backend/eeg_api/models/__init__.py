@@ -9,7 +9,7 @@ from .script import (
     DataDisplayCategory, DataDisplay, DataDisplayCustomScript
 )
 from .ui import (
-    Event, EventCategory, EventPageGroup, Page, PageComponent, PageGroupCategory, PageCategory, ComponentDataDisplay, ComponentDataProcess, ComponentType, ComponentCategory, Component
+    Event, EventCategory, EventPageGroup, Page, PageComponent, PageGroupCategory, PageCategory, ComponentDataDisplay, ComponentDataProcess, ComponentType, ComponentCategory, Component, Location
 )
 from .metadata import (
     MetaDataCategory, MetaDataDefinition, MetaDataGroupCategory, MetaDataGroup,

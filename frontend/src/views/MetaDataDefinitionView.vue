@@ -11,14 +11,14 @@
         <thead>
           <tr>
             <th v-if="crud.showIdColumn.value" class="id-column">{{ $t('common.id') }}</th>
-            <th style="width: 25%;">
+            <th style="width: 20%;">
               <ColumnHeaderFilter 
                 :title="$t('common.name')" 
                 v-model="columnFilters.name" 
                 :placeholder="$t('common.search')" 
               />
             </th>
-            <th style="width: 25%;">
+            <th style="width: 20%;">
               <ColumnHeaderFilter 
                 :title="$t('views.metadata.category')" 
                 v-model="columnFilters.category" 
@@ -26,7 +26,7 @@
               />
             </th>
             
-            <th style="width: 20%;">
+            <th style="width: 15%;">
                <ColumnHeaderSelectFilter 
                 :title="$t('views.metadata.data_type')" 
                 v-model="columnFilters.data_type" 
@@ -35,26 +35,36 @@
               />
             </th>
             
-            <th style="width: 30%;">
+            <th style="width: 25%;">
               <ColumnHeaderFilter 
                 :title="$t('common.description')" 
                 v-model="columnFilters.description" 
                 :placeholder="$t('common.search')" 
               />
             </th>
+
+            <th style="width: 20%;">
+              <ColumnHeaderFilter 
+                :title="$t('common.creator')" 
+                v-model="columnFilters.creator" 
+                :placeholder="$t('common.search')" 
+              />
+            </th>
+            
             <th class="actions-column">{{ $t('actions.actions') }}</th>
           </tr>
         </thead>
         <tbody>
           <tr v-if="filteredItems.length === 0">
-            <td :colspan="crud.showIdColumn.value ? 6 : 5" class="empty-state">{{ $t('common.no_data') }}</td>
+            <td :colspan="crud.showIdColumn.value ? 7 : 6" class="empty-state">{{ $t('common.no_data') }}</td>
           </tr>
           <tr v-for="item in filteredItems" :key="item.id">
             <td v-if="crud.showIdColumn.value" class="id-column">{{ item.id }}</td>
             <td><strong>{{ item.name }}</strong></td>
             <td><span class="badge category-badge">{{ getCategoryName(item.category) }}</span></td>
             <td><span class="badge secondary-badge">{{ getDataTypeLabel(item.expected_data_type) }}</span></td>
-            <td>{{ item.description }}</td>
+            <td>{{ item.description || '-' }}</td>
+            <td>{{ item.creator || '-' }}</td>
             <TableActionButtons 
               @edit="crud.openEditDialog(item.id, () => populateForm(item))"
               @delete="crud.requestDelete(item.id)"
@@ -148,7 +158,7 @@ import BaseSearchSelect from '@/components/BaseSearchSelect.vue'
 import ConfirmDeleteModal from '@/components/ConfirmDeleteModal.vue'
 import WarningModal from '@/components/WarningModal.vue'
 import ColumnHeaderFilter from '@/components/ColumnHeaderFilter.vue'
-import ColumnHeaderSelectFilter from '@/components/ColumnHeaderSelectFilter.vue' // import new component
+import ColumnHeaderSelectFilter from '@/components/ColumnHeaderSelectFilter.vue' 
 import CrudHeader from '@/components/CrudHeader.vue'
 import TableActionButtons from '@/components/TableActionButtons.vue'
 
@@ -164,7 +174,8 @@ const columnFilters = ref({
   name: '',
   category: '',
   description: '',
-  data_type: '' // new filter state
+  data_type: '', 
+  creator: '' // added creator filter state
 })
 
 const dataTypes = computed(() => [
@@ -195,6 +206,12 @@ const filteredItems = computed(() => {
 
     if (columnFilters.value.data_type) {
       if (item.expected_data_type !== columnFilters.value.data_type) return false
+    }
+
+    if (columnFilters.value.creator) {
+      const q = columnFilters.value.creator.toLowerCase()
+      const creatorName = item.creator ? item.creator.toLowerCase() : ''
+      if (!creatorName.includes(q)) return false
     }
 
     return true

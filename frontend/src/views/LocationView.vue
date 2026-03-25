@@ -1,7 +1,7 @@
 <template>
   <div class="category-manager">
     <CrudHeader 
-      :title="$t('nav.playlists')" 
+      :title="$t('nav.locations')" 
       v-model="crud.showIdColumn.value" 
       @add="crud.openAddDialog(resetForm)" 
     />
@@ -11,35 +11,31 @@
         <thead>
           <tr>
             <th v-if="crud.showIdColumn.value" class="id-column">{{ $t('common.id') }}</th>
-            <th style="width: 35%;">
+            <th style="width: 40%;">
               <ColumnHeaderFilter 
                 :title="$t('common.name')" 
                 v-model="columnFilters.name" 
                 :placeholder="$t('common.search')" 
               />
             </th>
-            <th style="width: 30%;">Items in Playlist</th>
-            
-            <th style="width: 35%;">
+            <th style="width: 45%;">
               <ColumnHeaderFilter 
-                :title="$t('common.creator')" 
-                v-model="columnFilters.creator" 
+                :title="$t('common.description')" 
+                v-model="columnFilters.description" 
                 :placeholder="$t('common.search')" 
               />
             </th>
-
             <th class="actions-column">{{ $t('actions.actions') }}</th>
           </tr>
         </thead>
         <tbody>
           <tr v-if="filteredItems.length === 0">
-            <td :colspan="crud.showIdColumn.value ? 5 : 4" class="empty-state">{{ $t('common.no_data') }}</td>
+            <td :colspan="crud.showIdColumn.value ? 4 : 3" class="empty-state">{{ $t('common.no_data') }}</td>
           </tr>
           <tr v-for="item in filteredItems" :key="item.id">
             <td v-if="crud.showIdColumn.value" class="id-column">{{ item.id }}</td>
             <td><strong>{{ item.name }}</strong></td>
-            <td>{{ item.stimuli ? item.stimuli.length : 0 }} Items</td>
-            <td>{{ item.creator || '-' }}</td>
+            <td>{{ item.description || '-' }}</td>
             <TableActionButtons 
               @edit="crud.openEditDialog(item.id, () => populateForm(item))"
               @delete="crud.requestDelete(item.id)"
@@ -52,7 +48,6 @@
     <BaseModal 
       :isOpen="crud.isDialogOpen.value" 
       :title="crud.isEditing.value ? $t('modal.edit_record') : $t('modal.add_record')"
-      customClass="large-modal"
       @close="crud.closeDialog"
     >
       <form @submit.prevent="saveRecord">
@@ -66,15 +61,14 @@
           />
           <BaseInputError :message="crud.fieldErrors.value.name" />
         </div>
-        
+
         <div class="form-group">
-          <label>Assigned Stimuli (Click to Add / Remove)</label>
-          <PlaylistShuffle 
-            :availableItems="allStimuli"
-            :categories="stimulusCategories"
-            v-model="formData.stimuli"
-            boxHeight="550px"
-          />
+          <label>{{ $t('common.description') }}</label>
+          <textarea 
+            v-model="formData.description" 
+            rows="3" 
+            class="form-control"
+          ></textarea>
         </div>
 
         <div class="modal-actions">
@@ -112,22 +106,21 @@ import WarningModal from '@/components/WarningModal.vue'
 import ColumnHeaderFilter from '@/components/ColumnHeaderFilter.vue'
 import CrudHeader from '@/components/CrudHeader.vue'
 import TableActionButtons from '@/components/TableActionButtons.vue'
-import PlaylistShuffle from '@/components/PlaylistShuffle.vue'
 
 const { t } = useI18n()
-const items = ref([])
-const allStimuli = ref([])
-const stimulusCategories = ref([])
 const crud = useCrud()
 
+const items = ref([])
 const showWarningModal = ref(false)
 const warningMessage = ref('')
 
+// filter state
 const columnFilters = ref({
   name: '',
-  creator: '' // added creator filter state
+  description: ''
 })
 
+// filter logic
 const filteredItems = computed(() => {
   return items.value.filter(item => {
     if (columnFilters.value.name) {
@@ -135,37 +128,37 @@ const filteredItems = computed(() => {
       if (!item.name.toLowerCase().includes(q)) return false
     }
 
-    if (columnFilters.value.creator) {
-      const q = columnFilters.value.creator.toLowerCase()
-      const creatorName = item.creator ? item.creator.toLowerCase() : ''
-      if (!creatorName.includes(q)) return false
+    if (columnFilters.value.description) {
+      const q = columnFilters.value.description.toLowerCase()
+      if (!item.description || !item.description.toLowerCase().includes(q)) return false
     }
 
     return true
   })
 })
 
-const formData = ref({ name: '', stimuli: [] })
+const formData = ref({
+  name: '',
+  description: ''
+})
 
-const resetForm = () => { 
-  formData.value = { name: '', stimuli: [] } 
+const resetForm = () => {
+  formData.value = { name: '', description: '' }
 }
 
-const populateForm = (item) => { 
-  formData.value = { name: item.name, stimuli: item.stimuli ? [...item.stimuli] : [] }
+const populateForm = (item) => {
+  formData.value = {
+    name: item.name,
+    description: item.description || ''
+  }
 }
 
+// load locations from the api
 const loadData = async () => {
   try {
-    const [resPlaylists, resStimuli, resCats] = await Promise.all([
-      api.get('playlists/'),
-      api.get('stimuli/'),
-      api.get('category/stimulus-categories/')
-    ])
-    items.value = resPlaylists.data
-    allStimuli.value = resStimuli.data
-    stimulusCategories.value = resCats.data
-  } catch (error) { 
+    const response = await api.get('locations/')
+    items.value = response.data
+  } catch (error) {
     warningMessage.value = crud.parseApiError(error, t, 'errors.load_failed')
     showWarningModal.value = true
   }
@@ -173,28 +166,34 @@ const loadData = async () => {
 
 const saveRecord = async () => {
   crud.clearErrors()
+  let hasError = false
 
   if (!formData.value.name || formData.value.name.trim() === '') {
     crud.fieldErrors.value.name = t('errors.required_field')
-    return
+    hasError = true
   }
+  
+  if (hasError) return
 
   try {
-    if (crud.isEditing.value) await api.put(`playlists/${crud.editingId.value}/`, formData.value)
-    else await api.post('playlists/', formData.value)
+    if (crud.isEditing.value) {
+      await api.put(`locations/${crud.editingId.value}/`, formData.value)
+    } else {
+      await api.post('locations/', formData.value)
+    }
     crud.closeDialog()
     loadData()
-  } catch (error) { 
+  } catch (error) {
     crud.handleFormError(error, t, 'errors.save_failed')
   }
 }
 
 const executeDelete = async () => {
   try {
-    await api.delete(`playlists/${crud.itemToDelete.value}/`)
+    await api.delete(`locations/${crud.itemToDelete.value}/`)
     crud.cancelDelete()
     loadData()
-  } catch (error) { 
+  } catch (error) {
     crud.cancelDelete()
     warningMessage.value = crud.parseApiError(error, t, 'errors.delete_failed')
     showWarningModal.value = true
