@@ -55,7 +55,8 @@
     "loading": "Loading...",
     "yes": "Yes",
     "no": "No",
-    "must_include": "Must Include"
+    "must_include": "Must Include",
+    "creator": "Creator"
   },
   "actions": {
     "add_new": "+ Add New",

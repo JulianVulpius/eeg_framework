@@ -7,17 +7,47 @@
         <thead>
           <tr>
             <th v-if="crud.showIdColumn.value" class="id-column">{{ $t('common.id') }}</th>
-            <th>{{ $t('common.name') }}</th>
-            <th>{{ $t('views.components.type') }}</th>
+            <th style="width: 20%;">
+              <ColumnHeaderFilter 
+                :title="$t('common.name')" 
+                v-model="columnFilters.name" 
+                :placeholder="$t('common.search')" 
+              />
+            </th>
+            <th style="width: 20%;">
+              <ColumnHeaderFilter 
+                :title="$t('master_data.category')" 
+                v-model="columnFilters.category" 
+                :placeholder="$t('common.search')" 
+              />
+            </th>
+            <th style="width: 20%;">
+              <ColumnHeaderFilter 
+                :title="$t('views.components.type')" 
+                v-model="columnFilters.type" 
+                :placeholder="$t('common.search')" 
+              />
+            </th>
+            <th style="width: 25%;">
+              <ColumnHeaderFilter 
+                :title="$t('common.description')" 
+                v-model="columnFilters.description" 
+                :placeholder="$t('common.search')" 
+              />
+            </th>
             <th class="actions-column">{{ $t('actions.actions') }}</th>
           </tr>
         </thead>
         <tbody>
-          <tr v-if="items.length === 0"><td :colspan="crud.showIdColumn.value ? 4 : 3" class="empty-state">{{ $t('common.no_data') }}</td></tr>
-          <tr v-for="item in items" :key="item.id">
+          <tr v-if="filteredItems.length === 0">
+            <td :colspan="crud.showIdColumn.value ? 6 : 5" class="empty-state">{{ $t('common.no_data') }}</td>
+          </tr>
+          <tr v-for="item in filteredItems" :key="item.id">
             <td v-if="crud.showIdColumn.value" class="id-column">{{ item.id }}</td>
             <td><strong>{{ item.name }}</strong></td>
-            <td>{{ getTypeName(item.component_type) }}</td>
+            <td><span class="badge category-badge">{{ getCategoryName(item.category) }}</span></td>
+            <td><span class="badge secondary-badge">{{ getTypeName(item.component_type) }}</span></td>
+            <td>{{ item.description || '-' }}</td>
             <TableActionButtons @edit="crud.openEditDialog(item.id, () => populateForm(item))" @delete="crud.requestDelete(item.id)" />
           </tr>
         </tbody>
@@ -108,6 +138,7 @@ import ConfirmDeleteModal from '@/components/ConfirmDeleteModal.vue'
 import WarningModal from '@/components/WarningModal.vue'
 import CrudHeader from '@/components/CrudHeader.vue'
 import TableActionButtons from '@/components/TableActionButtons.vue'
+import ColumnHeaderFilter from '@/components/ColumnHeaderFilter.vue' // filter component importiert
 
 const { t } = useI18n()
 const crud = useCrud()
@@ -117,10 +148,46 @@ const showWarningModal = ref(false); const warningMessage = ref('')
 
 const formData = ref({ name: '', category: null, component_type: null, description: '', parameter: '{}' })
 
+const columnFilters = ref({
+  name: '',
+  category: '',
+  type: '',
+  description: ''
+})
+
 const selectedMetadataGroupId = ref(null)
 const textContent = ref('')
 
 const getTypeName = (id) => { const t = types.value.find(x => x.id === id); return t ? t.name : id }
+const getCategoryName = (id) => { const c = categories.value.find(x => x.id === id); return c ? c.name : '-' }
+
+const filteredItems = computed(() => {
+  return items.value.filter(item => {
+    if (columnFilters.value.name) {
+      const q = columnFilters.value.name.toLowerCase()
+      if (!item.name.toLowerCase().includes(q)) return false
+    }
+
+    if (columnFilters.value.category) {
+      const q = columnFilters.value.category.toLowerCase()
+      const cName = getCategoryName(item.category).toLowerCase()
+      if (!cName.includes(q)) return false
+    }
+
+    if (columnFilters.value.type) {
+      const q = columnFilters.value.type.toLowerCase()
+      const tName = getTypeName(item.component_type).toLowerCase()
+      if (!tName.includes(q)) return false
+    }
+
+    if (columnFilters.value.description) {
+      const q = columnFilters.value.description.toLowerCase()
+      if (!item.description || !item.description.toLowerCase().includes(q)) return false
+    }
+
+    return true
+  })
+})
 
 const isMetadataFormSelected = computed(() => {
   if (!formData.value.component_type) return false

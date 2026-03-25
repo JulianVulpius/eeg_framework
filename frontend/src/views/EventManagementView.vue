@@ -11,21 +11,45 @@
         <thead>
           <tr>
             <th v-if="crud.showIdColumn.value" class="id-column">{{ $t('common.id') }}</th>
-            <th>{{ $t('common.name') }}</th>
-            <th>{{ $t('views.events.start') }}</th>
-            <th>{{ $t('views.events.end') }}</th>
+            <th style="width: 25%;">
+              <ColumnHeaderFilter 
+                :title="$t('common.name')" 
+                v-model="columnFilters.name" 
+                :placeholder="$t('common.search')" 
+              />
+            </th>
+            <th style="width: 20%;">
+              <ColumnHeaderDateFilter 
+                :title="$t('views.events.start')" 
+                v-model="columnFilters.event_start" 
+              />
+            </th>
+            <th style="width: 20%;">
+              <ColumnHeaderDateFilter 
+                :title="$t('views.events.end')" 
+                v-model="columnFilters.event_end" 
+              />
+            </th>
+            <th style="width: 20%;">
+              <ColumnHeaderFilter 
+                :title="$t('common.creator')" 
+                v-model="columnFilters.creator" 
+                :placeholder="$t('common.search')" 
+              />
+            </th>
             <th class="actions-column">{{ $t('actions.actions') }}</th>
           </tr>
         </thead>
         <tbody>
-          <tr v-if="items.length === 0">
-            <td :colspan="crud.showIdColumn.value ? 5 : 4" class="empty-state">{{ $t('common.no_data') }}</td>
+          <tr v-if="filteredItems.length === 0">
+            <td :colspan="crud.showIdColumn.value ? 6 : 5" class="empty-state">{{ $t('common.no_data') }}</td>
           </tr>
-          <tr v-for="item in items" :key="item.id">
+          <tr v-for="item in filteredItems" :key="item.id">
             <td v-if="crud.showIdColumn.value" class="id-column">{{ item.id }}</td>
             <td><strong>{{ item.name }}</strong></td>
-            <td>{{ formatDate(item.event_start) }}</td>
-            <td>{{ formatDate(item.event_end) }}</td>
+            <td>{{ formatDisplayDate(item.event_start) }}</td>
+            <td>{{ formatDisplayDate(item.event_end) }}</td>
+            <td>{{ item.creator || '-' }}</td>
             <TableActionButtons 
               @edit="crud.openEditDialog(item.id, () => populateForm(item))"
               @delete="crud.requestDelete(item.id)"
@@ -69,11 +93,32 @@
         <div class="form-row" style="display: flex; gap: 1rem; margin-bottom: 1rem;">
           <div class="form-group" style="flex: 1;">
             <label>{{ $t('views.events.start') }}</label>
-            <input type="datetime-local" v-model="formData.event_start" class="form-control" />
+            <div style="display: flex; gap: 10px;">
+              <input type="date" v-model="formData.event_start" class="form-control" />
+              <input 
+                v-if="formData.event_start" 
+                type="time" 
+                v-model="formData.event_start_time" 
+                class="form-control" 
+                style="max-width: 130px;" 
+                title="Optional Time"
+              />
+            </div>
           </div>
+          
           <div class="form-group" style="flex: 1;">
             <label>{{ $t('views.events.end') }}</label>
-            <input type="datetime-local" v-model="formData.event_end" class="form-control" />
+            <div style="display: flex; gap: 10px;">
+              <input type="date" v-model="formData.event_end" class="form-control" />
+              <input 
+                v-if="formData.event_end" 
+                type="time" 
+                v-model="formData.event_end_time" 
+                class="form-control" 
+                style="max-width: 130px;" 
+                title="Optional Time"
+              />
+            </div>
           </div>
         </div>
 
@@ -108,7 +153,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import api from '@/services/api'
 import { useCrud } from '@/composables/useCrud'
@@ -119,6 +164,8 @@ import BaseSearchSelect from '@/components/BaseSearchSelect.vue'
 import BaseTransferList from '@/components/BaseTransferList.vue'
 import ConfirmDeleteModal from '@/components/ConfirmDeleteModal.vue'
 import WarningModal from '@/components/WarningModal.vue'
+import ColumnHeaderFilter from '@/components/ColumnHeaderFilter.vue'
+import ColumnHeaderDateFilter from '@/components/ColumnHeaderDateFilter.vue'
 import CrudHeader from '@/components/CrudHeader.vue'
 import TableActionButtons from '@/components/TableActionButtons.vue'
 
@@ -132,28 +179,84 @@ const pageGroups = ref([])
 const showWarningModal = ref(false)
 const warningMessage = ref('')
 
+const columnFilters = ref({
+  name: '',
+  event_start: '',
+  event_end: '',
+  creator: ''
+})
+
+const filteredItems = computed(() => {
+  return items.value.filter(item => {
+    if (columnFilters.value.name) {
+      const q = columnFilters.value.name.toLowerCase()
+      if (!item.name.toLowerCase().includes(q)) return false
+    }
+
+    if (columnFilters.value.event_start) {
+      if (!item.event_start || !item.event_start.startsWith(columnFilters.value.event_start)) return false
+    }
+
+    if (columnFilters.value.event_end) {
+      if (!item.event_end || !item.event_end.startsWith(columnFilters.value.event_end)) return false
+    }
+
+    if (columnFilters.value.creator) {
+      const q = columnFilters.value.creator.toLowerCase()
+      const creatorName = item.creator ? item.creator.toLowerCase() : ''
+      if (!creatorName.includes(q)) return false
+    }
+
+    return true
+  })
+})
+
 const formData = ref({
   name: '',
   category: null,
   description: '',
   event_start: '',
+  event_start_time: '',
   event_end: '',
+  event_end_time: '',
   page_groups: []
 })
 
-// format iso string to html datetime-local value
-const formatForInput = (isoString) => {
+const extractDatePart = (isoString) => {
   if (!isoString) return ''
-  return new Date(isoString).toISOString().slice(0, 16)
+  return isoString.split('T')[0]
 }
 
-const formatDate = (isoString) => {
+const extractTimePart = (isoString) => {
+  if (!isoString || !isoString.includes('T')) return ''
+  const timePart = isoString.split('T')[1]
+  return timePart.substring(0, 5) // get hh:mm
+}
+
+const formatDisplayDate = (isoString) => {
   if (!isoString) return '-'
-  return new Date(isoString).toLocaleString()
+  const date = new Date(isoString)
+  
+  const timeString = extractTimePart(isoString)
+  
+  if (timeString === '00:00') {
+    return date.toLocaleDateString(undefined, { year: 'numeric', month: '2-digit', day: '2-digit' })
+  } else {
+    return date.toLocaleString(undefined, { year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' })
+  }
 }
 
 const resetForm = () => {
-  formData.value = { name: '', category: null, description: '', event_start: '', event_end: '', page_groups: [] }
+  formData.value = { 
+    name: '', 
+    category: null, 
+    description: '', 
+    event_start: '', 
+    event_start_time: '', 
+    event_end: '', 
+    event_end_time: '', 
+    page_groups: [] 
+  }
 }
 
 const populateForm = (item) => {
@@ -161,8 +264,10 @@ const populateForm = (item) => {
     name: item.name,
     category: item.category,
     description: item.description || '',
-    event_start: formatForInput(item.event_start),
-    event_end: formatForInput(item.event_end),
+    event_start: extractDatePart(item.event_start),
+    event_start_time: extractTimePart(item.event_start),
+    event_end: extractDatePart(item.event_end),
+    event_end_time: extractTimePart(item.event_end),
     page_groups: item.page_groups || []
   }
 }
@@ -192,10 +297,24 @@ const saveRecord = async () => {
   
   if (hasError) return
 
-  // format empty strings to null for django datetime fields
   const payload = { ...formData.value }
-  if (!payload.event_start) payload.event_start = null
-  if (!payload.event_end) payload.event_end = null
+  
+  if (payload.event_start) {
+    const time = payload.event_start_time || '00:00'
+    payload.event_start = `${payload.event_start}T${time}:00Z`
+  } else {
+    payload.event_start = null
+  }
+
+  if (payload.event_end) {
+    const time = payload.event_end_time || '00:00'
+    payload.event_end = `${payload.event_end}T${time}:00Z`
+  } else {
+    payload.event_end = null
+  }
+  
+  delete payload.event_start_time
+  delete payload.event_end_time
 
   try {
     if (crud.isEditing.value) {

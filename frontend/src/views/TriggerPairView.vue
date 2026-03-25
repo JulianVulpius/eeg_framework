@@ -18,8 +18,25 @@
                 :placeholder="$t('common.search')" 
               />
             </th>
-            <th>{{ $t('views.triggers.start_trigger') }}</th>
-            <th>{{ $t('views.triggers.end_trigger') }}</th>
+            
+            <th style="width: 35%;">
+              <ColumnHeaderSearchSelectFilter 
+                :title="$t('views.triggers.start_trigger')" 
+                v-model="columnFilters.start_trigger" 
+                :options="triggerOptions" 
+                :placeholder="$t('common.search')"
+              />
+            </th>
+            
+            <th style="width: 35%;">
+              <ColumnHeaderSearchSelectFilter 
+                :title="$t('views.triggers.end_trigger')" 
+                v-model="columnFilters.end_trigger" 
+                :options="triggerOptions" 
+                :placeholder="$t('common.search')"
+              />
+            </th>
+            
             <th class="actions-column">{{ $t('actions.actions') }}</th>
           </tr>
         </thead>
@@ -108,6 +125,7 @@ import BaseSearchSelect from '@/components/BaseSearchSelect.vue'
 import ConfirmDeleteModal from '@/components/ConfirmDeleteModal.vue'
 import WarningModal from '@/components/WarningModal.vue'
 import ColumnHeaderFilter from '@/components/ColumnHeaderFilter.vue'
+import ColumnHeaderSearchSelectFilter from '@/components/ColumnHeaderSearchSelectFilter.vue' // import new filter
 import CrudHeader from '@/components/CrudHeader.vue'
 import TableActionButtons from '@/components/TableActionButtons.vue'
 
@@ -120,15 +138,27 @@ const showWarningModal = ref(false)
 const warningMessage = ref('')
 
 const columnFilters = ref({
-  name: ''
+  name: '',
+  start_trigger: null,
+  end_trigger: null
 })
 
 const filteredItems = computed(() => {
   return items.value.filter(item => {
+    // text filter for name
     if (columnFilters.value.name) {
       const q = columnFilters.value.name.toLowerCase()
       if (!item.name.toLowerCase().includes(q)) return false
     }
+
+    if (columnFilters.value.start_trigger) {
+      if (item.start_trigger !== columnFilters.value.start_trigger) return false
+    }
+
+    if (columnFilters.value.end_trigger) {
+      if (item.end_trigger !== columnFilters.value.end_trigger) return false
+    }
+
     return true
   })
 })
@@ -213,3 +243,10 @@ const executeDelete = async () => {
 
 onMounted(loadData)
 </script>
+
+<style scoped>
+/* allow dropdowns to overflow the table bounds */
+.table-container {
+  overflow: visible !important;
+}
+</style>

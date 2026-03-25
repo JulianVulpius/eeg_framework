@@ -11,19 +11,39 @@
         <thead>
           <tr>
             <th v-if="crud.showIdColumn.value" class="id-column">{{ $t('common.id') }}</th>
-            <th>{{ $t('common.name') }}</th>
-            <th>{{ $t('common.description') }}</th>
+            <th style="width: 25%;">
+              <ColumnHeaderFilter 
+                :title="$t('common.name')" 
+                v-model="columnFilters.name" 
+                :placeholder="$t('common.search')" 
+              />
+            </th>
+            <th style="width: 25%;">
+              <ColumnHeaderFilter 
+                :title="$t('master_data.category')" 
+                v-model="columnFilters.category" 
+                :placeholder="$t('common.search')" 
+              />
+            </th>
+            <th style="width: 30%;">
+              <ColumnHeaderFilter 
+                :title="$t('common.description')" 
+                v-model="columnFilters.description" 
+                :placeholder="$t('common.search')" 
+              />
+            </th>
             <th class="actions-column">{{ $t('actions.actions') }}</th>
           </tr>
         </thead>
         <tbody>
-          <tr v-if="items.length === 0">
-            <td :colspan="crud.showIdColumn.value ? 4 : 3" class="empty-state">{{ $t('common.no_data') }}</td>
+          <tr v-if="filteredItems.length === 0">
+            <td :colspan="crud.showIdColumn.value ? 5 : 4" class="empty-state">{{ $t('common.no_data') }}</td>
           </tr>
-          <tr v-for="item in items" :key="item.id">
+          <tr v-for="item in filteredItems" :key="item.id">
             <td v-if="crud.showIdColumn.value" class="id-column">{{ item.id }}</td>
             <td><strong>{{ item.name }}</strong></td>
-            <td>{{ item.description }}</td>
+            <td><span class="badge category-badge">{{ getCategoryName(item.category) }}</span></td>
+            <td>{{ item.description || '-' }}</td>
             <TableActionButtons 
               @edit="crud.openEditDialog(item.id, () => populateForm(item))"
               @delete="crud.requestDelete(item.id)"
@@ -95,7 +115,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import api from '@/services/api'
 import { useCrud } from '@/composables/useCrud'
@@ -108,11 +128,11 @@ import ConfirmDeleteModal from '@/components/ConfirmDeleteModal.vue'
 import WarningModal from '@/components/WarningModal.vue'
 import CrudHeader from '@/components/CrudHeader.vue'
 import TableActionButtons from '@/components/TableActionButtons.vue'
+import ColumnHeaderFilter from '@/components/ColumnHeaderFilter.vue'
 
 const { t } = useI18n()
 const crud = useCrud()
 
-// holds table data and options for selects/lists
 const items = ref([])
 const categories = ref([])
 const availablePages = ref([])
@@ -120,12 +140,45 @@ const availablePages = ref([])
 const showWarningModal = ref(false)
 const warningMessage = ref('')
 
+const columnFilters = ref({
+  name: '',
+  category: '',
+  description: ''
+})
+
+const filteredItems = computed(() => {
+  return items.value.filter(item => {
+    if (columnFilters.value.name) {
+      const q = columnFilters.value.name.toLowerCase()
+      if (!item.name.toLowerCase().includes(q)) return false
+    }
+
+    if (columnFilters.value.category) {
+      const q = columnFilters.value.category.toLowerCase()
+      const cName = getCategoryName(item.category).toLowerCase()
+      if (!cName.includes(q)) return false
+    }
+
+    if (columnFilters.value.description) {
+      const q = columnFilters.value.description.toLowerCase()
+      if (!item.description || !item.description.toLowerCase().includes(q)) return false
+    }
+
+    return true
+  })
+})
+
 const formData = ref({
   name: '',
   category: null,
   description: '',
   pages: []
 })
+
+const getCategoryName = (id) => {
+  const cat = categories.value.find(c => c.id === id)
+  return cat ? cat.name : '-'
+}
 
 const resetForm = () => {
   formData.value = { name: '', category: null, description: '', pages: [] }
@@ -140,7 +193,6 @@ const populateForm = (item) => {
   }
 }
 
-// load groups, categories and available pages in parallel
 const loadData = async () => {
   try {
     const [pgRes, catRes, pageRes] = await Promise.all([
