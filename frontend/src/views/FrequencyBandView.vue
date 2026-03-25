@@ -11,16 +11,30 @@
         <thead>
           <tr>
             <th v-if="crud.showIdColumn.value" class="id-column">{{ $t('common.id') }}</th>
-            <th style="width: 30%;">
+            <th style="width: 25%;">
               <ColumnHeaderFilter 
                 :title="$t('common.name')" 
                 v-model="columnFilters.name" 
                 :placeholder="$t('common.search')" 
               />
             </th>
-            <th>{{ $t('master_data.low_hz') }}</th>
-            <th>{{ $t('master_data.high_hz') }}</th>
-            <th style="width: 30%;">
+            
+            <th style="width: 20%;">
+              <ColumnHeaderRangeFilter 
+                :title="$t('master_data.low_hz')" 
+                v-model="columnFilters.hzRange" 
+                :filterTitle="$t('master_data.low_hz') + ' - ' + $t('master_data.high_hz')"
+              />
+            </th>
+            <th style="width: 20%;">
+              <ColumnHeaderRangeFilter 
+                :title="$t('master_data.high_hz')" 
+                v-model="columnFilters.hzRange" 
+                :filterTitle="$t('master_data.low_hz') + ' - ' + $t('master_data.high_hz')"
+              />
+            </th>
+            
+            <th style="width: 25%;">
               <ColumnHeaderFilter 
                 :title="$t('common.description')" 
                 v-model="columnFilters.description" 
@@ -39,7 +53,7 @@
             <td><strong>{{ item.name }}</strong></td>
             <td><span class="badge secondary-badge">{{ item.low_hz }}</span></td>
             <td><span class="badge secondary-badge">{{ item.high_hz }}</span></td>
-            <td>{{ item.description }}</td>
+            <td>{{ item.description || '-' }}</td>
             <TableActionButtons 
               @edit="crud.openEditDialog(item.id, () => populateForm(item))"
               @delete="crud.requestDelete(item.id)"
@@ -72,6 +86,7 @@
             <input 
               type="number" 
               step="0.1" 
+              min="0"
               v-model.number="formData.low_hz" 
               class="form-control"
               :class="{ 'input-invalid': crud.fieldErrors.value.low_hz }"
@@ -83,6 +98,7 @@
             <input 
               type="number" 
               step="0.1" 
+              min="0"
               v-model.number="formData.high_hz" 
               class="form-control"
               :class="{ 'input-invalid': crud.fieldErrors.value.high_hz }"
@@ -133,6 +149,7 @@ import BaseInputError from '@/components/BaseInputError.vue'
 import ConfirmDeleteModal from '@/components/ConfirmDeleteModal.vue'
 import WarningModal from '@/components/WarningModal.vue'
 import ColumnHeaderFilter from '@/components/ColumnHeaderFilter.vue'
+import ColumnHeaderRangeFilter from '@/components/ColumnHeaderRangeFilter.vue' // new import
 import CrudHeader from '@/components/CrudHeader.vue'
 import TableActionButtons from '@/components/TableActionButtons.vue'
 
@@ -145,19 +162,33 @@ const warningMessage = ref('')
 
 const columnFilters = ref({
   name: '',
-  description: ''
+  description: '',
+  hzRange: { min: null, max: null } 
 })
 
 const filteredItems = computed(() => {
   return items.value.filter(item => {
+    
     if (columnFilters.value.name) {
       const q = columnFilters.value.name.toLowerCase()
       if (!item.name.toLowerCase().includes(q)) return false
     }
+    
     if (columnFilters.value.description) {
       const q = columnFilters.value.description.toLowerCase()
       if (!item.description || !item.description.toLowerCase().includes(q)) return false
     }
+
+    const minFilter = columnFilters.value.hzRange.min
+    const maxFilter = columnFilters.value.hzRange.max
+
+    if (minFilter !== null && item.low_hz < minFilter) {
+      return false
+    }
+    if (maxFilter !== null && item.high_hz > maxFilter) {
+      return false
+    }
+
     return true
   })
 })
@@ -228,3 +259,10 @@ const executeDelete = async () => {
 
 onMounted(loadData)
 </script>
+
+<style scoped>
+/* allow the absolute positioned dropdown to overflow the table */
+.table-container {
+  overflow: visible !important;
+}
+</style>

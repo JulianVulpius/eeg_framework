@@ -107,7 +107,26 @@
             :leftTitle="$t('views.page_groups.available_pages')"
             :rightTitle="$t('views.page_groups.selected_pages')"
             :enableOrdering="true"
-          />
+            :leftFilterFn="filterAvailableLogic"
+            :rightFilterFn="filterSelectedLogic"
+          >
+            <template #left-filters>
+              <BaseSearchSelect
+                v-model="filterAvailable"
+                :options="pageCategories"
+                :placeholder="$t('views.metadata.search_category')"
+                :nullLabel="$t('views.metadata.filter_category_all')"
+              />
+            </template>
+            <template #right-filters>
+              <BaseSearchSelect
+                v-model="filterSelected"
+                :options="pageCategories"
+                :placeholder="$t('views.metadata.search_category')"
+                :nullLabel="$t('views.metadata.filter_category_all')"
+              />
+            </template>
+          </BaseTransferList>
         </div>
 
         <div class="modal-actions" style="margin-top: 2rem;">
@@ -144,16 +163,30 @@ const crud = useCrud()
 const items = ref([])
 const categories = ref([])
 const availablePages = ref([])
+const pageCategories = ref([])
 
 const showWarningModal = ref(false)
 const warningMessage = ref('')
+
+const filterAvailable = ref(null)
+const filterSelected = ref(null)
 
 const columnFilters = ref({
   name: '',
   category: '',
   description: '',
-  creator: '' // added creator filter state
+  creator: '' 
 })
+
+const filterAvailableLogic = (opt) => {
+  if (!filterAvailable.value) return true
+  return opt.category === filterAvailable.value
+}
+
+const filterSelectedLogic = (opt) => {
+  if (!filterSelected.value) return true
+  return opt.category === filterSelected.value
+}
 
 const filteredItems = computed(() => {
   return items.value.filter(item => {
@@ -161,24 +194,20 @@ const filteredItems = computed(() => {
       const q = columnFilters.value.name.toLowerCase()
       if (!item.name.toLowerCase().includes(q)) return false
     }
-
     if (columnFilters.value.category) {
       const q = columnFilters.value.category.toLowerCase()
       const cName = getCategoryName(item.category).toLowerCase()
       if (!cName.includes(q)) return false
     }
-
     if (columnFilters.value.description) {
       const q = columnFilters.value.description.toLowerCase()
       if (!item.description || !item.description.toLowerCase().includes(q)) return false
     }
-
     if (columnFilters.value.creator) {
       const q = columnFilters.value.creator.toLowerCase()
       const creatorName = item.creator ? item.creator.toLowerCase() : ''
       if (!creatorName.includes(q)) return false
     }
-
     return true
   })
 })
@@ -197,6 +226,8 @@ const getCategoryName = (id) => {
 
 const resetForm = () => {
   formData.value = { name: '', category: null, description: '', pages: [] }
+  filterAvailable.value = null
+  filterSelected.value = null 
 }
 
 const populateForm = (item) => {
@@ -206,18 +237,22 @@ const populateForm = (item) => {
     description: item.description || '',
     pages: item.pages || []
   }
+  filterAvailable.value = null
+  filterSelected.value = null
 }
 
 const loadData = async () => {
   try {
-    const [pgRes, catRes, pageRes] = await Promise.all([
+    const [pgRes, catRes, pageRes, pageCatRes] = await Promise.all([
       api.get('page-groups/'),
       api.get('category/page-group-categories/'),
-      api.get('pages/')
+      api.get('pages/'),
+      api.get('category/page-categories/')
     ])
     items.value = pgRes.data
     categories.value = catRes.data
     availablePages.value = pageRes.data
+    pageCategories.value = pageCatRes.data
   } catch (error) {
     warningMessage.value = crud.parseApiError(error, t, 'errors.load_failed')
     showWarningModal.value = true

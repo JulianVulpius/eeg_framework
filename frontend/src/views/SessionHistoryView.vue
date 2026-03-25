@@ -1,33 +1,56 @@
 <template>
   <div class="session-history">
+    
     <div class="page-header">
       <h1>{{ $t('nav.session_history') }}</h1>
+      <div class="header-actions">
+        <label class="toggle-label">
+          <input 
+            type="checkbox" 
+            v-model="showIdColumn" 
+          /> 
+          {{ $t('common.show_id') }}
+        </label>
+      </div>
     </div>
 
     <div class="table-container">
-      <div class="filters" style="padding: 15px; background: #f8f9fa; border-bottom: 1px solid #e0e0e0; display: flex; gap: 15px;">
-        <input type="text" v-model="searchSubject" :placeholder="$t('views.report.subject') + ' ' + $t('common.search')" class="form-control" style="max-width: 250px;" />
-      </div>
-
       <table class="data-table">
         <thead>
           <tr>
-            <th class="id-column">{{ $t('common.id') }}</th>
-            <th>{{ $t('views.report.date') }}</th>
-            <th>{{ $t('views.report.event') }}</th>
-            <th>{{ $t('views.report.subject') }}</th>
+            <th v-if="showIdColumn" class="id-column">{{ $t('common.id') }}</th>
+            <th style="width: 30%;">
+              <ColumnHeaderFilter 
+                :title="$t('views.report.event')" 
+                v-model="columnFilters.event" 
+                :placeholder="$t('common.search')" 
+              />
+            </th>
+            <th style="width: 30%;">
+              <ColumnHeaderFilter 
+                :title="$t('views.report.subject')" 
+                v-model="columnFilters.subject" 
+                :placeholder="$t('common.search')" 
+              />
+            </th>
+            <th style="width: 25%;">
+              <ColumnHeaderDateFilter 
+                :title="$t('views.report.date')" 
+                v-model="columnFilters.date" 
+              />
+            </th>
             <th class="actions-column">{{ $t('actions.actions') }}</th>
           </tr>
         </thead>
         <tbody>
           <tr v-if="filteredSessions.length === 0">
-            <td colspan="5" class="empty-state">{{ $t('common.no_data') }}</td>
+            <td :colspan="showIdColumn ? 5 : 4" class="empty-state">{{ $t('common.no_data') }}</td>
           </tr>
           <tr v-for="session in filteredSessions" :key="session.id">
-            <td class="id-column">{{ session.id }}</td>
-            <td>{{ new Date(session.start_datetime).toLocaleString() }}</td>
+            <td v-if="showIdColumn" class="id-column">{{ session.id }}</td>
             <td><strong>{{ getEventName(session.event) }}</strong></td>
             <td>{{ getSubjectName(session.subject) }}</td>
+            <td>{{ formatDisplayDate(session.start_datetime) }}</td>
             <td class="actions-cell">
               <router-link :to="'/session/report/' + session.id" class="btn-primary" style="text-decoration: none; padding: 6px 12px; font-size: 0.85rem;">
                 📊 {{ $t('nav.report') }}
@@ -43,11 +66,19 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue'
 import api from '@/services/api'
+import ColumnHeaderFilter from '@/components/ColumnHeaderFilter.vue'
+import ColumnHeaderDateFilter from '@/components/ColumnHeaderDateFilter.vue'
 
+const showIdColumn = ref(false)
 const sessions = ref([])
 const events = ref([])
 const subjects = ref([])
-const searchSubject = ref('')
+
+const columnFilters = ref({
+  event: '',
+  subject: '',
+  date: ''
+})
 
 const loadData = async () => {
   try {
@@ -71,15 +102,44 @@ const getEventName = (id) => {
 
 const getSubjectName = (id) => {
   const sub = subjects.value.find(s => s.id === id)
-  return sub ? `${sub.identifier} (${sub.first_name || ''} ${sub.last_name || ''})`.trim() : id
+  if (!sub) return id
+  
+  const fullName = `${sub.first_name || ''} ${sub.last_name || ''}`.trim()
+  return fullName || sub.identifier
+}
+
+const formatDisplayDate = (isoString) => {
+  if (!isoString) return '-'
+  const date = new Date(isoString)
+  return date.toLocaleString(undefined, { 
+    year: 'numeric', 
+    month: '2-digit', 
+    day: '2-digit', 
+    hour: '2-digit', 
+    minute: '2-digit' 
+  })
 }
 
 const filteredSessions = computed(() => {
-  if (!searchSubject.value) return sessions.value
-  const query = searchSubject.value.toLowerCase()
   return sessions.value.filter(s => {
-    const subjectName = getSubjectName(s.subject).toLowerCase()
-    return subjectName.includes(query)
+    
+    if (columnFilters.value.event) {
+      const q = columnFilters.value.event.toLowerCase()
+      const eName = getEventName(s.event).toLowerCase()
+      if (!eName.includes(q)) return false
+    }
+
+    if (columnFilters.value.subject) {
+      const q = columnFilters.value.subject.toLowerCase()
+      const sName = getSubjectName(s.subject).toLowerCase()
+      if (!sName.includes(q)) return false
+    }
+
+    if (columnFilters.value.date) {
+      if (!s.start_datetime || !s.start_datetime.startsWith(columnFilters.value.date)) return false
+    }
+
+    return true
   })
 })
 

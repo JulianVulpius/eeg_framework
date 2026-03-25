@@ -73,7 +73,26 @@
             :leftTitle="$t('views.pages.available_components')"
             :rightTitle="$t('views.pages.selected_components')"
             :enableOrdering="true"
-          />
+            :leftFilterFn="filterAvailableLogic"
+            :rightFilterFn="filterSelectedLogic"
+          >
+            <template #left-filters>
+              <BaseSearchSelect
+                v-model="filterAvailable"
+                :options="componentCategories"
+                :placeholder="$t('views.metadata.search_category')"
+                :nullLabel="$t('views.metadata.filter_category_all')"
+              />
+            </template>
+            <template #right-filters>
+              <BaseSearchSelect
+                v-model="filterSelected"
+                :options="componentCategories"
+                :placeholder="$t('views.metadata.search_category')"
+                :nullLabel="$t('views.metadata.filter_category_all')"
+              />
+            </template>
+          </BaseTransferList>
         </div>
 
         <div class="modal-actions" style="margin-top: 2rem;">
@@ -107,8 +126,16 @@ import ColumnHeaderFilter from '@/components/ColumnHeaderFilter.vue'
 const { t } = useI18n()
 const crud = useCrud()
 
-const items = ref([]); const categories = ref([]); const availableComponents = ref([])
-const showWarningModal = ref(false); const warningMessage = ref('')
+const items = ref([])
+const categories = ref([])
+const availableComponents = ref([])
+const componentCategories = ref([]) 
+
+const showWarningModal = ref(false)
+const warningMessage = ref('')
+
+const filterAvailable = ref(null)
+const filterSelected = ref(null)
 
 const columnFilters = ref({
   name: '',
@@ -116,24 +143,31 @@ const columnFilters = ref({
   description: ''
 })
 
+const filterAvailableLogic = (opt) => {
+  if (!filterAvailable.value) return true
+  return opt.category === filterAvailable.value
+}
+
+const filterSelectedLogic = (opt) => {
+  if (!filterSelected.value) return true
+  return opt.category === filterSelected.value
+}
+
 const filteredItems = computed(() => {
   return items.value.filter(item => {
     if (columnFilters.value.name) {
       const q = columnFilters.value.name.toLowerCase()
       if (!item.name.toLowerCase().includes(q)) return false
     }
-
     if (columnFilters.value.category) {
       const q = columnFilters.value.category.toLowerCase()
       const cName = getCategoryName(item.category).toLowerCase()
       if (!cName.includes(q)) return false
     }
-
     if (columnFilters.value.description) {
       const q = columnFilters.value.description.toLowerCase()
       if (!item.description || !item.description.toLowerCase().includes(q)) return false
     }
-
     return true
   })
 })
@@ -145,15 +179,34 @@ const getCategoryName = (id) => {
   return cat ? cat.name : '-'
 }
 
-const resetForm = () => { formData.value = { name: '', category: null, description: '', components: [] } }
+const resetForm = () => { 
+  formData.value = { name: '', category: null, description: '', components: [] } 
+  filterAvailable.value = null
+  filterSelected.value = null
+}
 
-const populateForm = (item) => { formData.value = { name: item.name, category: item.category, description: item.description || '', components: item.components || [] } }
+const populateForm = (item) => { 
+  formData.value = { name: item.name, category: item.category, description: item.description || '', components: item.components || [] } 
+  filterAvailable.value = null
+  filterSelected.value = null 
+}
 
 const loadData = async () => {
   try {
-    const [pageRes, catRes, compRes] = await Promise.all([api.get('pages/'), api.get('category/page-categories/'), api.get('components/')])
-    items.value = pageRes.data; categories.value = catRes.data; availableComponents.value = compRes.data
-  } catch (error) { warningMessage.value = t('errors.load_failed'); showWarningModal.value = true }
+    const [pageRes, catRes, compRes, compCatRes] = await Promise.all([
+      api.get('pages/'), 
+      api.get('category/page-categories/'), 
+      api.get('components/'),
+      api.get('category/component-categories/')
+    ])
+    items.value = pageRes.data
+    categories.value = catRes.data
+    availableComponents.value = compRes.data
+    componentCategories.value = compCatRes.data
+  } catch (error) { 
+    warningMessage.value = t('errors.load_failed')
+    showWarningModal.value = true 
+  }
 }
 
 const saveRecord = async () => {
