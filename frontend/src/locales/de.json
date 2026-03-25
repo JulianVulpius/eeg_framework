@@ -180,7 +180,8 @@
       "select_placeholder": "Tippen zum Suchen...",
       "add_pair": "Paar hinzufügen",
       "trigger_character": "Trigger-Zeichen",
-      "no_more_pairs": "Es stehen keine Paare mehr zur Auswahl."
+      "no_more_pairs": "Es stehen keine Paare mehr zur Auswahl.",
+      "hotkey_info": "ℹ️ Hinweis: Als Hotkeys sind nur einzelne Kleinbuchstaben (a-z) und Zahlen (0-9) erlaubt."
     },
     "stimulus": {
       "source": "Quelle (Datei/URL)",

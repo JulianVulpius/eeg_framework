@@ -68,11 +68,17 @@
         
         <div class="form-group">
           <label>Triggers & Hotkeys</label>
+          
+          <div class="info-banner" style="margin-bottom: 15px; font-size: 0.9rem;">
+            {{ $t('views.triggers.hotkey_info') }}
+          </div>
+
           <TriggerShuffle 
             :allOptions="allTriggerDefs"
             :triggerPairs="allTriggerPairs"
             v-model:selectedIds="formData.triggers"
-            v-model:hotkeyMap="formData.hotkeys"
+            :hotkeyMap="formData.hotkeys"
+            @update:hotkeyMap="sanitizeHotkeys"
           />
         </div>
 
@@ -153,6 +159,18 @@ const filteredItems = computed(() => {
 
 const formData = ref({ name: '', description: '', triggers: [], hotkeys: {} })
 const isWarningOpen = ref(false)
+
+const sanitizeHotkeys = (newMap) => {
+  for (const triggerId in newMap) {
+    if (newMap[triggerId]) {
+      newMap[triggerId] = newMap[triggerId]
+        .toLowerCase()
+        .replace(/[^a-z0-9]/g, '') // remove everything except a-z and 0-9
+        .substring(0, 1) // keep only the first character
+    }
+  }
+  formData.value.hotkeys = newMap
+}
 
 const resetForm = () => { 
   formData.value = { name: '', description: '', triggers: [], hotkeys: {} } 

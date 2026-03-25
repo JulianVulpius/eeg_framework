@@ -180,7 +180,8 @@
       "select_placeholder": "Type to search...",
       "add_pair": "Add Pair",
       "trigger_character": "Trigger Character",
-      "no_more_pairs": "No more pairs available to select."
+      "no_more_pairs": "No more pairs available to select.",
+      "hotkey_info": "ℹ️ Note: Only single lowercase letters (a-z) and numbers (0-9) are allowed for hotkeys."
     },
     "stimulus": {
       "source": "Source (File/URL)",
