@@ -38,7 +38,7 @@ Das System nutzt eine hochflexible Entity-Metadata-Registry, um das Datenmodell 
 
 ### 6. Multi-Modale Sitzungen & Synchronisation
 
-* **Synchronisierte Bio-Signale:** Das Framework ist in der Lage, parallel zum EEG weitere Sensordaten (wie eine Pulsmessung) aufzuzeichnen. Diese parallelen Datenströme erhalten in Echtzeit exakt dieselben Trigger-Marker wie das EEG-File, was eine absolute zeitliche Synchronisation bei der späteren Analyse garantiert. Zudem kann es selber auditive Stimuli abspielen, sodass die Trigger-Sitzung so exakt wie nur möglich ist, um beispielsweise einzelne Stimuli-Abschnitte später richtig segmentieren zu können.
+* **Synchronisierte Bio-Signale:** Das Framework ist in der Lage, parallel zum EEG weitere Sensordaten (wie eine Pulsmessung) aufzuzeichnen. Diese parallelen Datenströme erhalten in Echtzeit exakt dieselben Trigger-Marker wie das EEG-File, was eine zeitliche Synchronisation bei der späteren Analyse garantiert. Zudem kann es selber auditive Stimuli abspielen, sodass die Trigger-Sitzung so exakt wie nur möglich ist, um beispielsweise einzelne Stimuli-Abschnitte später richtig segmentieren zu können.
 
 ### 7. Selbsterweiterndes Framework durch Custom Scripts und externe Bibliotheken
 
@@ -58,7 +58,7 @@ Das System nutzt eine hochflexible Entity-Metadata-Registry, um das Datenmodell 
 ### 10. Ausführliches Fehler-Handling und Warnlogik
 
 * **Proaktive Datenvalidierung:** Das Framework verfügt über eine tiefe, durchgängige Logik für Fehlermeldungen und Warnungen. Um die Datenintegrität zu wahren, prüft das System Eingaben bereits im Frontend auf logische Fehler (z. B. doppelt vergebene Hotkeys in einer Gruppe oder redundante Gerätenamen), bevor sie überhaupt das Backend erreichen.
-* **Geführte Nutzererfahrung (UX):** Anstatt Nutzer durch abrupte Systemabstürze zu frustrieren, werden sie durch gezielte, bilinguale Warn-Dialoge (Custom Modals) auf potenziell fehlerhafte oder unvollständige Aktionen hingewiesen (z. B. der Versuch, TriggerGruppe ohne zugewiesene Tasten zu speichern). Dies sorgt für eine flüssige und fehlerresistente Bedienung.
+* **Geführte Nutzererfahrung (UX):** Anstatt Nutzer durch abrupte Systemabstürze zu frustrieren, werden sie durch  bilinguale Warn-Dialoge (Custom Modals) auf potenziell fehlerhafte oder unvollständige Aktionen hingewiesen (z. B. der Versuch, TriggerGruppe ohne zugewiesene Tasten zu speichern). Dies sorgt für eine flüssige und fehlerresistente Bedienung.
 
 ### 11. Post-Session Trigger-Analyse und -Korrektur
 
@@ -77,3 +77,33 @@ Das System nutzt eine hochflexible Entity-Metadata-Registry, um das Datenmodell 
 * **Flexible Multi-Device-Nutzung:** Das Rollenkonzept erlaubt somit künftig die Erstellung dedizierter Ansichten für Live-Sitzungen. So kann ein Proband während einer laufenden EEG-Aufnahme auf einem separaten Gerät (z. B. einem Tablet) eine spezifisch für ihn freigegebene Seite bedienen, während die Forscher auf ihrem Hauptbildschirm durch ihre administrativen Rechte die volle Kontrolle behalten. Allgemein entfällt die Notwendigkeit, dass der Proband das gleiche Gerät wie der Datenerfasser nutzen muss, um Eingaben zu tätigen. Der webbasierte Ansatz des EEG-Frameworks bietet zudem die problemlose Einbindung von Tablets oder die Nutzung persönlicher Geräte der Teilnehmenden (Bring Your Own Device).
 * **Pragmatische, lokale Datenspeicherung:** Im Rahmen des Entwicklungszeitraums der Masterarbeit wurde bewusst auf ein hochkomplexes, verteiltes Datenspeichersystem (wie Cloud-Buckets oder spezialisierte Zeitreihen-Datenbanken) verzichtet. Die anfallenden Dateien, was neben den großen EEG-Rohdaten ausdrücklich auch sämtliche Stimuli-Dateien (z. B. Medien) sowie die synchronisierten Aufzeichnungen der Pulsmessung umfasst, werden stattdessen pragmatisch und effizient in einem einfachen lokalen Ordner (Local Folder im Root-Verzeichnis) gespeichert. Für den aktuellen Laborbetrieb und den Proof-of-Concept ist dieser Ansatz völlig ausreichend.
 * **Fokus auf lokale Ausführungsumgebung:** Aus zeitlichen Aspekten beschränkt sich das Projekt in dieser Phase auf eine reine lokale Ausführungsumgebung (Localhost). Auf aufwändige DevOps-Prozesse wie Staging-Verfahren, automatisierte Release-Pipelines (CI/CD) oder das Hosting auf externen Servern wurde verzichtet. Die saubere architektonische Trennung von Backend (Django), Tool-Service (FastAPI) und Frontend (Vue 3) stellt jedoch sicher, dass das System strukturell jederzeit bereit ist, um in einer möglichen späteren Projektphase auf produktive Server- und Cloud-Infrastrukturen migriert zu werden.
+
+### 14. Session Workflow und Event-Rollen
+
+Das System trennt strikt zwischen der Definition einer Studie (Event-Builder) und deren Ausführung (Session Runner). Eine **Session** repräsentiert in diesem Datenmodell exakt einen Durchlauf: **1 Event + 1 Phase (Page Group) + 1 Proband (Subject)**.
+Der Workflow ist in drei Kernbereiche unterteilt:
+
+* **1. Event-Builder (Vorbereitung):** Hier wird die Struktur der Studie definiert (Bottom-Up).
+  * **Bausteine (Components):** Die kleinsten Einheiten (z. B. Rich-Text-Blöcke oder Metadaten-Formulare).
+  * **Seiten (Pages):** Fassen mehrere Bausteine in einer festen Reihenfolge zusammen.
+  * **Phasen (Page Groups):** Bündeln Seiten zu logischen Abschnitten (z. B. "Pre-Session Fragebogen", "Main Task").
+  * **Event Roles:** [WIP]
+
+* **2. Session Launcher (Das Wartezimmer):**
+  Der Einstiegspunkt für den Forscher. Hier werden Event, Phase und Proband ausgewählt. Wird eine bereits existierende Kombination aus Event, Phase und Proband erkannt, warnt das System und bietet zwei Optionen:
+  * **Resume (Fortsetzen):** Lädt die bisherigen Antworten aus der Datenbank und springt in die Sitzung zurück.
+  * **Reset (Neu starten):** Löscht alle bisher erfassten Metadaten dieser Sitzungs-Phase und setzt den Zeitstempel zurück.
+
+* **3. Session Runner (Die Engine):**
+  Die Ausführungsumgebung, die den Blueprint des Events rendert. 
+  * Erlaubt fließendes Vor- und Zurück-Navigieren zwischen den Seiten, ohne dass Daten verloren gehen.
+  * Eingaben in Metadaten-Formularen werden bei jedem Seitenwechsel automatisch als Upsert (`update_or_create`) im Backend gespeichert.
+
+### 15. Session Historie und Reports
+
+* **Session Historie (Overview):**
+  Ein globales Dashboard, das alle jemals gestarteten Sitzungen auflistet. Die Tabelle bietet Metadaten wie Zeitstempel, zugehöriges Event, die jeweilige Phase und den Identifier des Probanden. Die Ansicht kann schnell nach bestimmten Probanden, Events (+Event Ersteller) und PageGroups gefiltert werden, um den Überblick in laufenden Studien zu behalten.
+* **Session Report (Daten-Ansicht):**
+  Aus der Historie oder direkt nach Abschluss einer Sitzung im Runner gelangt man in den detaillierten Session Report. Hier werden alle über Metadaten-Formulare erfassten Antworten der jeweiligen Sitzung (z. B. Pre- und Post-Fragebögen) tabellarisch und lesbar aufbereitet.
+
+#### 16. Metadaten Ansicht mit ID
