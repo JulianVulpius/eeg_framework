@@ -67,8 +67,8 @@
     "save": "Save to Database",
     "clear": "Clear",
     "actions": "Actions",
-    "continue": "Weiter",
-    "back": "Zurück"
+    "continue": "Continue",
+    "back": "Back"
   },
   "errors": {
     "save_failed": "Error saving record.",
@@ -110,6 +110,17 @@
     "is_eeg": "Is EEG Device"
   },
   "views": {
+    "history": {
+    "study_event": "Study / Event",
+    "subject": "Subject",
+    "event_creator": "Event Creator",
+    "page_group": "Page Group",
+    "timestamp": "Timestamp",
+    "location": "Location",
+    "btn_combined": "Combined Report",
+    "btn_single": "Single Report",
+    "btn_pagegroup": "PageGroup Report"
+  },
     "page_groups": {
       "assign_pages": "Assign Pages",
       "available_pages": "Available Pages",
@@ -132,14 +143,18 @@
       "no_config_needed": "No further configuration is required for this component type."
     },
     "report": {
-      "title": "Session Report (Metadata)",
+      "title": "Session Report",
+      "combined_title": "Combined Session Report",
+      "back_to_combined": "Back to Combined Report",
       "session_id": "Session ID",
-      "event": "Study / Event",
-      "subject": "Subject (ID)",
-      "date": "Timestamp",
-      "no_data": "No metadata forms were completed during this session.",
-      "question": "Recorded Field",
-      "answer": "Saved Value"
+      "event": "Event",
+      "subject": "Subject",
+      "date": "Date",
+      "no_data": "No metadata recorded for this session.",
+      "question": "Question / Parameter",
+      "answer": "Answer / Value",
+      "pagegroup_title": "PageGroup Session Report",
+      "location": "Location"
     },
     "runner": {
       "page": "Page",
@@ -188,11 +203,12 @@
     },
     "stimulus": {
       "source": "Source (File/URL)",
-      "duration": "Duration (Seconds)",
+      "duration": "Duration",
       "order": "Order",
       "source_placeholder": "e.g. song1.mp3",
       "source_help": "ℹ️ Place the file in the <strong>/stimuli</strong> folder in the root directory.",
-      "duration_placeholder": "e.g. 180"
+      "duration_placeholder": "00:00:00",
+      "duration_info": "Info: 00 = seconds, 00:00 = MM:SS, 00:00:00 = HH:MM:SS"
     },
     "session_control": {
       "title": "Unicorn Play & Sync",

@@ -61,10 +61,10 @@
           <div class="form-group" style="flex: 1;">
             <label>{{ $t('master_data.gender') }}</label>
             <select v-model="subjectForm.gender" class="form-control">
+              <option :value="null">{{ $t('master_data.none') }}</option>
               <option value="M">{{ $t('master_data.gender_male') }}</option>
               <option value="F">{{ $t('master_data.gender_female') }}</option>
               <option value="O">{{ $t('master_data.gender_other') }}</option>
-              <option value="N">{{ $t('master_data.none') }}</option>
             </select>
           </div>
         </div>
@@ -126,10 +126,10 @@ const existingSessionId = ref(null)
 const showWarningModal = ref(false)
 const warningMessage = ref('')
 
-const subjectForm = ref({ identifier: '', first_name: '', last_name: '', date_of_birth: '', gender: 'N' })
+const subjectForm = ref({ identifier: '', first_name: '', last_name: '', date_of_birth: '', gender: null })
 
 const events = computed(() => rawEvents.value.map(e => ({ id: e.id, name: e.name })))
-const locations = computed(() => rawLocations.value.map(l => ({ id: l.id, name: l.name }))) // format locations for dropdown
+const locations = computed(() => rawLocations.value.map(l => ({ id: l.id, name: l.name }))) 
 
 const subjects = computed(() => rawSubjects.value.map(s => ({ 
   id: s.id, 
@@ -162,7 +162,7 @@ const loadData = async () => {
 
 const closeSubjectModal = () => {
   isSubjectModalOpen.value = false
-  subjectForm.value = { identifier: '', first_name: '', last_name: '', date_of_birth: '', gender: 'N' }
+  subjectForm.value = { identifier: '', first_name: '', last_name: '', date_of_birth: '', gender: null }
 }
 
 const saveSubject = async () => {
@@ -182,12 +182,11 @@ const startSession = async () => {
       event: selectedEventId.value,
       page_group: selectedPageGroupId.value,
       subject: selectedSubjectId.value,
-      location: selectedLocationId.value, // added location to payload
+      location: selectedLocationId.value,
       start_datetime: new Date().toISOString()
     }
     const response = await api.post('sessions/', payload)
     
-    // status 200 means get_or_create returned an existing session
     if (response.status === 200) {
       existingSessionId.value = response.data.id
       isResumeModalOpen.value = true

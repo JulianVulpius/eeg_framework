@@ -1,6 +1,6 @@
 <template>
   <div class="dashboard-home">
-    <h1>Welcome to the EEG Framework</h1>
+    <h1>Open Source EEG Framework</h1>
   </div>
 </template>
 

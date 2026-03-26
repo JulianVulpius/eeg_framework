@@ -469,8 +469,23 @@ class SessionSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 class SessionViewSet(viewsets.ModelViewSet):
-    queryset = Session.objects.all().order_by('-start_datetime')
     serializer_class = SessionSerializer
+
+    def get_queryset(self):
+        queryset = Session.objects.all().order_by('-start_datetime')
+        
+        event = self.request.query_params.get('event')
+        subject = self.request.query_params.get('subject')
+        page_group = self.request.query_params.get('page_group')
+
+        if event:
+            queryset = queryset.filter(event_id=event)
+        if subject:
+            queryset = queryset.filter(subject_id=subject)
+        if page_group:
+            queryset = queryset.filter(page_group_id=page_group)
+            
+        return queryset
 
     def create(self, request, *args, **kwargs):
         event_id = request.data.get('event')

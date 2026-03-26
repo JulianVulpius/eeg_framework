@@ -32,7 +32,6 @@
                 :placeholder="$t('common.search')" 
               />
             </th>
-            
             <th style="width: 20%;">
               <ColumnHeaderFilter 
                 :title="$t('common.creator')" 
@@ -40,7 +39,6 @@
                 :placeholder="$t('common.search')" 
               />
             </th>
-
             <th class="actions-column">{{ $t('actions.actions') }}</th>
           </tr>
         </thead>
@@ -102,17 +100,20 @@
           <small class="help-text" v-html="$t('views.stimulus.source_help')"></small>
         </div>
 
-        <div class="form-group">
+        <div class="form-group" style="margin-bottom: 15px;">
           <label>{{ $t('views.stimulus.duration') }} *</label>
           <input 
-            type="number" 
-            v-model="formData.duration" 
-            min="1" 
+            type="text" 
+            v-model="durationDisplay" 
+            @blur="parseAndFormatDuration"
             class="form-control"
             :class="{ 'input-invalid': crud.fieldErrors.value.duration }"
-            :placeholder="$t('views.stimulus.duration_placeholder')" 
+            :placeholder="$t('views.stimulus.duration_placeholder')"
           />
           <BaseInputError :message="crud.fieldErrors.value.duration" />
+          <small style="color: #7f8c8d; font-size: 0.8rem; display: block; margin-top: 5px;">
+            {{ $t('views.stimulus.duration_info') }}
+          </small>
         </div>
 
         <div class="modal-actions">
@@ -138,7 +139,7 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import api from '@/services/api'
 import { useCrud } from '@/composables/useCrud'
@@ -191,10 +192,55 @@ const filteredItems = computed(() => {
   })
 })
 
-const formData = ref({ name: '', category: null, source: '', duration: 10 })
+const formData = ref({ name: '', category: null, source: '', duration: null })
+const durationDisplay = ref('')
+
+// --- Smart Duration Parsing Logic ---
+const parseAndFormatDuration = () => {
+  let str = durationDisplay.value.replace(/[^0-9:]/g, '').trim()
+  
+  if (!str) {
+    durationDisplay.value = ''
+    formData.value.duration = null
+    return
+  }
+
+  const parts = str.split(':').map(num => parseInt(num) || 0)
+  let totalSeconds = 0
+
+  if (parts.length === 1) {
+    totalSeconds = parts[0]
+  } else if (parts.length === 2) {
+    totalSeconds = (parts[0] * 60) + parts[1]
+  } else if (parts.length >= 3) {
+    totalSeconds = (parts[0] * 3600) + (parts[1] * 60) + parts[2]
+  }
+
+  const h = Math.floor(totalSeconds / 3600).toString().padStart(2, '0')
+  const m = Math.floor((totalSeconds % 3600) / 60).toString().padStart(2, '0')
+  const s = (totalSeconds % 60).toString().padStart(2, '0')
+
+  durationDisplay.value = `${h}:${m}:${s}`
+  formData.value.duration = totalSeconds
+}
+
+watch(() => formData.value.duration, (newVal) => {
+  if (newVal === null || newVal === undefined || newVal === '') {
+    durationDisplay.value = ''
+    return
+  }
+  
+  const totalSeconds = parseInt(newVal) || 0
+  const h = Math.floor(totalSeconds / 3600).toString().padStart(2, '0')
+  const m = Math.floor((totalSeconds % 3600) / 60).toString().padStart(2, '0')
+  const s = (totalSeconds % 60).toString().padStart(2, '0')
+  durationDisplay.value = `${h}:${m}:${s}`
+}, { immediate: true })
+
 
 const resetForm = () => { 
-  formData.value = { name: '', category: null, source: '', duration: 10 } 
+  formData.value = { name: '', category: null, source: '', duration: null } 
+  durationDisplay.value = ''
 }
 
 const populateForm = (item) => { 
@@ -234,6 +280,10 @@ const saveRecord = async () => {
   }
   if (!formData.value.source || formData.value.source.trim() === '') {
     crud.fieldErrors.value.source = t('errors.required_field')
+    hasErrors = true
+  }
+  if (formData.value.duration === null || formData.value.duration === '') {
+    crud.fieldErrors.value.duration = t('errors.required_field')
     hasErrors = true
   }
 

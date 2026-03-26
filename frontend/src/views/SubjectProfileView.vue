@@ -198,7 +198,13 @@ const resetForm = () => {
 }
 
 const populateForm = (item) => { 
-  formData.value = { identifier: item.identifier, firstname: item.firstname, lastname: item.lastname, birthday: item.birthday, gender: item.gender } 
+  formData.value = { 
+    identifier: item.identifier, 
+    firstname: item.firstname, 
+    lastname: item.lastname, 
+    birthday: item.birthday || '', 
+    gender: item.gender 
+  } 
 }
 
 const loadData = async () => {
@@ -232,9 +238,18 @@ const saveRecord = async () => {
     return
   }
 
+  const payload = { ...formData.value }
+  
+  if (payload.birthday === '') {
+    payload.birthday = null
+  }
+
   try {
-    if (crud.isEditing.value) await api.put(`subjects/${crud.editingId.value}/`, formData.value)
-    else await api.post('subjects/', formData.value)
+    if (crud.isEditing.value) {
+      await api.put(`subjects/${crud.editingId.value}/`, payload)
+    } else {
+      await api.post('subjects/', payload)
+    }
     crud.closeDialog()
     loadData()
   } catch (error) {

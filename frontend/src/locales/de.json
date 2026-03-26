@@ -110,6 +110,17 @@
     "is_eeg": "Ist EEG-Gerät"
   },
   "views": {
+    "history": {
+    "study_event": "Studie / Event",
+    "subject": "Proband",
+    "event_creator": "Event Ersteller",
+    "page_group": "Page Group",
+    "timestamp": "Zeitstempel",
+    "location": "Standort",
+    "btn_combined": "Gesamtbericht",
+    "btn_single": "Einzelbericht",
+    "btn_pagegroup": "PageGroup Bericht"
+  },
     "page_groups": {
       "assign_pages": "Seiten (Pages) zuweisen",
       "available_pages": "Verfügbare Seiten",
@@ -132,14 +143,18 @@
       "no_config_needed": "Für diesen Komponenten-Typ sind keine weiteren Einstellungen erforderlich."
     },
     "report": {
-      "title": "Sitzungsbericht (Metadaten)",
-      "session_id": "Session ID",
-      "event": "Studie / Event",
-      "subject": "Proband (ID)",
-      "date": "Zeitpunkt",
-      "no_data": "Für diese Sitzung wurden keine Metadaten-Formulare ausgefüllt.",
-      "question": "Erfasstes Feld",
-      "answer": "Gespeicherter Wert"
+      "title": "Sitzungsbericht",
+      "combined_title": "Gesamter Sitzungsbericht",
+      "back_to_combined": "Zurück zum Gesamtbericht",
+      "session_id": "Sitzungs-ID",
+      "event": "Event",
+      "subject": "Proband",
+      "date": "Datum",
+      "no_data": "Keine Metadaten für diese Sitzung erfasst.",
+      "question": "Frage / Parameter",
+      "answer": "Antwort / Wert",
+      "pagegroup_title": "PageGroup Sitzungsbericht",
+      "location": "Standort"
     },
     "runner": {
       "page": "Seite",
@@ -188,11 +203,12 @@
     },
     "stimulus": {
       "source": "Quelle (Datei/URL)",
-      "duration": "Dauer (Sekunden)",
+      "duration": "Dauer",
       "order": "Reihenfolge",
       "source_placeholder": "z.B. song1.mp3",
       "source_help": "ℹ️ Lege die Datei im Ordner <strong>/stimuli</strong> im Root-Verzeichnis ab.",
-      "duration_placeholder": "z.B. 180"
+      "duration_placeholder": "00:00:00",
+      "duration_info": "Info: 00 = Sekunden, 00:00 = MM:SS, 00:00:00 = HH:MM:SS"
     },
     "session_control": {
       "title": "Unicorn Play & Sync",

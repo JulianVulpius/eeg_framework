@@ -22,9 +22,11 @@ import SessionLauncherView from '../views/SessionLauncherView.vue'
 import SessionRunnerView from '../views/SessionRunnerView.vue'
 import ComponentManagerView from '../views/ComponentManagerView.vue'
 import PageManagerView from '../views/PageManagerView.vue'
-import SessionReportView from '../views/SessionReportView.vue'
 import SessionHistoryView from '../views/SessionHistoryView.vue'
 import LocationView from '../views/LocationView.vue'
+import SingleSessionReportView from '../views/SingleSessionReportView.vue'
+import CombinedReportView from '../views/CombinedReportView.vue'
+import PageGroupReportView from '../views/PageGroupReportView.vue'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -139,7 +141,7 @@ const router = createRouter({
         {
           path: 'session/report/:id',
           name: 'session-report',
-          component: SessionReportView,
+          component: SingleSessionReportView,
           props: true
         },
         {
@@ -161,6 +163,18 @@ const router = createRouter({
           path: '/locations',
           name: 'Locations',
           component: LocationView
+        },
+        {
+          path: '/session/aggregate-report/:eventId/:subjectId',
+          name: 'CombinedReport',
+          component: CombinedReportView,
+          props: true
+        },
+        {
+          path: '/session/pagegroup-report/:eventId/:pageGroupId',
+          name: 'PageGroupReport',
+          component: PageGroupReportView,
+          props: true
         },
         {
           // dynamic route that powers all category CRUD tables

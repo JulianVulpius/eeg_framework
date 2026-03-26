@@ -10,22 +10,26 @@
           <h3>{{ $t('views.session_control.config') }}</h3>
           
           <div class="form-group">
-            <label>{{ $t('views.session_control.select_playlist') }}</label>
-            <select v-model="selectedPlaylist" :disabled="isRunning" class="form-control">
-              <option :value="null">{{ $t('views.session_control.no_playlist') }}</option>
-              <option v-for="p in playlists" :key="p.id" :value="p.id">{{ p.name }}</option>
-            </select>
+            <BaseSearchSelect 
+              v-model="selectedPlaylist"
+              :options="playlists"
+              :label="$t('views.session_control.select_playlist')"
+              :nullLabel="$t('views.session_control.no_playlist')"
+              :disabled="isRunning"
+            />
           </div>
 
-          <div class="form-group">
-            <label>{{ $t('views.session_control.select_group') }}</label>
-            <select v-model="selectedGroup" :disabled="isRunning" class="form-control">
-              <option :value="null">{{ $t('views.session_control.no_hotkeys') }}</option>
-              <option v-for="g in triggerGroups" :key="g.id" :value="g.id">{{ g.name }}</option>
-            </select>
+          <div class="form-group" style="margin-top: 15px;">
+            <BaseSearchSelect 
+              v-model="selectedGroup"
+              :options="triggerGroups"
+              :label="$t('views.session_control.select_group')"
+              :nullLabel="$t('views.session_control.no_hotkeys')"
+              :disabled="isRunning"
+            />
           </div>
 
-          <div class="form-group">
+          <div class="form-group" style="margin-top: 15px;">
             <label>{{ $t('views.session_control.transition_time') }}</label>
             <input type="number" v-model="transitionTime" min="0" :disabled="isRunning" class="form-control" />
           </div>
@@ -87,6 +91,7 @@ import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { useI18n } from 'vue-i18n'
 import api from '@/services/api'
 import engineApi from '@/services/engineApi'
+import BaseSearchSelect from '@/components/BaseSearchSelect.vue'
 
 const { t } = useI18n()
 

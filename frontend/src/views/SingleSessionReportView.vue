@@ -2,33 +2,24 @@
   <div class="session-report">
     <div class="page-header" style="margin-bottom: 20px;">
       <h1>{{ $t('views.report.title') }}</h1>
-      <button class="btn-secondary" @click="router.push('/session-history')">{{ $t('actions.back') }}</button>
+      <div style="display: flex; gap: 10px;">
+        <button v-if="hasCombinedContext" class="btn-secondary" style="background: #eef2f3; color: #2c3e50; border: 1px solid #dcdde1;" @click="goToCombined">
+          ⬅ {{ $t('views.report.back_to_combined') }}
+        </button>
+        <button class="btn-secondary" @click="router.push('/session-history')">{{ $t('actions.back') }}</button>
+      </div>
     </div>
 
-    <div v-if="isLoading" class="loading-state">
-      {{ $t('common.loading') }}
-    </div>
-
+    <div v-if="isLoading" class="loading-state">{{ $t('common.loading') }}</div>
+    
     <div v-else-if="reportData" class="report-content">
-      
       <div class="card meta-card">
         <div class="meta-grid">
-          <div>
-            <label>{{ $t('views.report.session_id') }}</label>
-            <div class="val">{{ reportData.session_id }}</div>
-          </div>
-          <div>
-            <label>{{ $t('views.report.event') }}</label>
-            <div class="val">{{ reportData.event_name }}</div>
-          </div>
-          <div>
-            <label>{{ $t('views.report.subject') }}</label>
-            <div class="val">{{ reportData.subject_identifier }}</div>
-          </div>
-          <div>
-            <label>{{ $t('views.report.date') }}</label>
-            <div class="val">{{ new Date(reportData.start_time).toLocaleString() }}</div>
-          </div>
+          <div><label>{{ $t('views.report.session_id') }}</label><div class="val">{{ reportData.session_id }}</div></div>
+          <div><label>{{ $t('views.report.event') }}</label><div class="val">{{ reportData.event_name }}</div></div>
+          <div><label>{{ $t('views.report.subject') }}</label><div class="val">{{ reportData.subject_identifier }}</div></div>
+          <div><label>{{ $t('views.report.date') }}</label><div class="val">{{ formatDate(reportData.start_time) }}</div></div>
+          <div v-if="reportData.location_name"><label>{{ $t('views.report.location') }}</label><div class="val">{{ reportData.location_name }}</div></div>
         </div>
       </div>
 
@@ -58,29 +49,64 @@
           </tbody>
         </table>
       </div>
-
     </div>
   </div>
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
-import { useRouter } from 'vue-router'
+import { ref, onMounted, computed } from 'vue'
+import { useRouter, useRoute } from 'vue-router'
 import api from '@/services/api'
 
 const props = defineProps({
   id: { type: [String, Number], required: true }
 })
+
 const router = useRouter()
+const route = useRoute()
+
 const reportData = ref(null)
 const isLoading = ref(true)
 
+const hasCombinedContext = computed(() => {
+  return route.query.eventId && route.query.subjectId
+})
+
+const goToCombined = () => {
+  router.push(`/session/aggregate-report/${route.query.eventId}/${route.query.subjectId}`)
+}
+
+const formatDate = (dateStr) => {
+  if (!dateStr) return '-'
+  return new Date(dateStr).toLocaleString(undefined, {
+    year: 'numeric', month: '2-digit', day: '2-digit',
+    hour: '2-digit', minute: '2-digit'
+  })
+}
+
 const loadReport = async () => {
   try {
-    const response = await api.get(`sessions/${props.id}/report/`)
-    reportData.value = response.data
+    const [reportRes, sessionRes, locRes] = await Promise.all([
+      api.get(`sessions/${props.id}/report/`),
+      api.get(`sessions/${props.id}/`),
+      api.get('locations/')
+    ])
+    
+    reportData.value = reportRes.data
+    const session = sessionRes.data
+    const locations = locRes.data
+    
+    let locName = '-'
+    if (session.location) {
+      const loc = locations.find(l => l.id === session.location)
+      if (loc) locName = loc.name
+    }
+    
+    reportData.value.location_name = locName
+    reportData.value.start_time = session.start_datetime
+    
   } catch (error) {
-    console.error(error)
+    console.error('error loading single report data', error)
   } finally {
     isLoading.value = false
   }
