@@ -53,6 +53,14 @@ class GenericRecording(AuditBaseModel):
     category = models.ForeignKey(GenericRecordingCategory, on_delete=models.PROTECT)
     file = models.FileField(upload_to=generic_directory_path)
 
+    trigger_group = models.ForeignKey(
+        'TriggerGroup', 
+        on_delete=models.SET_NULL, 
+        null=True, 
+        blank=True, 
+        related_name='generic_recordings'
+    )
+
     class Meta:
         db_table = 'GenericRecording'
 
