@@ -62,7 +62,6 @@ defineProps({
 
 const emit = defineEmits(['cancel', 'confirm', 'close'])
 
-// emit both events to be flexible with different parent listeners
 const handleClose = () => {
   emit('cancel')
   emit('close')
@@ -104,7 +103,6 @@ const handleConfirm = () => {
   justify-content: flex-end;
 }
 
-/* custom orange coloring */
 .warning-btn {
   background-color: #f39c12; 
   border-color: #e67e22;

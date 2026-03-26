@@ -11,13 +11,11 @@ export function useCrud() {
   const errorMessage = ref('') 
   const fieldErrors = ref({}) 
 
-  // clear all errors
   const clearErrors = () => {
     errorMessage.value = ''
     fieldErrors.value = {}
   }
 
-  // open add dialog
   const openAddDialog = (resetFormCallback) => {
     clearErrors() 
     isEditing.value = false
@@ -26,7 +24,6 @@ export function useCrud() {
     isDialogOpen.value = true
   }
 
-  // open edit dialog
   const openEditDialog = (id, populateFormCallback) => {
     clearErrors() 
     isEditing.value = true
@@ -35,24 +32,20 @@ export function useCrud() {
     isDialogOpen.value = true
   }
 
-  // close dialog
   const closeDialog = () => { 
     isDialogOpen.value = false 
   }
 
-  // request delete confirm
   const requestDelete = (id) => {
     itemToDelete.value = id
     isConfirmOpen.value = true
   }
 
-  // cancel delete
   const cancelDelete = () => {
     isConfirmOpen.value = false
     itemToDelete.value = null
   }
 
-  // generic search filter
   const createSearchFilter = (itemsRef, searchFields) => {
     return computed(() => {
       if (!searchQuery.value) return itemsRef.value
@@ -66,16 +59,27 @@ export function useCrud() {
     })
   }
 
-  // parse string errors from api response
-  const parseApiError = (error, t, fallbackKey) => {
-    if (error.response?.data) {
-      const data = error.response.data
-      if (data.detail) return data.detail
-    }
-    return t ? t(fallbackKey) : fallbackKey
-  }
 
-  // smartly map backend validation errors to form fields or global error
+  const parseApiError = (error, t, defaultKey = 'errors.save_failed') => {
+    if (error.response && error.response.data) {
+      const data = error.response.data;
+
+      if (data.error_code === 'PROTECTED_ERROR') {
+        return t('errors.protected_error', { models: data.blocking_models });
+      }
+
+      if (data.detail) return data.detail;
+      if (data.message) return data.message;
+      
+      const firstKey = Object.keys(data)[0];
+      if (firstKey && Array.isArray(data[firstKey])) {
+        return `${firstKey}: ${data[firstKey][0]}`;
+      }
+    }
+    
+    return t(defaultKey);
+  };
+
   const handleFormError = (error, t, fallbackKey = 'errors.save_failed') => {
     if (error.response?.data) {
       const serverData = error.response.data

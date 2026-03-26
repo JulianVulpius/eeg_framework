@@ -82,7 +82,8 @@
     "empty_hotkey_warning": "Einigen ausgewählten Triggern ist keine Taste (Hotkey) zugewiesen. Möchtest du trotzdem speichern?",
     "required_field": "Dies ist ein Pflichtfeld.",
     "invalid_input": "Ungültige Eingabe.",
-    "min_length": "Die Eingabe muss mindestens {count} Zeichen lang sein."
+    "min_length": "Die Eingabe muss mindestens {count} Zeichen lang sein.",
+    "protected_error": "Löschen nicht möglich: Dieser Eintrag ist gesperrt, da er noch in diesen Tabellen verwendet wird: {models}."
   },
   "modal": {
     "add_record": "Neuen Datensatz hinzufügen",

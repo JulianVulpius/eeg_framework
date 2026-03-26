@@ -82,7 +82,8 @@
     "empty_hotkey_warning": "Some selected triggers have no key (hotkey) assigned. Do you want to save anyway?",
     "required_field": "This is a required field.",
     "invalid_input": "Invalid input.",
-    "min_length": "Input must be at least {count} characters long."
+    "min_length": "Input must be at least {count} characters long.",
+    "protected_error": "Cannot delete: This record is locked because it is still used in the following tables: {models}."
   },
   "modal": {
     "add_record": "Add New Record",
