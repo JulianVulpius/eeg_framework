@@ -37,32 +37,3 @@ class Session(AuditBaseModel):
 
     def __str__(self):
         return f"Session {self.id}: {self.subject.identifier} - {self.event.name} ({self.page_group.name})"
-
-class EEGDataFile(AuditBaseModel):
-    session = models.ForeignKey(Session, on_delete=models.CASCADE, related_name='eeg_files')
-    device_instance = models.ForeignKey(DeviceInstance, on_delete=models.PROTECT)
-    source = models.CharField(max_length=500)
-    trigger_groups = models.ManyToManyField(TriggerGroup, through='EEGDataFileTriggerGroup', related_name='eeg_files')
-
-    class Meta:
-        db_table = 'EEGDataFile'
-
-    def __str__(self):
-        return f"EEG Data for Session {self.session.id}"
-
-class EEGDataFileTriggerGroup(models.Model):
-    eeg_data_file = models.ForeignKey(EEGDataFile, on_delete=models.CASCADE)
-    trigger_group = models.ForeignKey(TriggerGroup, on_delete=models.CASCADE)
-
-    class Meta:
-        db_table = 'EEGDataFile_TriggerGroup'
-        unique_together = ('eeg_data_file', 'trigger_group')
-
-class HeartRateDataFile(AuditBaseModel):
-    session = models.ForeignKey(Session, on_delete=models.CASCADE, related_name='heart_rate_files')
-    device_model = models.ForeignKey(DeviceModel, on_delete=models.PROTECT, null=True, blank=True)
-    source = models.CharField(max_length=500)
-    note = models.TextField(blank=True, null=True)
-
-    class Meta:
-        db_table = 'HeartRateDataFile'

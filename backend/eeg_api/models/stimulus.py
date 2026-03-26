@@ -1,6 +1,9 @@
 from django.db import models
 from .base import AuditBaseModel
 
+def stimulus_directory_path(instance, filename):
+    return f'stimuli/{instance.type.lower()}/{filename}'
+
 class StimulusCategory(models.Model):
     name = models.CharField(max_length=100, unique=True)
     description = models.TextField(blank=True, null=True)
@@ -13,16 +16,21 @@ class StimulusCategory(models.Model):
 
 
 class Stimulus(AuditBaseModel):
+    TYPE_CHOICES = (
+        ('AUDIO', 'Audio'),
+        ('IMAGE', 'Image'),
+        ('VIDEO', 'Video'),
+    )
+    name = models.CharField(max_length=255, unique=True)
     category = models.ForeignKey(StimulusCategory, on_delete=models.PROTECT)
-    name = models.CharField(max_length=150)
-    duration = models.PositiveIntegerField(default=10, help_text="Duration in seconds")
+    type = models.CharField(max_length=10, choices=TYPE_CHOICES, default='AUDIO')
     
-    # source is file path (for now)
-    source = models.CharField(max_length=255, help_text="Path or URI to the stimulus file/resource")
+    file = models.FileField(upload_to=stimulus_directory_path, blank=True, null=True)
+    duration = models.IntegerField(blank=True, null=True)
 
     class Meta:
         db_table = 'Stimulus'
-
+    
     def __str__(self):
         return self.name
 

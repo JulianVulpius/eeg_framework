@@ -1,24 +1,34 @@
 from .base import AuditBaseModel
+
+from .media import MediaAssetCategory, MediaAsset
 from .subject import SubjectProfile
-from .medical import MedicalHistoryCategory, MedicalHistory, SubjectMedicalHistory
-from .stimulus import StimulusCategory, Stimulus, StimulusPlaylist, StimulusPlaylistStimulus
+from .device import (
+    EEGChannel, DeviceModelCategory, DeviceModel, DeviceModelEEGChannel, 
+    DeviceInstance, DeviceInstanceEEGChannel
+)
 from .trigger import TriggerDefinition, TriggerGroup, TriggerGroupDefinition, TriggerPair
+from .stimulus import StimulusCategory, Stimulus, StimulusPlaylist, StimulusPlaylistStimulus
+
+from .medical import MedicalHistoryCategory, MedicalHistory, SubjectMedicalHistory
+from .metadata import (
+    MetaDataCategory, MetaDataDefinition, MetaDataGroupCategory, MetaDataGroup,
+    MetaDataGroupDefinition, MetaDataGroupInstance, MetaDataValue, EntityMetaDataRegistry
+)
 from .script import (
     CustomScriptCategory, CustomScriptLanguage, CustomScript,
     DataProcessCategory, DataProcess, DataProcessCustomScript,
     DataDisplayCategory, DataDisplay, DataDisplayCustomScript
 )
+
 from .ui import (
-    Event, EventCategory, EventPageGroup, Page, PageComponent, PageGroupCategory, PageCategory, ComponentDataDisplay, ComponentDataProcess, ComponentType, ComponentCategory, Component, Location
+    Location, EventCategory, Event, EventGallery, EventPageGroup, PageGroupCategory, 
+    PageCategory, Page, ComponentCategory, ComponentType, Component, PageComponent, 
+    ComponentDataDisplay, ComponentDataProcess
 )
-from .metadata import (
-    MetaDataCategory, MetaDataDefinition, MetaDataGroupCategory, MetaDataGroup,
-    MetaDataGroupDefinition, MetaDataGroupInstance, MetaDataValue, EntityMetaDataRegistry
-)
-from .device import (
-    EEGChannel, DeviceModel, DeviceModelEEGChannel, 
-    DeviceInstance, DeviceInstanceEEGChannel, DeviceModelCategory
-)
-from .session import (
-    FrequencyBand, Session, EEGDataFile, EEGDataFileTriggerGroup, HeartRateDataFile
+
+from .session import FrequencyBand, Session
+
+from .recordings import (
+    GenericRecordingCategory, GenericRecording, 
+    EEGDataFile, HeartRateDataFile
 )

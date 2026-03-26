@@ -138,6 +138,9 @@ class Event(AuditBaseModel):
     event_start = models.DateTimeField(null=True, blank=True)
     event_end = models.DateTimeField(null=True, blank=True)
 
+    logo = models.ForeignKey('eeg_api.MediaAsset', on_delete=models.SET_NULL, null=True, blank=True, related_name='event_logos')
+    poster = models.ForeignKey('eeg_api.MediaAsset', on_delete=models.SET_NULL, null=True, blank=True, related_name='event_posters')
+
     location = models.ForeignKey(
         Location, 
         on_delete=models.SET_NULL, 
@@ -157,6 +160,16 @@ class Event(AuditBaseModel):
 
     def __str__(self):
         return self.name
+
+class EventGallery(models.Model):
+    event = models.ForeignKey(Event, on_delete=models.CASCADE, related_name='gallery')
+    media = models.ForeignKey('eeg_api.MediaAsset', on_delete=models.CASCADE)
+    display_order = models.IntegerField(default=0)
+
+    class Meta:
+        unique_together = ('event', 'media')
+        ordering = ['display_order']
+        db_table = 'Event_MediaAsset'
 
 class PageGroupCategory(models.Model):
     name = models.CharField(max_length=100, unique=True)
