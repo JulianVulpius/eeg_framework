@@ -32,3 +32,5 @@ from .recordings import (
     GenericRecordingCategory, GenericRecording, 
     EEGDataFile, HeartRateDataFile
 )
+
+from .event_management import EventRole, EventGroup, EventSubjectAssignment, EventStaffAssignment

@@ -1,6 +1,7 @@
 from django.db import models
 from django.utils.translation import gettext_lazy as _
 from .base import AuditBaseModel
+from django.conf import settings
 
 class SubjectProfile(AuditBaseModel):
     
@@ -11,6 +12,15 @@ class SubjectProfile(AuditBaseModel):
 
     # identifier stays mandatory (unique)
     identifier = models.CharField(max_length=100, unique=True)
+
+    # links a real account to this subject if it exists
+    user = models.OneToOneField(
+        settings.AUTH_USER_MODEL, 
+        on_delete=models.SET_NULL, 
+        null=True, 
+        blank=True, 
+        related_name='subject_profile'
+    )
     
     firstname = models.CharField(max_length=150, blank=True, null=True)
     lastname = models.CharField(max_length=150, blank=True, null=True)
