@@ -39,7 +39,10 @@
     "components": "Components",
     "session_history": "Session History",
     "report":"Report",
-    "locations": "Locations"
+    "locations": "Locations",
+    "location_categories": "Location Categories",
+    "trigger_group_categories": "Trigger Group Categories",
+    "playlist_categories": "Playlist Categories"
   },
   "toast": {
     "created": "Data Created",

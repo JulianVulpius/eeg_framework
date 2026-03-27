@@ -22,7 +22,7 @@ class MetaDataDefinition(AuditBaseModel):
         BOOLEAN = 'BOOLEAN', 'True / False'
         JSON = 'JSON', 'JSON Object'
 
-    category = models.ForeignKey(MetaDataCategory, on_delete=models.PROTECT)
+    category = models.ForeignKey(MetaDataCategory, on_delete=models.PROTECT, null=True, blank=True)
     name = models.CharField(max_length=150)
     description = models.TextField(blank=True, null=True)
     
@@ -49,7 +49,7 @@ class MetaDataGroupCategory(models.Model):
         return self.name
 
 class MetaDataGroup(models.Model):
-    category = models.ForeignKey(MetaDataGroupCategory, on_delete=models.PROTECT)
+    category = models.ForeignKey(MetaDataGroupCategory, on_delete=models.PROTECT, null=True, blank=True)
     name = models.CharField(max_length=150)
     description = models.TextField(blank=True, null=True)
     

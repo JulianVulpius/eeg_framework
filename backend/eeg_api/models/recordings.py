@@ -50,7 +50,7 @@ class GenericRecordingCategory(models.Model):
 
 class GenericRecording(AuditBaseModel):
     session = models.ForeignKey('eeg_api.Session', on_delete=models.CASCADE, related_name='generic_recordings')
-    category = models.ForeignKey(GenericRecordingCategory, on_delete=models.PROTECT)
+    category = models.ForeignKey(GenericRecordingCategory, on_delete=models.PROTECT, null=True, blank=True)
     file = models.FileField(upload_to=generic_directory_path)
 
     trigger_group = models.ForeignKey(

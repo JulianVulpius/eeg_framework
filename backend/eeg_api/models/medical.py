@@ -13,7 +13,7 @@ class MedicalHistoryCategory(models.Model):
         return self.name
 
 class MedicalHistory(AuditBaseModel):
-    category = models.ForeignKey(MedicalHistoryCategory, on_delete=models.PROTECT)
+    category = models.ForeignKey(MedicalHistoryCategory, on_delete=models.PROTECT, null=True, blank=True)
     description = models.TextField()
 
     # The 'through' parameter tells Django to use your specific junction table below

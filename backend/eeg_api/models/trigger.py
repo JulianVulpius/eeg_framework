@@ -12,10 +12,20 @@ class TriggerDefinition(models.Model):
     def __str__(self):
         return f"{self.name} ({self.trigger_character})"
 
+class TriggerGroupCategory(models.Model):
+    name = models.CharField(max_length=100, unique=True)
+    description = models.TextField(blank=True, null=True)
+
+    class Meta:
+        db_table = 'TriggerGroupCategory'
+
+    def __str__(self):
+        return self.name
 
 class TriggerGroup(AuditBaseModel):
     name = models.CharField(max_length=150)
     description = models.TextField(blank=True, null=True)
+    category = models.ForeignKey(TriggerGroupCategory, on_delete=models.PROTECT, null=True, blank=True)
     
     triggers = models.ManyToManyField(
         TriggerDefinition,

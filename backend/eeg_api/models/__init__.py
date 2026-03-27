@@ -6,8 +6,8 @@ from .device import (
     EEGChannel, DeviceModelCategory, DeviceModel, DeviceModelEEGChannel, 
     DeviceInstance, DeviceInstanceEEGChannel
 )
-from .trigger import TriggerDefinition, TriggerGroup, TriggerGroupDefinition, TriggerPair
-from .stimulus import StimulusCategory, Stimulus, StimulusPlaylist, StimulusPlaylistStimulus
+from .trigger import TriggerDefinition, TriggerGroupCategory, TriggerGroup, TriggerGroupDefinition, TriggerPair
+from .stimulus import StimulusCategory, Stimulus, PlaylistCategory, StimulusPlaylist, StimulusPlaylistStimulus
 
 from .medical import MedicalHistoryCategory, MedicalHistory, SubjectMedicalHistory
 from .metadata import (
@@ -21,7 +21,7 @@ from .script import (
 )
 
 from .ui import (
-    Location, EventCategory, Event, EventGallery, EventPageGroup, PageGroupCategory, 
+    LocationCategory, Location, EventCategory, Event, EventGallery, EventPageGroup, PageGroupCategory, 
     PageCategory, Page, ComponentCategory, ComponentType, Component, PageComponent, 
     ComponentDataDisplay, ComponentDataProcess
 )

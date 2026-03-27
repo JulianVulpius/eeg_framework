@@ -2,9 +2,20 @@ from django.db import models
 from .base import AuditBaseModel
 from .script import DataProcess, DataDisplay
 
+class LocationCategory(models.Model):
+    name = models.CharField(max_length=100, unique=True)
+    description = models.TextField(blank=True, null=True)
+
+    class Meta:
+        db_table = 'LocationCategory'
+
+    def __str__(self):
+        return self.name
+
 class Location(models.Model):
     name = models.CharField(max_length=150, unique=True)
     description = models.TextField(blank=True, null=True)
+    category = models.ForeignKey(LocationCategory, on_delete=models.PROTECT, null=True, blank=True)
 
     class Meta:
         db_table = 'Location'
@@ -39,7 +50,7 @@ class ComponentCategory(models.Model):
         return self.name
 
 class Component(AuditBaseModel):
-    category = models.ForeignKey(ComponentCategory, on_delete=models.PROTECT)
+    category = models.ForeignKey(ComponentCategory, on_delete=models.PROTECT, null=True, blank=True)
     component_type = models.ForeignKey(ComponentType, on_delete=models.PROTECT)
     
     name = models.CharField(max_length=150)
@@ -93,7 +104,7 @@ class PageCategory(models.Model):
 
 class Page(AuditBaseModel):
     name = models.CharField(max_length=150)
-    category = models.ForeignKey(PageCategory, on_delete=models.PROTECT)
+    category = models.ForeignKey(PageCategory, on_delete=models.PROTECT, null=True, blank=True)
     description = models.TextField(blank=True, null=True)
     
     components = models.ManyToManyField(
@@ -133,7 +144,7 @@ class EventCategory(models.Model):
 
 class Event(AuditBaseModel):
     name = models.CharField(max_length=150, unique=True)
-    category = models.ForeignKey(EventCategory, on_delete=models.PROTECT)
+    category = models.ForeignKey(EventCategory, on_delete=models.PROTECT, null=True, blank=True)
     description = models.TextField(blank=True, null=True)
     event_start = models.DateTimeField(null=True, blank=True)
     event_end = models.DateTimeField(null=True, blank=True)
@@ -183,7 +194,7 @@ class PageGroupCategory(models.Model):
 
 class PageGroup(AuditBaseModel):
     name = models.CharField(max_length=150)
-    category = models.ForeignKey(PageGroupCategory, on_delete=models.PROTECT)
+    category = models.ForeignKey(PageGroupCategory, on_delete=models.PROTECT, null=True, blank=True)
     description = models.TextField(blank=True, null=True)
     
     pages = models.ManyToManyField(

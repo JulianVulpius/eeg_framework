@@ -39,7 +39,10 @@
     "components": "Bausteine",
     "session_history": "Session Historie",
     "report":"Bericht",
-    "locations": "Standorte"
+    "locations": "Standorte",
+    "location_categories": "Standort-Kategorien",
+    "trigger_group_categories": "Trigger-Gruppen-Kategorien",
+    "playlist_categories": "Playlist-Kategorien"
   },
   "toast": {
     "created": "Daten erfolgreich erstellt",

@@ -8,11 +8,11 @@ from .models import TriggerGroup, TriggerPair
 from .models.device import DeviceModel, Manufacturer, EEGChannel, DeviceModelEEGChannel
 from .models.session import FrequencyBand, Session
 from .models.subject import SubjectProfile
-from .models.trigger import TriggerHotkeyMapping
-from .models.stimulus import Stimulus, StimulusPlaylist, StimulusPlaylistStimulus
+from .models.trigger import TriggerHotkeyMapping, TriggerGroupCategory
+from .models.stimulus import Stimulus, StimulusPlaylist, StimulusPlaylistStimulus, PlaylistCategory
 from django.contrib.contenttypes.models import ContentType
 from .models.metadata import EntityMetaDataRegistry, MetaDataDefinition, MetaDataGroup, MetaDataGroupDefinition, MetaDataGroupInstance, MetaDataValue
-from .models.ui import ComponentType, Event, PageGroup, EventPageGroup, Component, Page, PageComponent, PageGroupPage, Location
+from .models.ui import ComponentType, Event, PageGroup, EventPageGroup, Component, Page, PageComponent, PageGroupPage, Location, LocationCategory
 from rest_framework.decorators import action
 from rest_framework.response import Response
 import json
@@ -37,6 +37,9 @@ CATEGORY_MODEL_MAP = {
     'page-categories': PageCategory,
     'page-group-categories': PageGroupCategory,
     'event-categories': EventCategory,
+    'trigger-group-categories': TriggerGroupCategory,
+    'location-categories': LocationCategory,
+    'playlist-categories': PlaylistCategory,
 }
 
 class GenericCategoryViewSet(viewsets.ModelViewSet):
@@ -85,7 +88,7 @@ class TriggerGroupSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = TriggerGroup
-        fields = ['id', 'name', 'description', 'triggers']
+        fields = ['id', 'name', 'category', 'description', 'triggers']
 
 class TriggerGroupViewSet(viewsets.ModelViewSet):
     queryset = TriggerGroup.objects.all().order_by('id')
@@ -198,7 +201,7 @@ class StimulusPlaylistSerializer(serializers.ModelSerializer):
     )
     class Meta:
         model = StimulusPlaylist
-        fields = ['id', 'name', 'stimuli']
+        fields = ['id', 'name', 'category', 'stimuli']
 
     def create(self, validated_data):
         stimuli_data = validated_data.pop('stimuli', [])
@@ -223,6 +226,7 @@ class StimulusPlaylistSerializer(serializers.ModelSerializer):
                 )
         
         instance.name = validated_data.get('name', instance.name)
+        instance.category = validated_data.get('category', instance.category)
         instance.save()
         return instance
 

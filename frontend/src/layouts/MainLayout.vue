@@ -94,6 +94,9 @@
             <router-link to="/category/device-model-categories" class="nav-link">{{ $t('nav.device_model_categories') }}</router-link>
             <router-link to="/category/page-group-categories" class="nav-link">{{ $t('nav.page_group_categories') }}</router-link>
             <router-link to="/category/event-categories" class="nav-link">{{ $t('nav.event_categories') }}</router-link>
+            <router-link to="/category/trigger-group-categories" class="nav-link">{{ $t('nav.trigger_group_categories') }}</router-link>
+            <router-link to="/category/location-categories" class="nav-link">{{ $t('nav.location_categories') }}</router-link>
+            <router-link to="/category/playlist-categories" class="nav-link">{{ $t('nav.playlist_categories') }}</router-link>
           </div>
         </div>
 

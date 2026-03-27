@@ -22,7 +22,7 @@ class CustomScriptLanguage(models.Model):
         return f"{self.name} {self.version if self.version else ''}".strip()
 
 class CustomScript(AuditBaseModel):
-    category = models.ForeignKey(CustomScriptCategory, on_delete=models.PROTECT)
+    category = models.ForeignKey(CustomScriptCategory, on_delete=models.PROTECT, null=True, blank=True)
     language = models.ForeignKey(CustomScriptLanguage, on_delete=models.PROTECT)
     
     source = models.TextField(help_text="File path or raw script code")
@@ -51,7 +51,7 @@ class DataProcessCategory(models.Model):
         return self.name
 
 class DataProcess(models.Model):
-    category = models.ForeignKey(DataProcessCategory, on_delete=models.PROTECT)
+    category = models.ForeignKey(DataProcessCategory, on_delete=models.PROTECT, null=True, blank=True)
     name = models.CharField(max_length=150)
     description = models.TextField(blank=True, null=True)
     
@@ -94,7 +94,7 @@ class DataDisplayCategory(models.Model):
         return self.name
 
 class DataDisplay(models.Model):
-    category = models.ForeignKey(DataDisplayCategory, on_delete=models.PROTECT)
+    category = models.ForeignKey(DataDisplayCategory, on_delete=models.PROTECT, null=True, blank=True)
     name = models.CharField(max_length=150)
     description = models.TextField(blank=True, null=True)
     

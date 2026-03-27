@@ -22,7 +22,7 @@ class Stimulus(AuditBaseModel):
         ('VIDEO', 'Video'),
     )
     name = models.CharField(max_length=255, unique=True)
-    category = models.ForeignKey(StimulusCategory, on_delete=models.PROTECT)
+    category = models.ForeignKey(StimulusCategory, on_delete=models.PROTECT, null=True, blank=True)
     type = models.CharField(max_length=10, choices=TYPE_CHOICES, default='AUDIO')
     
     file = models.FileField(upload_to=stimulus_directory_path, blank=True, null=True)
@@ -34,9 +34,19 @@ class Stimulus(AuditBaseModel):
     def __str__(self):
         return self.name
 
+class PlaylistCategory(models.Model):
+    name = models.CharField(max_length=100, unique=True)
+    description = models.TextField(blank=True, null=True)
+
+    class Meta:
+        db_table = 'PlaylistCategory'
+
+    def __str__(self):
+        return self.name
 
 class StimulusPlaylist(AuditBaseModel):
     name = models.CharField(max_length=150)
+    category = models.ForeignKey(PlaylistCategory, on_delete=models.PROTECT, null=True, blank=True)
     
     stimuli = models.ManyToManyField(
         Stimulus, 
