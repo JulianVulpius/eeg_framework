@@ -60,7 +60,7 @@
 
 <script setup>
 import { ref, computed } from 'vue'
-import BaseSearchSelect from './BaseSearchSelect.vue'
+import BaseSearchSelect from '../ui/BaseSearchSelect.vue'
 
 const props = defineProps({
   availableItems: {

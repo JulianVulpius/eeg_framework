@@ -12,11 +12,7 @@
           <tr>
             <th v-if="crud.showIdColumn.value" class="id-column">{{ $t('common.id') }}</th>
             <th style="width: 70%;">
-              <ColumnHeaderFilter 
-                :title="$t('common.name')" 
-                v-model="columnFilters.name" 
-                :placeholder="$t('common.search')" 
-              />
+              <ColumnHeaderFilter :title="$t('common.name')" v-model="columnFilters.name" :placeholder="$t('common.search')" />
             </th>
             <th class="actions-column">{{ $t('actions.actions') }}</th>
           </tr>
@@ -28,10 +24,7 @@
           <tr v-for="item in filteredItems" :key="item.id">
             <td v-if="crud.showIdColumn.value" class="id-column">{{ item.id }}</td>
             <td><strong>{{ item.name }}</strong></td>
-            <TableActionButtons 
-              @edit="crud.openEditDialog(item.id, () => populateForm(item))"
-              @delete="crud.requestDelete(item.id)"
-            />
+            <TableActionButtons @edit="crud.openEditDialog(item.id, () => populateForm(item))" @delete="crud.requestDelete(item.id)" />
           </tr>
         </tbody>
       </table>
@@ -46,12 +39,7 @@
       <form @submit.prevent="saveRecord">
         <div class="form-group">
           <label>{{ $t('common.name') }} *</label>
-          <input 
-            type="text" 
-            v-model="formData.name" 
-            class="form-control"
-            :class="{ 'input-invalid': crud.fieldErrors.value.name }"
-          />
+          <input type="text" v-model="formData.name" class="form-control" :class="{ 'input-invalid': crud.fieldErrors.value.name }" />
           <BaseInputError :message="crud.fieldErrors.value.name" />
         </div>
         
@@ -62,18 +50,8 @@
       </form>
     </BaseModal>
 
-    <ConfirmDeleteModal 
-      :isOpen="crud.isConfirmOpen.value" 
-      @cancel="crud.cancelDelete" 
-      @confirm="executeDelete" 
-    />
-
-    <WarningModal 
-      :isOpen="showWarningModal" 
-      :title="$t('common.warning')" 
-      :message="warningMessage" 
-      @close="showWarningModal = false" 
-    />
+    <ConfirmDeleteModal :isOpen="crud.isConfirmOpen.value" @cancel="crud.cancelDelete" @confirm="executeDelete" />
+    <WarningModal :isOpen="showWarningModal" :title="$t('common.warning')" :message="warningMessage" @close="showWarningModal = false" />
   </div>
 </template>
 
@@ -83,13 +61,14 @@ import { useI18n } from 'vue-i18n'
 import api from '@/services/api'
 import { useCrud } from '@/composables/useCrud'
 
-import BaseModal from '@/components/BaseModal.vue'
-import BaseInputError from '@/components/BaseInputError.vue'
-import ConfirmDeleteModal from '@/components/ConfirmDeleteModal.vue'
-import WarningModal from '@/components/WarningModal.vue'
-import ColumnHeaderFilter from '@/components/ColumnHeaderFilter.vue'
-import CrudHeader from '@/components/CrudHeader.vue'
-import TableActionButtons from '@/components/TableActionButtons.vue'
+import BaseModal from '@/components/ui/BaseModal.vue'
+import BaseInputError from '@/components/ui/BaseInputError.vue'
+import ConfirmDeleteModal from '@/components/ui/ConfirmDeleteModal.vue'
+import WarningModal from '@/components/ui/WarningModal.vue'
+import CrudHeader from '@/components/ui/CrudHeader.vue'
+
+import ColumnHeaderFilter from '@/components/table/ColumnHeaderFilter.vue'
+import TableActionButtons from '@/components/table/TableActionButtons.vue'
 
 const { t } = useI18n()
 const items = ref([])
@@ -98,29 +77,19 @@ const crud = useCrud()
 const showWarningModal = ref(false)
 const warningMessage = ref('')
 
-const columnFilters = ref({
-  name: ''
-})
+const columnFilters = ref({ name: '' })
 
 const filteredItems = computed(() => {
   return items.value.filter(item => {
-    if (columnFilters.value.name) {
-      const q = columnFilters.value.name.toLowerCase()
-      if (!item.name.toLowerCase().includes(q)) return false
-    }
+    if (columnFilters.value.name && !item.name.toLowerCase().includes(columnFilters.value.name.toLowerCase())) return false
     return true
   })
 })
 
 const formData = ref({ name: '' })
 
-const resetForm = () => { 
-  formData.value = { name: '' } 
-}
-
-const populateForm = (item) => { 
-  formData.value = { name: item.name } 
-}
+const resetForm = () => { formData.value = { name: '' } }
+const populateForm = (item) => { formData.value = { name: item.name } }
 
 const loadData = async () => {
   try {
@@ -145,8 +114,10 @@ const saveRecord = async () => {
     formData.value.name = typedName
     if (crud.isEditing.value) {
       await api.put(`eeg-channels/${crud.editingId.value}/`, formData.value)
+      crud.notifySuccess('updated', t)
     } else {
       await api.post('eeg-channels/', formData.value)
+      crud.notifySuccess('created', t)
     }
     crud.closeDialog()
     loadData()
@@ -158,6 +129,7 @@ const saveRecord = async () => {
 const executeDelete = async () => {
   try {
     await api.delete(`eeg-channels/${crud.itemToDelete.value}/`)
+    crud.notifySuccess('deleted', t)
     crud.cancelDelete()
     loadData()
   } catch (error) { 

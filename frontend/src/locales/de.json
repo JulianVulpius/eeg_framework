@@ -41,6 +41,11 @@
     "report":"Bericht",
     "locations": "Standorte"
   },
+  "toast": {
+    "created": "Daten erfolgreich erstellt",
+    "updated": "Daten erfolgreich aktualisiert",
+    "deleted": "Daten gelöscht"
+  },
   "common": {
     "name": "Name",
     "description": "Beschreibung",

@@ -86,22 +86,12 @@
         >
           <template #left-filters>
             <div style="margin: 0 10px 10px 10px;">
-              <BaseSearchSelect
-                v-model="filterDefCategory"
-                :options="defCategories"
-                :placeholder="$t('views.metadata.search_category')"
-                :nullLabel="$t('views.metadata.filter_category_all')"
-              />
+              <BaseSearchSelect v-model="filterDefCategory" :options="defCategories" :placeholder="$t('views.metadata.search_category')" :nullLabel="$t('views.metadata.filter_category_all')" />
             </div>
           </template>
           <template #right-filters>
             <div style="margin: 0 10px 10px 10px;">
-              <BaseSearchSelect
-                v-model="filterDefCategoryRight"
-                :options="defCategories"
-                :placeholder="$t('views.metadata.search_category')"
-                :nullLabel="$t('views.metadata.filter_category_all')"
-              />
+              <BaseSearchSelect v-model="filterDefCategoryRight" :options="defCategories" :placeholder="$t('views.metadata.search_category')" :nullLabel="$t('views.metadata.filter_category_all')" />
             </div>
           </template>
         </BaseTransferList>
@@ -125,15 +115,16 @@ import { useI18n } from 'vue-i18n'
 import api from '@/services/api'
 import { useCrud } from '@/composables/useCrud'
 
-import BaseModal from '@/components/BaseModal.vue'
-import BaseInputError from '@/components/BaseInputError.vue'
-import BaseSearchSelect from '@/components/BaseSearchSelect.vue'
-import BaseTransferList from '@/components/BaseTransferList.vue'
-import ConfirmDeleteModal from '@/components/ConfirmDeleteModal.vue'
-import WarningModal from '@/components/WarningModal.vue'
-import ColumnHeaderFilter from '@/components/ColumnHeaderFilter.vue'
-import CrudHeader from '@/components/CrudHeader.vue'
-import TableActionButtons from '@/components/TableActionButtons.vue'
+import BaseModal from '@/components/ui/BaseModal.vue'
+import BaseInputError from '@/components/ui/BaseInputError.vue'
+import BaseSearchSelect from '@/components/ui/BaseSearchSelect.vue'
+import BaseTransferList from '@/components/ui/BaseTransferList.vue'
+import ConfirmDeleteModal from '@/components/ui/ConfirmDeleteModal.vue'
+import WarningModal from '@/components/ui/WarningModal.vue'
+import CrudHeader from '@/components/ui/CrudHeader.vue'
+
+import ColumnHeaderFilter from '@/components/table/ColumnHeaderFilter.vue'
+import TableActionButtons from '@/components/table/TableActionButtons.vue'
 
 const { t } = useI18n()
 const items = ref([])
@@ -196,8 +187,13 @@ const saveRecord = async () => {
 
   try {
     formData.value.name = trimmedName
-    if (crud.isEditing.value) await api.put(`metadata/groups/${crud.editingId.value}/`, formData.value)
-    else await api.post('metadata/groups/', formData.value)
+    if (crud.isEditing.value) {
+      await api.put(`metadata/groups/${crud.editingId.value}/`, formData.value)
+      crud.notifySuccess('updated', t)
+    } else {
+      await api.post('metadata/groups/', formData.value)
+      crud.notifySuccess('created', t)
+    }
     crud.closeDialog()
     loadData()
   } catch (error) { 
@@ -208,6 +204,7 @@ const saveRecord = async () => {
 const executeDelete = async () => {
   try {
     await api.delete(`metadata/groups/${crud.itemToDelete.value}/`)
+    crud.notifySuccess('deleted', t)
     crud.cancelDelete()
     loadData()
   } catch (error) { 

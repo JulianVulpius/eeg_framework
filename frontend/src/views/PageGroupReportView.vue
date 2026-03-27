@@ -119,18 +119,3 @@ const loadPageGroupReport = async () => {
 
 onMounted(loadPageGroupReport)
 </script>
-
-<style scoped>
-.card { background: white; padding: 25px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); margin-bottom: 20px; border: 1px solid #e0e0e0; }
-.meta-card { background: #f8f9fa; border-left: 4px solid #1abc9c; }
-.meta-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; }
-.meta-grid label { font-size: 0.85rem; color: #7f8c8d; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 5px; display: block;}
-.meta-grid .val { font-size: 1.1rem; font-weight: bold; color: #2c3e50; }
-.group-card h3 { margin-top: 0; color: #2c3e50; border-bottom: 2px solid #f4f7f6; padding-bottom: 10px; margin-bottom: 15px; }
-.report-table { width: 100%; border-collapse: collapse; }
-.report-table th { text-align: left; padding: 10px; background: #f4f7f6; color: #7f8c8d; font-size: 0.9rem; }
-.report-table td { padding: 12px 10px; border-bottom: 1px solid #eee; }
-.badge { padding: 4px 8px; border-radius: 4px; font-size: 0.85rem; font-weight: bold; }
-.badge-yes { background: #d5f5e3; color: #27ae60; }
-.badge-no { background: #fadbd8; color: #c0392b; }
-</style>

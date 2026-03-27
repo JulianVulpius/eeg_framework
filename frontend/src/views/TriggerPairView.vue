@@ -12,31 +12,14 @@
           <tr>
             <th v-if="crud.showIdColumn.value" class="id-column">{{ $t('common.id') }}</th>
             <th style="width: 30%;">
-              <ColumnHeaderFilter 
-                :title="$t('common.name')" 
-                v-model="columnFilters.name" 
-                :placeholder="$t('common.search')" 
-              />
+              <ColumnHeaderFilter :title="$t('common.name')" v-model="columnFilters.name" :placeholder="$t('common.search')" />
             </th>
-            
             <th style="width: 35%;">
-              <ColumnHeaderSearchSelectFilter 
-                :title="$t('views.triggers.start_trigger')" 
-                v-model="columnFilters.start_trigger" 
-                :options="triggerOptions" 
-                :placeholder="$t('common.search')"
-              />
+              <ColumnHeaderSearchSelectFilter :title="$t('views.triggers.start_trigger')" v-model="columnFilters.start_trigger" :options="triggerOptions" :placeholder="$t('common.search')" />
             </th>
-            
             <th style="width: 35%;">
-              <ColumnHeaderSearchSelectFilter 
-                :title="$t('views.triggers.end_trigger')" 
-                v-model="columnFilters.end_trigger" 
-                :options="triggerOptions" 
-                :placeholder="$t('common.search')"
-              />
+              <ColumnHeaderSearchSelectFilter :title="$t('views.triggers.end_trigger')" v-model="columnFilters.end_trigger" :options="triggerOptions" :placeholder="$t('common.search')" />
             </th>
-            
             <th class="actions-column">{{ $t('actions.actions') }}</th>
           </tr>
         </thead>
@@ -49,10 +32,7 @@
             <td><strong>{{ item.name }}</strong></td>
             <td>{{ getTriggerName(item.start_trigger) }}</td>
             <td>{{ getTriggerName(item.end_trigger) }}</td>
-            <TableActionButtons 
-              @edit="crud.openEditDialog(item.id, () => populateForm(item))"
-              @delete="crud.requestDelete(item.id)"
-            />
+            <TableActionButtons @edit="crud.openEditDialog(item.id, () => populateForm(item))" @delete="crud.requestDelete(item.id)" />
           </tr>
         </tbody>
       </table>
@@ -66,12 +46,7 @@
       <form @submit.prevent="saveRecord">
         <div class="form-group">
           <label>{{ $t('common.name') }} *</label>
-          <input 
-            type="text" 
-            v-model="formData.name" 
-            class="form-control"
-            :class="{ 'input-invalid': crud.fieldErrors.value.name }"
-          />
+          <input type="text" v-model="formData.name" class="form-control" :class="{ 'input-invalid': crud.fieldErrors.value.name }" />
           <BaseInputError :message="crud.fieldErrors.value.name" />
         </div>
 
@@ -98,18 +73,8 @@
       </form>
     </BaseModal>
 
-    <ConfirmDeleteModal 
-      :isOpen="crud.isConfirmOpen.value" 
-      @cancel="crud.cancelDelete" 
-      @confirm="executeDelete" 
-    />
-
-    <WarningModal 
-      :isOpen="showWarningModal" 
-      :title="$t('common.warning')" 
-      :message="warningMessage" 
-      @close="showWarningModal = false" 
-    />
+    <ConfirmDeleteModal :isOpen="crud.isConfirmOpen.value" @cancel="crud.cancelDelete" @confirm="executeDelete" />
+    <WarningModal :isOpen="showWarningModal" :title="$t('common.warning')" :message="warningMessage" @close="showWarningModal = false" />
   </div>
 </template>
 
@@ -119,15 +84,16 @@ import { useI18n } from 'vue-i18n'
 import api from '@/services/api'
 import { useCrud } from '@/composables/useCrud'
 
-import BaseModal from '@/components/BaseModal.vue'
-import BaseInputError from '@/components/BaseInputError.vue'
-import BaseSearchSelect from '@/components/BaseSearchSelect.vue'
-import ConfirmDeleteModal from '@/components/ConfirmDeleteModal.vue'
-import WarningModal from '@/components/WarningModal.vue'
-import ColumnHeaderFilter from '@/components/ColumnHeaderFilter.vue'
-import ColumnHeaderSearchSelectFilter from '@/components/ColumnHeaderSearchSelectFilter.vue' // import new filter
-import CrudHeader from '@/components/CrudHeader.vue'
-import TableActionButtons from '@/components/TableActionButtons.vue'
+import BaseModal from '@/components/ui/BaseModal.vue'
+import BaseInputError from '@/components/ui/BaseInputError.vue'
+import BaseSearchSelect from '@/components/ui/BaseSearchSelect.vue'
+import ConfirmDeleteModal from '@/components/ui/ConfirmDeleteModal.vue'
+import WarningModal from '@/components/ui/WarningModal.vue'
+import CrudHeader from '@/components/ui/CrudHeader.vue'
+
+import ColumnHeaderFilter from '@/components/table/ColumnHeaderFilter.vue'
+import ColumnHeaderSearchSelectFilter from '@/components/table/ColumnHeaderSearchSelectFilter.vue'
+import TableActionButtons from '@/components/table/TableActionButtons.vue'
 
 const { t } = useI18n()
 const items = ref([])
@@ -145,20 +111,9 @@ const columnFilters = ref({
 
 const filteredItems = computed(() => {
   return items.value.filter(item => {
-    // text filter for name
-    if (columnFilters.value.name) {
-      const q = columnFilters.value.name.toLowerCase()
-      if (!item.name.toLowerCase().includes(q)) return false
-    }
-
-    if (columnFilters.value.start_trigger) {
-      if (item.start_trigger !== columnFilters.value.start_trigger) return false
-    }
-
-    if (columnFilters.value.end_trigger) {
-      if (item.end_trigger !== columnFilters.value.end_trigger) return false
-    }
-
+    if (columnFilters.value.name && !item.name.toLowerCase().includes(columnFilters.value.name.toLowerCase())) return false
+    if (columnFilters.value.start_trigger && item.start_trigger !== columnFilters.value.start_trigger) return false
+    if (columnFilters.value.end_trigger && item.end_trigger !== columnFilters.value.end_trigger) return false
     return true
   })
 })
@@ -172,13 +127,8 @@ const triggerOptions = computed(() => {
 
 const formData = ref({ name: '', start_trigger: null, end_trigger: null })
 
-const resetForm = () => { 
-  formData.value = { name: '', start_trigger: null, end_trigger: null }
-}
-
-const populateForm = (item) => { 
-  formData.value = { name: item.name, start_trigger: item.start_trigger, end_trigger: item.end_trigger }
-}
+const resetForm = () => { formData.value = { name: '', start_trigger: null, end_trigger: null } }
+const populateForm = (item) => { formData.value = { name: item.name, start_trigger: item.start_trigger, end_trigger: item.end_trigger } }
 
 const loadData = async () => {
   try {
@@ -202,26 +152,21 @@ const getTriggerName = (id) => {
 
 const saveRecord = async () => {
   crud.clearErrors()
-
   let hasErrors = false
-  if (!formData.value.name || formData.value.name.trim() === '') {
-    crud.fieldErrors.value.name = t('errors.required_field')
-    hasErrors = true
-  }
-  if (!formData.value.start_trigger) {
-    crud.fieldErrors.value.start_trigger = t('errors.required_field')
-    hasErrors = true
-  }
-  if (!formData.value.end_trigger) {
-    crud.fieldErrors.value.end_trigger = t('errors.required_field')
-    hasErrors = true
-  }
 
+  if (!formData.value.name || formData.value.name.trim() === '') { crud.fieldErrors.value.name = t('errors.required_field'); hasErrors = true }
+  if (!formData.value.start_trigger) { crud.fieldErrors.value.start_trigger = t('errors.required_field'); hasErrors = true }
+  if (!formData.value.end_trigger) { crud.fieldErrors.value.end_trigger = t('errors.required_field'); hasErrors = true }
   if (hasErrors) return
 
   try {
-    if (crud.isEditing.value) await api.put(`triggers/pairs/${crud.editingId.value}/`, formData.value)
-    else await api.post('triggers/pairs/', formData.value)
+    if (crud.isEditing.value) {
+      await api.put(`triggers/pairs/${crud.editingId.value}/`, formData.value)
+      crud.notifySuccess('updated', t)
+    } else {
+      await api.post('triggers/pairs/', formData.value)
+      crud.notifySuccess('created', t)
+    }
     crud.closeDialog()
     loadData()
   } catch (error) { 
@@ -232,6 +177,7 @@ const saveRecord = async () => {
 const executeDelete = async () => {
   try {
     await api.delete(`triggers/pairs/${crud.itemToDelete.value}/`)
+    crud.notifySuccess('deleted', t)
     crud.cancelDelete()
     loadData()
   } catch (error) { 
@@ -245,8 +191,6 @@ onMounted(loadData)
 </script>
 
 <style scoped>
-/* allow dropdowns to overflow the table bounds */
-.table-container {
-  overflow: visible !important;
-}
+/* allow dropdowns to overflow table bounds */
+.table-container { overflow: visible !important; }
 </style>

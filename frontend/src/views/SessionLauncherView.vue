@@ -101,13 +101,15 @@ import { ref, onMounted, computed, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import api from '@/services/api'
+import { useToast } from '@/composables/useToast'
 
-import BaseSearchSelect from '@/components/BaseSearchSelect.vue'
-import BaseModal from '@/components/BaseModal.vue'
-import WarningModal from '@/components/WarningModal.vue'
+import BaseSearchSelect from '@/components/ui/BaseSearchSelect.vue'
+import BaseModal from '@/components/ui/BaseModal.vue'
+import WarningModal from '@/components/ui/WarningModal.vue'
 
 const { t } = useI18n()
 const router = useRouter()
+const { showToast } = useToast()
 
 const rawEvents = ref([])
 const rawSubjects = ref([])
@@ -157,7 +159,9 @@ const loadData = async () => {
     rawSubjects.value = subjectsRes.data
     rawPageGroups.value = pgRes.data
     rawLocations.value = locRes.data
-  } catch (error) { showError(t('errors.load_failed')) }
+  } catch (error) { 
+    showError(t('errors.load_failed')) 
+  }
 }
 
 const closeSubjectModal = () => {
@@ -172,8 +176,11 @@ const saveSubject = async () => {
     const response = await api.post('subjects/', payload)
     rawSubjects.value.push(response.data)
     selectedSubjectId.value = response.data.id
+    showToast(t('toast.created'), 'success')
     closeSubjectModal()
-  } catch (error) { showError(t('errors.save_failed')) }
+  } catch (error) { 
+    showError(t('errors.save_failed')) 
+  }
 }
 
 const startSession = async () => {
@@ -193,7 +200,9 @@ const startSession = async () => {
     } else {
       router.push(`/session/run/${response.data.id}`)
     }
-  } catch (error) { showError(t('errors.save_failed')) }
+  } catch (error) { 
+    showError(t('errors.save_failed')) 
+  }
 }
 
 const resumeSession = () => {
@@ -206,18 +215,15 @@ const resetSession = async () => {
     await api.post(`sessions/${existingSessionId.value}/reset/`)
     isResumeModalOpen.value = false
     router.push(`/session/run/${existingSessionId.value}`)
-  } catch (error) { showError(t('errors.unknown')) }
+  } catch (error) { 
+    showError(t('errors.unknown')) 
+  }
 }
 
-const showError = (msg) => { warningMessage.value = msg; showWarningModal.value = true }
+const showError = (msg) => { 
+  warningMessage.value = msg
+  showWarningModal.value = true 
+}
+
 onMounted(loadData)
 </script>
-
-<style scoped>
-.launcher-cards { display: flex; flex-direction: column; gap: 20px; max-width: 800px; margin: 0 auto; }
-.card { background: white; padding: 25px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); border: 1px solid #e0e0e0; transition: opacity 0.3s; }
-.card h2 { margin-top: 0; font-size: 1.2rem; color: #2c3e50; margin-bottom: 15px; border-bottom: 2px solid #f4f7f6; padding-bottom: 10px; }
-.disabled-card { opacity: 0.5; pointer-events: none; }
-.action-footer { margin-top: 40px; display: flex; justify-content: center; }
-.btn-play-sync:disabled { opacity: 0.5; cursor: not-allowed; transform: none; box-shadow: none; }
-</style>

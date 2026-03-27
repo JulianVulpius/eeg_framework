@@ -128,15 +128,15 @@ import { useI18n } from 'vue-i18n'
 import api from '@/services/api'
 import { useCrud } from '@/composables/useCrud'
 
-import BaseModal from '@/components/BaseModal.vue'
-import BaseInputError from '@/components/BaseInputError.vue'
-import BaseTransferList from '@/components/BaseTransferList.vue'
-import ConfirmDeleteModal from '@/components/ConfirmDeleteModal.vue'
-import WarningModal from '@/components/WarningModal.vue'
+import BaseModal from '@/components/ui/BaseModal.vue'
+import BaseInputError from '@/components/ui/BaseInputError.vue'
+import BaseTransferList from '@/components/ui/BaseTransferList.vue'
+import ConfirmDeleteModal from '@/components/ui/ConfirmDeleteModal.vue'
+import WarningModal from '@/components/ui/WarningModal.vue'
 
-import ColumnHeaderFilter from '@/components/ColumnHeaderFilter.vue'
-import ColumnHeaderMultiFilter from '@/components/ColumnHeaderMultiFilter.vue'
-import ColumnHeaderSelectFilter from '@/components/ColumnHeaderSelectFilter.vue'
+import ColumnHeaderFilter from '@/components/table/ColumnHeaderFilter.vue'
+import ColumnHeaderMultiFilter from '@/components/table/ColumnHeaderMultiFilter.vue'
+import ColumnHeaderSelectFilter from '@/components/table/ColumnHeaderSelectFilter.vue'
 
 const { t } = useI18n()
 const crud = useCrud() 
@@ -292,6 +292,7 @@ const saveRecord = async () => {
     })
 
     await Promise.all(apiCalls)
+    crud.notifySuccess('updated', t) // Zeige Toast an
     closeDialog()
     await loadData()
   } catch (error) {
@@ -304,6 +305,7 @@ const executeDelete = async () => {
   try {
     const apiCalls = groupToDelete.value.registryItems.map(item => api.delete(`metadata/registry/${item.id}/`))
     await Promise.all(apiCalls)
+    crud.notifySuccess('deleted', t) // Zeige Toast an
     isConfirmOpen.value = false
     groupToDelete.value = null
     await loadData()
@@ -318,23 +320,8 @@ onMounted(() => { loadData() })
 </script>
 
 <style scoped>
-/* Stellt sicher, dass das Multi-Select-Dropdown nicht von der Tabelle abgeschnitten wird */
-.table-container {
-  overflow: visible !important;
-}
-
-.inline-flex {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  margin-bottom: 20px;
-}
-.inline-flex input {
-  margin: 0;
-  width: auto;
-}
-.inline-flex label {
-  margin: 0;
-  font-weight: normal;
-}
+.table-container { overflow: visible !important; }
+.inline-flex { display: flex; align-items: center; gap: 8px; margin-bottom: 20px; }
+.inline-flex input { margin: 0; width: auto; }
+.inline-flex label { margin: 0; font-weight: normal; }
 </style>

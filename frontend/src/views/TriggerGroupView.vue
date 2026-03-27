@@ -12,18 +12,10 @@
           <tr>
             <th v-if="crud.showIdColumn.value" class="id-column">{{ $t('common.id') }}</th>
             <th style="width: 30%;">
-              <ColumnHeaderFilter 
-                :title="$t('common.name')" 
-                v-model="columnFilters.name" 
-                :placeholder="$t('common.search')" 
-              />
+              <ColumnHeaderFilter :title="$t('common.name')" v-model="columnFilters.name" :placeholder="$t('common.search')" />
             </th>
             <th style="width: 30%;">
-              <ColumnHeaderFilter 
-                :title="$t('common.description')" 
-                v-model="columnFilters.description" 
-                :placeholder="$t('common.search')" 
-              />
+              <ColumnHeaderFilter :title="$t('common.description')" v-model="columnFilters.description" :placeholder="$t('common.search')" />
             </th>
             <th>Triggers & Hotkeys</th>
             <th class="actions-column">{{ $t('actions.actions') }}</th>
@@ -38,10 +30,7 @@
             <td><strong>{{ item.name }}</strong></td>
             <td>{{ item.description }}</td>
             <td>{{ item.triggers ? item.triggers.length : 0 }} Assigned</td>
-            <TableActionButtons 
-              @edit="crud.openEditDialog(item.id, () => populateForm(item))"
-              @delete="crud.requestDelete(item.id)"
-            />
+            <TableActionButtons @edit="crud.openEditDialog(item.id, () => populateForm(item))" @delete="crud.requestDelete(item.id)" />
           </tr>
         </tbody>
       </table>
@@ -57,22 +46,15 @@
       <form @submit.prevent="saveRecord(false)">
         <div class="form-group">
           <label>{{ $t('common.name') }} *</label>
-          <input 
-            type="text" 
-            v-model="formData.name" 
-            class="form-control"
-            :class="{ 'input-invalid': crud.fieldErrors.value.name }"
-          />
+          <input type="text" v-model="formData.name" class="form-control" :class="{ 'input-invalid': crud.fieldErrors.value.name }" />
           <BaseInputError :message="crud.fieldErrors.value.name" />
         </div>
         
         <div class="form-group">
           <label>Triggers & Hotkeys</label>
-          
           <div class="info-banner" style="margin-bottom: 15px; font-size: 0.9rem;">
             {{ $t('views.triggers.hotkey_info') }}
           </div>
-
           <TriggerShuffle 
             :allOptions="allTriggerDefs"
             :triggerPairs="allTriggerPairs"
@@ -98,18 +80,8 @@
       @confirm="confirmSaveWithWarning"
     />
 
-    <ConfirmDeleteModal 
-      :isOpen="crud.isConfirmOpen.value" 
-      @cancel="crud.cancelDelete" 
-      @confirm="executeDelete" 
-    />
-
-    <WarningModal 
-      :isOpen="showWarningModal" 
-      :title="$t('common.warning')" 
-      :message="warningMessage" 
-      @close="showWarningModal = false" 
-    />
+    <ConfirmDeleteModal :isOpen="crud.isConfirmOpen.value" @cancel="crud.cancelDelete" @confirm="executeDelete" />
+    <WarningModal :isOpen="showWarningModal" :title="$t('common.warning')" :message="warningMessage" @close="showWarningModal = false" />
   </div>
 </template>
 
@@ -119,14 +91,16 @@ import api from '@/services/api'
 import { useCrud } from '@/composables/useCrud'
 import { useI18n } from 'vue-i18n'
 
-import BaseModal from '@/components/BaseModal.vue'
-import BaseInputError from '@/components/BaseInputError.vue'
-import ConfirmDeleteModal from '@/components/ConfirmDeleteModal.vue'
-import WarningModal from '@/components/WarningModal.vue'
-import ColumnHeaderFilter from '@/components/ColumnHeaderFilter.vue'
-import CrudHeader from '@/components/CrudHeader.vue'
-import TableActionButtons from '@/components/TableActionButtons.vue'
-import TriggerShuffle from '@/components/TriggerShuffle.vue'
+import BaseModal from '@/components/ui/BaseModal.vue'
+import BaseInputError from '@/components/ui/BaseInputError.vue'
+import ConfirmDeleteModal from '@/components/ui/ConfirmDeleteModal.vue'
+import WarningModal from '@/components/ui/WarningModal.vue'
+import CrudHeader from '@/components/ui/CrudHeader.vue'
+
+import ColumnHeaderFilter from '@/components/table/ColumnHeaderFilter.vue'
+import TableActionButtons from '@/components/table/TableActionButtons.vue'
+
+import TriggerShuffle from '@/components/domain/TriggerShuffle.vue'
 
 const { t } = useI18n()
 const items = ref([])
@@ -138,21 +112,12 @@ const crud = useCrud()
 const showWarningModal = ref(false)
 const warningMessage = ref('')
 
-const columnFilters = ref({
-  name: '',
-  description: ''
-})
+const columnFilters = ref({ name: '', description: '' })
 
 const filteredItems = computed(() => {
   return items.value.filter(item => {
-    if (columnFilters.value.name) {
-      const q = columnFilters.value.name.toLowerCase()
-      if (!item.name.toLowerCase().includes(q)) return false
-    }
-    if (columnFilters.value.description) {
-      const q = columnFilters.value.description.toLowerCase()
-      if (!item.description || !item.description.toLowerCase().includes(q)) return false
-    }
+    if (columnFilters.value.name && !item.name.toLowerCase().includes(columnFilters.value.name.toLowerCase())) return false
+    if (columnFilters.value.description && (!item.description || !item.description.toLowerCase().includes(columnFilters.value.description.toLowerCase()))) return false
     return true
   })
 })
@@ -172,9 +137,7 @@ const sanitizeHotkeys = (newMap) => {
   formData.value.hotkeys = newMap
 }
 
-const resetForm = () => { 
-  formData.value = { name: '', description: '', triggers: [], hotkeys: {} } 
-}
+const resetForm = () => { formData.value = { name: '', description: '', triggers: [], hotkeys: {} } }
 
 const populateForm = (item) => {
   const hotkeysDict = {}
@@ -249,9 +212,11 @@ const saveRecord = async (skipWarning = false) => {
     
     if (crud.isEditing.value) {
       await api.put(`triggers/groups/${groupId}/`, groupPayload)
+      crud.notifySuccess('updated', t)
     } else {
       const res = await api.post('triggers/groups/', groupPayload)
       groupId = res.data.id
+      crud.notifySuccess('created', t)
     }
 
     const existingHotkeys = allHotkeys.value.filter(hk => hk.group === groupId)
@@ -278,13 +243,12 @@ const saveRecord = async (skipWarning = false) => {
   }
 }
 
-const confirmSaveWithWarning = () => {
-  saveRecord(true)
-}
+const confirmSaveWithWarning = () => { saveRecord(true) }
 
 const executeDelete = async () => {
   try {
     await api.delete(`triggers/groups/${crud.itemToDelete.value}/`)
+    crud.notifySuccess('deleted', t)
     crud.cancelDelete()
     loadData()
   } catch (error) { 

@@ -1,46 +1,22 @@
 <template>
   <div class="category-manager">
-    <CrudHeader 
-      :title="$t('nav.subjects')" 
-      v-model="crud.showIdColumn.value" 
-      @add="crud.openAddDialog(resetForm)" 
-    />
+    <CrudHeader :title="$t('nav.subjects')" v-model="crud.showIdColumn.value" @add="crud.openAddDialog(resetForm)" />
 
     <div class="table-container">
       <table class="data-table">
         <thead>
           <tr>
             <th v-if="crud.showIdColumn.value" class="id-column">{{ $t('common.id') }}</th>
-            <th style="width: 20%;">
-              <ColumnHeaderFilter 
-                :title="$t('master_data.identifier')" 
-                v-model="columnFilters.identifier" 
-                :placeholder="$t('common.search')" 
-              />
-            </th>
-            <th style="width: 25%;">
-              <ColumnHeaderFilter 
-                :title="$t('master_data.lastname')" 
-                v-model="columnFilters.lastname" 
-                :placeholder="$t('common.search')" 
-              />
-            </th>
-            <th style="width: 25%;">
-              <ColumnHeaderFilter 
-                :title="$t('master_data.firstname')" 
-                v-model="columnFilters.firstname" 
-                :placeholder="$t('common.search')" 
-              />
-            </th>
+            <th style="width: 20%;"><ColumnHeaderFilter :title="$t('master_data.identifier')" v-model="columnFilters.identifier" :placeholder="$t('common.search')" /></th>
+            <th style="width: 25%;"><ColumnHeaderFilter :title="$t('master_data.lastname')" v-model="columnFilters.lastname" :placeholder="$t('common.search')" /></th>
+            <th style="width: 25%;"><ColumnHeaderFilter :title="$t('master_data.firstname')" v-model="columnFilters.firstname" :placeholder="$t('common.search')" /></th>
             <th>{{ $t('master_data.birthday') }}</th>
             <th>{{ $t('master_data.gender') }}</th>
             <th class="actions-column">{{ $t('actions.actions') }}</th>
           </tr>
         </thead>
         <tbody>
-          <tr v-if="filteredItems.length === 0">
-            <td :colspan="crud.showIdColumn.value ? 7 : 6" class="empty-state">{{ $t('common.no_data') }}</td>
-          </tr>
+          <tr v-if="filteredItems.length === 0"><td :colspan="crud.showIdColumn.value ? 7 : 6" class="empty-state">{{ $t('common.no_data') }}</td></tr>
           <tr v-for="item in filteredItems" :key="item.id">
             <td v-if="crud.showIdColumn.value" class="id-column">{{ item.id }}</td>
             <td><strong>{{ item.identifier }}</strong></td>
@@ -48,74 +24,42 @@
             <td>{{ item.firstname }}</td>
             <td>{{ formatDate(item.birthday) }}</td>
             <td>{{ getGenderLabel(item.gender) }}</td>
-            <TableActionButtons 
-              @edit="crud.openEditDialog(item.id, () => populateForm(item))"
-              @delete="crud.requestDelete(item.id)"
-            />
+            <TableActionButtons @edit="crud.openEditDialog(item.id, () => populateForm(item))" @delete="crud.requestDelete(item.id)" />
           </tr>
         </tbody>
       </table>
     </div>
 
-    <BaseModal 
-      :isOpen="crud.isDialogOpen.value" 
-      :title="crud.isEditing.value ? $t('modal.edit_record') : $t('modal.add_record')"
-      :errorMessage="crud.errorMessage.value"
-      @close="crud.closeDialog"
-    >
+    <BaseModal :isOpen="crud.isDialogOpen.value" :title="crud.isEditing.value ? $t('modal.edit_record') : $t('modal.add_record')" :errorMessage="crud.errorMessage.value" @close="crud.closeDialog">
       <form @submit.prevent="saveRecord">
         <div class="form-group">
           <label>{{ $t('master_data.identifier') }} *</label>
-          <input 
-            type="text" 
-            v-model="formData.identifier" 
-            class="form-control"
-            :class="{ 'input-invalid': crud.fieldErrors.value.identifier }"
-          />
+          <input type="text" v-model="formData.identifier" class="form-control" :class="{ 'input-invalid': crud.fieldErrors.value.identifier }" />
           <BaseInputError :message="crud.fieldErrors.value.identifier" />
         </div>
         
         <div class="form-group" style="display: flex; gap: 10px;">
           <div style="flex: 1;">
             <label>{{ $t('master_data.firstname') }}</label>
-            <input 
-              type="text" 
-              v-model="formData.firstname" 
-              class="form-control"
-              :class="{ 'input-invalid': crud.fieldErrors.value.firstname }"
-            />
+            <input type="text" v-model="formData.firstname" class="form-control" :class="{ 'input-invalid': crud.fieldErrors.value.firstname }" />
             <BaseInputError :message="crud.fieldErrors.value.firstname" />
           </div>
           <div style="flex: 1;">
             <label>{{ $t('master_data.lastname') }}</label>
-            <input 
-              type="text" 
-              v-model="formData.lastname" 
-              class="form-control"
-              :class="{ 'input-invalid': crud.fieldErrors.value.lastname }"
-            />
+            <input type="text" v-model="formData.lastname" class="form-control" :class="{ 'input-invalid': crud.fieldErrors.value.lastname }" />
             <BaseInputError :message="crud.fieldErrors.value.lastname" />
           </div>
         </div>
 
         <div class="form-group">
           <label>{{ $t('master_data.birthday') }}</label>
-          <input 
-            type="date" 
-            v-model="formData.birthday" 
-            class="form-control"
-            :class="{ 'input-invalid': crud.fieldErrors.value.birthday }"
-          />
+          <input type="date" v-model="formData.birthday" class="form-control" :class="{ 'input-invalid': crud.fieldErrors.value.birthday }" />
           <BaseInputError :message="crud.fieldErrors.value.birthday" />
         </div>
 
         <div class="form-group">
           <label>{{ $t('master_data.gender') }}</label>
-          <select 
-            v-model="formData.gender"
-            class="form-control"
-            :class="{ 'input-invalid': crud.fieldErrors.value.gender }"
-          >
+          <select v-model="formData.gender" class="form-control" :class="{ 'input-invalid': crud.fieldErrors.value.gender }">
             <option :value="null">{{ $t('master_data.none') }}</option>
             <option value="M">{{ $t('master_data.gender_male') }}</option>
             <option value="F">{{ $t('master_data.gender_female') }}</option>
@@ -131,18 +75,8 @@
       </form>
     </BaseModal>
 
-    <ConfirmDeleteModal 
-      :isOpen="crud.isConfirmOpen.value" 
-      @cancel="crud.cancelDelete" 
-      @confirm="executeDelete" 
-    />
-
-    <WarningModal 
-      :isOpen="showWarningModal" 
-      :title="$t('common.warning')" 
-      :message="warningMessage" 
-      @close="showWarningModal = false" 
-    />
+    <ConfirmDeleteModal :isOpen="crud.isConfirmOpen.value" @cancel="crud.cancelDelete" @confirm="executeDelete" />
+    <WarningModal :isOpen="showWarningModal" :title="$t('common.warning')" :message="warningMessage" @close="showWarningModal = false" />
   </div>
 </template>
 
@@ -152,13 +86,14 @@ import { useI18n } from 'vue-i18n'
 import api from '@/services/api'
 import { useCrud } from '@/composables/useCrud'
 
-import BaseModal from '@/components/BaseModal.vue'
-import BaseInputError from '@/components/BaseInputError.vue'
-import ConfirmDeleteModal from '@/components/ConfirmDeleteModal.vue'
-import WarningModal from '@/components/WarningModal.vue'
-import ColumnHeaderFilter from '@/components/ColumnHeaderFilter.vue'
-import CrudHeader from '@/components/CrudHeader.vue'
-import TableActionButtons from '@/components/TableActionButtons.vue'
+import BaseModal from '@/components/ui/BaseModal.vue'
+import BaseInputError from '@/components/ui/BaseInputError.vue'
+import ConfirmDeleteModal from '@/components/ui/ConfirmDeleteModal.vue'
+import WarningModal from '@/components/ui/WarningModal.vue'
+import CrudHeader from '@/components/ui/CrudHeader.vue'
+
+import ColumnHeaderFilter from '@/components/table/ColumnHeaderFilter.vue'
+import TableActionButtons from '@/components/table/TableActionButtons.vue'
 
 const { t } = useI18n()
 const items = ref([])
@@ -167,45 +102,21 @@ const crud = useCrud()
 const showWarningModal = ref(false)
 const warningMessage = ref('')
 
-const columnFilters = ref({
-  identifier: '',
-  firstname: '',
-  lastname: ''
-})
+const columnFilters = ref({ identifier: '', firstname: '', lastname: '' })
 
 const filteredItems = computed(() => {
   return items.value.filter(item => {
-    if (columnFilters.value.identifier) {
-      const q = columnFilters.value.identifier.toLowerCase()
-      if (!item.identifier.toLowerCase().includes(q)) return false
-    }
-    if (columnFilters.value.firstname) {
-      const q = columnFilters.value.firstname.toLowerCase()
-      if (!item.firstname || !item.firstname.toLowerCase().includes(q)) return false
-    }
-    if (columnFilters.value.lastname) {
-      const q = columnFilters.value.lastname.toLowerCase()
-      if (!item.lastname || !item.lastname.toLowerCase().includes(q)) return false
-    }
+    if (columnFilters.value.identifier && !item.identifier.toLowerCase().includes(columnFilters.value.identifier.toLowerCase())) return false
+    if (columnFilters.value.firstname && (!item.firstname || !item.firstname.toLowerCase().includes(columnFilters.value.firstname.toLowerCase()))) return false
+    if (columnFilters.value.lastname && (!item.lastname || !item.lastname.toLowerCase().includes(columnFilters.value.lastname.toLowerCase()))) return false
     return true
   })
 })
 
 const formData = ref({ identifier: '', firstname: '', lastname: '', birthday: '', gender: null })
 
-const resetForm = () => { 
-  formData.value = { identifier: '', firstname: '', lastname: '', birthday: '', gender: null } 
-}
-
-const populateForm = (item) => { 
-  formData.value = { 
-    identifier: item.identifier, 
-    firstname: item.firstname, 
-    lastname: item.lastname, 
-    birthday: item.birthday || '', 
-    gender: item.gender 
-  } 
-}
+const resetForm = () => { formData.value = { identifier: '', firstname: '', lastname: '', birthday: '', gender: null } }
+const populateForm = (item) => { formData.value = { identifier: item.identifier, firstname: item.firstname, lastname: item.lastname, birthday: item.birthday || '', gender: item.gender } }
 
 const loadData = async () => {
   try {
@@ -232,23 +143,21 @@ const formatDate = (dateString) => {
 
 const saveRecord = async () => {
   crud.clearErrors()
-
   if (!formData.value.identifier || formData.value.identifier.trim() === '') {
     crud.fieldErrors.value.identifier = t('errors.required_field')
     return
   }
 
   const payload = { ...formData.value }
-  
-  if (payload.birthday === '') {
-    payload.birthday = null
-  }
+  if (payload.birthday === '') payload.birthday = null
 
   try {
     if (crud.isEditing.value) {
       await api.put(`subjects/${crud.editingId.value}/`, payload)
+      crud.notifySuccess('updated', t)
     } else {
       await api.post('subjects/', payload)
+      crud.notifySuccess('created', t)
     }
     crud.closeDialog()
     loadData()
@@ -260,6 +169,7 @@ const saveRecord = async () => {
 const executeDelete = async () => {
   try {
     await api.delete(`subjects/${crud.itemToDelete.value}/`)
+    crud.notifySuccess('deleted', t)
     crud.cancelDelete()
     loadData()
   } catch (error) { 

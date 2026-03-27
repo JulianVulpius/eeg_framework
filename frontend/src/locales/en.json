@@ -41,6 +41,11 @@
     "report":"Report",
     "locations": "Locations"
   },
+  "toast": {
+    "created": "Data Created",
+    "updated": "Data Updated",
+    "deleted": "Data Deleted"
+  },
   "common": {
     "name": "Name",
     "description": "Description",

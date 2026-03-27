@@ -8,25 +8,13 @@
           <tr>
             <th v-if="crud.showIdColumn.value" class="id-column">{{ $t('common.id') }}</th>
             <th style="width: 25%;">
-              <ColumnHeaderFilter 
-                :title="$t('common.name')" 
-                v-model="columnFilters.name" 
-                :placeholder="$t('common.search')" 
-              />
+              <ColumnHeaderFilter :title="$t('common.name')" v-model="columnFilters.name" :placeholder="$t('common.search')" />
             </th>
             <th style="width: 25%;">
-              <ColumnHeaderFilter 
-                :title="$t('master_data.category')" 
-                v-model="columnFilters.category" 
-                :placeholder="$t('common.search')" 
-              />
+              <ColumnHeaderFilter :title="$t('master_data.category')" v-model="columnFilters.category" :placeholder="$t('common.search')" />
             </th>
             <th style="width: 30%;">
-              <ColumnHeaderFilter 
-                :title="$t('common.description')" 
-                v-model="columnFilters.description" 
-                :placeholder="$t('common.search')" 
-              />
+              <ColumnHeaderFilter :title="$t('common.description')" v-model="columnFilters.description" :placeholder="$t('common.search')" />
             </th>
             <th class="actions-column">{{ $t('actions.actions') }}</th>
           </tr>
@@ -77,20 +65,10 @@
             :rightFilterFn="filterSelectedLogic"
           >
             <template #left-filters>
-              <BaseSearchSelect
-                v-model="filterAvailable"
-                :options="componentCategories"
-                :placeholder="$t('views.metadata.search_category')"
-                :nullLabel="$t('views.metadata.filter_category_all')"
-              />
+              <BaseSearchSelect v-model="filterAvailable" :options="componentCategories" :placeholder="$t('views.metadata.search_category')" :nullLabel="$t('views.metadata.filter_category_all')" />
             </template>
             <template #right-filters>
-              <BaseSearchSelect
-                v-model="filterSelected"
-                :options="componentCategories"
-                :placeholder="$t('views.metadata.search_category')"
-                :nullLabel="$t('views.metadata.filter_category_all')"
-              />
+              <BaseSearchSelect v-model="filterSelected" :options="componentCategories" :placeholder="$t('views.metadata.search_category')" :nullLabel="$t('views.metadata.filter_category_all')" />
             </template>
           </BaseTransferList>
         </div>
@@ -113,15 +91,16 @@ import { useI18n } from 'vue-i18n'
 import api from '@/services/api'
 import { useCrud } from '@/composables/useCrud'
 
-import BaseModal from '@/components/BaseModal.vue'
-import BaseInputError from '@/components/BaseInputError.vue'
-import BaseSearchSelect from '@/components/BaseSearchSelect.vue'
-import BaseTransferList from '@/components/BaseTransferList.vue'
-import ConfirmDeleteModal from '@/components/ConfirmDeleteModal.vue'
-import WarningModal from '@/components/WarningModal.vue'
-import CrudHeader from '@/components/CrudHeader.vue'
-import TableActionButtons from '@/components/TableActionButtons.vue'
-import ColumnHeaderFilter from '@/components/ColumnHeaderFilter.vue'
+import BaseModal from '@/components/ui/BaseModal.vue'
+import BaseInputError from '@/components/ui/BaseInputError.vue'
+import BaseSearchSelect from '@/components/ui/BaseSearchSelect.vue'
+import BaseTransferList from '@/components/ui/BaseTransferList.vue'
+import ConfirmDeleteModal from '@/components/ui/ConfirmDeleteModal.vue'
+import WarningModal from '@/components/ui/WarningModal.vue'
+import CrudHeader from '@/components/ui/CrudHeader.vue'
+
+import TableActionButtons from '@/components/table/TableActionButtons.vue'
+import ColumnHeaderFilter from '@/components/table/ColumnHeaderFilter.vue'
 
 const { t } = useI18n()
 const crud = useCrud()
@@ -155,19 +134,12 @@ const filterSelectedLogic = (opt) => {
 
 const filteredItems = computed(() => {
   return items.value.filter(item => {
-    if (columnFilters.value.name) {
-      const q = columnFilters.value.name.toLowerCase()
-      if (!item.name.toLowerCase().includes(q)) return false
-    }
+    if (columnFilters.value.name && !item.name.toLowerCase().includes(columnFilters.value.name.toLowerCase())) return false
     if (columnFilters.value.category) {
-      const q = columnFilters.value.category.toLowerCase()
       const cName = getCategoryName(item.category).toLowerCase()
-      if (!cName.includes(q)) return false
+      if (!cName.includes(columnFilters.value.category.toLowerCase())) return false
     }
-    if (columnFilters.value.description) {
-      const q = columnFilters.value.description.toLowerCase()
-      if (!item.description || !item.description.toLowerCase().includes(q)) return false
-    }
+    if (columnFilters.value.description && (!item.description || !item.description.toLowerCase().includes(columnFilters.value.description.toLowerCase()))) return false
     return true
   })
 })
@@ -210,20 +182,35 @@ const loadData = async () => {
 }
 
 const saveRecord = async () => {
-  crud.clearErrors(); if (!formData.value.name) { crud.fieldErrors.value.name = t('errors.required_field'); return }
+  crud.clearErrors()
+  if (!formData.value.name) { crud.fieldErrors.value.name = t('errors.required_field'); return }
   try {
-    if (crud.isEditing.value) await api.put(`pages/${crud.editingId.value}/`, formData.value)
-    else await api.post('pages/', formData.value)
-    crud.closeDialog(); loadData()
-  } catch (error) { crud.handleFormError(error, t, 'errors.save_failed') }
+    if (crud.isEditing.value) {
+      await api.put(`pages/${crud.editingId.value}/`, formData.value)
+      crud.notifySuccess('updated', t)
+    } else {
+      await api.post('pages/', formData.value)
+      crud.notifySuccess('created', t)
+    }
+    crud.closeDialog()
+    loadData()
+  } catch (error) { 
+    crud.handleFormError(error, t, 'errors.save_failed') 
+  }
 }
 
 const executeDelete = async () => {
-  try { await api.delete(`pages/${crud.itemToDelete.value}/`); crud.cancelDelete(); loadData() } 
-  catch (error) { crud.cancelDelete(); warningMessage.value = t('errors.delete_failed'); showWarningModal.value = true }
+  try { 
+    await api.delete(`pages/${crud.itemToDelete.value}/`)
+    crud.notifySuccess('deleted', t)
+    crud.cancelDelete()
+    loadData() 
+  } catch (error) { 
+    crud.cancelDelete()
+    warningMessage.value = t('errors.delete_failed')
+    showWarningModal.value = true 
+  }
 }
 
 onMounted(loadData)
 </script>
-
-<style scoped> .large-modal { max-width: 800px; width: 90vw; } </style>

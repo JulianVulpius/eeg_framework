@@ -12,25 +12,13 @@
           <tr>
             <th v-if="crud.showIdColumn.value" class="id-column">{{ $t('common.id') }}</th>
             <th style="width: 30%;">
-              <ColumnHeaderFilter 
-                :title="$t('common.name')" 
-                v-model="columnFilters.name" 
-                :placeholder="$t('common.search')" 
-              />
+              <ColumnHeaderFilter :title="$t('common.name')" v-model="columnFilters.name" :placeholder="$t('common.search')" />
             </th>
             <th style="width: 25%;">
-              <ColumnHeaderFilter 
-                :title="$t('views.models.identifier')" 
-                v-model="columnFilters.identifier" 
-                :placeholder="$t('common.search')" 
-              />
+              <ColumnHeaderFilter :title="$t('views.models.identifier')" v-model="columnFilters.identifier" :placeholder="$t('common.search')" />
             </th>
             <th style="width: 30%;">
-              <ColumnHeaderFilter 
-                :title="$t('common.description')" 
-                v-model="columnFilters.description" 
-                :placeholder="$t('common.search')" 
-              />
+              <ColumnHeaderFilter :title="$t('common.description')" v-model="columnFilters.description" :placeholder="$t('common.search')" />
             </th>
             <th class="actions-column">{{ $t('actions.actions') }}</th>
           </tr>
@@ -44,10 +32,7 @@
             <td><strong>{{ item.name }}</strong></td>
             <td><span class="badge secondary-badge">{{ item.identifier }}</span></td>
             <td>{{ item.description }}</td>
-            <TableActionButtons 
-              @edit="crud.openEditDialog(item.id, () => populateForm(item))"
-              @delete="crud.requestDelete(item.id)"
-            />
+            <TableActionButtons @edit="crud.openEditDialog(item.id, () => populateForm(item))" @delete="crud.requestDelete(item.id)" />
           </tr>
         </tbody>
       </table>
@@ -61,25 +46,13 @@
       <form @submit.prevent="saveRecord">
         <div class="form-group">
           <label>{{ $t('common.name') }} *</label>
-          <input 
-            type="text" 
-            v-model="formData.name" 
-            class="form-control"
-            :class="{ 'input-invalid': crud.fieldErrors.value.name }"
-            :placeholder="$t('modal.name_placeholder')" 
-          />
+          <input type="text" v-model="formData.name" class="form-control" :class="{ 'input-invalid': crud.fieldErrors.value.name }" :placeholder="$t('modal.name_placeholder')" />
           <BaseInputError :message="crud.fieldErrors.value.name" />
         </div>
         
         <div class="form-group">
           <label>{{ $t('views.models.identifier') }} *</label>
-          <input 
-            type="text" 
-            v-model="formData.identifier" 
-            class="form-control"
-            :class="{ 'input-invalid': crud.fieldErrors.value.identifier }"
-            placeholder="TEXT_INPUT" 
-          />
+          <input type="text" v-model="formData.identifier" class="form-control" :class="{ 'input-invalid': crud.fieldErrors.value.identifier }" placeholder="TEXT_INPUT" />
           <BaseInputError :message="crud.fieldErrors.value.identifier" />
           <small style="color: #7f8c8d; font-size: 0.8rem; display: block; margin-top: 4px;">
             {{ $t('views.models.identifier_hint') }}
@@ -88,13 +61,7 @@
 
         <div class="form-group">
           <label>{{ $t('common.description') }}</label>
-          <textarea 
-            v-model="formData.description" 
-            rows="4" 
-            class="form-control"
-            :class="{ 'input-invalid': crud.fieldErrors.value.description }"
-            :placeholder="$t('modal.desc_placeholder')"
-          ></textarea>
+          <textarea v-model="formData.description" rows="4" class="form-control" :class="{ 'input-invalid': crud.fieldErrors.value.description }" :placeholder="$t('modal.desc_placeholder')"></textarea>
           <BaseInputError :message="crud.fieldErrors.value.description" />
         </div>
         <div class="modal-actions">
@@ -104,18 +71,8 @@
       </form>
     </BaseModal>
 
-    <ConfirmDeleteModal 
-      :isOpen="crud.isConfirmOpen.value" 
-      @cancel="crud.cancelDelete" 
-      @confirm="executeDelete" 
-    />
-
-    <WarningModal 
-      :isOpen="showWarningModal" 
-      :title="$t('common.warning')" 
-      :message="warningMessage" 
-      @close="showWarningModal = false" 
-    />
+    <ConfirmDeleteModal :isOpen="crud.isConfirmOpen.value" @cancel="crud.cancelDelete" @confirm="executeDelete" />
+    <WarningModal :isOpen="showWarningModal" :title="$t('common.warning')" :message="warningMessage" @close="showWarningModal = false" />
   </div>
 </template>
 
@@ -125,13 +82,14 @@ import { useI18n } from 'vue-i18n'
 import api from '@/services/api'
 import { useCrud } from '@/composables/useCrud'
 
-import BaseModal from '@/components/BaseModal.vue'
-import BaseInputError from '@/components/BaseInputError.vue'
-import ConfirmDeleteModal from '@/components/ConfirmDeleteModal.vue'
-import WarningModal from '@/components/WarningModal.vue'
-import ColumnHeaderFilter from '@/components/ColumnHeaderFilter.vue'
-import CrudHeader from '@/components/CrudHeader.vue'
-import TableActionButtons from '@/components/TableActionButtons.vue'
+import BaseModal from '@/components/ui/BaseModal.vue'
+import BaseInputError from '@/components/ui/BaseInputError.vue'
+import ConfirmDeleteModal from '@/components/ui/ConfirmDeleteModal.vue'
+import WarningModal from '@/components/ui/WarningModal.vue'
+import CrudHeader from '@/components/ui/CrudHeader.vue'
+
+import ColumnHeaderFilter from '@/components/table/ColumnHeaderFilter.vue'
+import TableActionButtons from '@/components/table/TableActionButtons.vue'
 
 const { t } = useI18n()
 const items = ref([])
@@ -140,39 +98,21 @@ const crud = useCrud()
 const showWarningModal = ref(false)
 const warningMessage = ref('')
 
-const columnFilters = ref({
-  name: '',
-  identifier: '',
-  description: ''
-})
+const columnFilters = ref({ name: '', identifier: '', description: '' })
 
 const filteredItems = computed(() => {
   return items.value.filter(item => {
-    if (columnFilters.value.name) {
-      const q = columnFilters.value.name.toLowerCase()
-      if (!item.name.toLowerCase().includes(q)) return false
-    }
-    if (columnFilters.value.identifier) {
-      const q = columnFilters.value.identifier.toLowerCase()
-      if (!item.identifier || !item.identifier.toLowerCase().includes(q)) return false
-    }
-    if (columnFilters.value.description) {
-      const q = columnFilters.value.description.toLowerCase()
-      if (!item.description || !item.description.toLowerCase().includes(q)) return false
-    }
+    if (columnFilters.value.name && !item.name.toLowerCase().includes(columnFilters.value.name.toLowerCase())) return false
+    if (columnFilters.value.identifier && (!item.identifier || !item.identifier.toLowerCase().includes(columnFilters.value.identifier.toLowerCase()))) return false
+    if (columnFilters.value.description && (!item.description || !item.description.toLowerCase().includes(columnFilters.value.description.toLowerCase()))) return false
     return true
   })
 })
 
 const formData = ref({ name: '', identifier: '', description: '' })
 
-const resetForm = () => { 
-  formData.value = { name: '', identifier: '', description: '' } 
-}
-
-const populateForm = (item) => { 
-  formData.value = { name: item.name, identifier: item.identifier, description: item.description } 
-}
+const resetForm = () => { formData.value = { name: '', identifier: '', description: '' } }
+const populateForm = (item) => { formData.value = { name: item.name, identifier: item.identifier, description: item.description } }
 
 const loadData = async () => {
   try {
@@ -186,17 +126,9 @@ const loadData = async () => {
 
 const saveRecord = async () => {
   crud.clearErrors()
-
   let hasErrors = false
-  if (!formData.value.name || formData.value.name.trim() === '') {
-    crud.fieldErrors.value.name = t('errors.required_field')
-    hasErrors = true
-  }
-  if (!formData.value.identifier || formData.value.identifier.trim() === '') {
-    crud.fieldErrors.value.identifier = t('errors.required_field')
-    hasErrors = true
-  }
-
+  if (!formData.value.name || formData.value.name.trim() === '') { crud.fieldErrors.value.name = t('errors.required_field'); hasErrors = true }
+  if (!formData.value.identifier || formData.value.identifier.trim() === '') { crud.fieldErrors.value.identifier = t('errors.required_field'); hasErrors = true }
   if (hasErrors) return
 
   formData.value.identifier = formData.value.identifier.toUpperCase().replace(/\s+/g, '_')
@@ -204,8 +136,10 @@ const saveRecord = async () => {
   try {
     if (crud.isEditing.value) {
       await api.put(`/component-types/${crud.editingId.value}/`, formData.value)
+      crud.notifySuccess('updated', t)
     } else {
       await api.post('/component-types/', formData.value)
+      crud.notifySuccess('created', t)
     }
     crud.closeDialog()
     loadData()
@@ -217,6 +151,7 @@ const saveRecord = async () => {
 const executeDelete = async () => {
   try {
     await api.delete(`/component-types/${crud.itemToDelete.value}/`)
+    crud.notifySuccess('deleted', t)
     crud.cancelDelete()
     loadData()
   } catch (error) { 

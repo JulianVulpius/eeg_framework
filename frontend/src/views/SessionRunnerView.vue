@@ -82,6 +82,7 @@
 import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import api from '@/services/api'
+
 import StandardTextBlock from '@/components/runner/StandardTextBlock.vue'
 import StandardMetadataForm from '@/components/runner/StandardMetadataForm.vue'
 
@@ -118,6 +119,7 @@ onMounted(loadBlueprint)
 </script>
 
 <style scoped>
+/* specialized runner styling */
 .runner-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; padding-bottom: 15px; border-bottom: 2px solid #e0e0e0; }
 .breadcrumb { font-size: 1.2rem; color: #2c3e50; }
 .event-name { font-weight: bold; }
@@ -125,7 +127,6 @@ onMounted(loadBlueprint)
 .group-name { color: #7f8c8d; }
 .progress { font-weight: bold; color: #3498db; background: #e8f4f8; padding: 5px 12px; border-radius: 20px; font-size: 0.9rem; }
 .component-wrapper { margin-bottom: 20px; }
-.card { background: white; padding: 30px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); }
 .finished-state { text-align: center; padding: 60px 20px; }
 .empty-page, .unknown-component { text-align: center; color: #7f8c8d; }
 </style>

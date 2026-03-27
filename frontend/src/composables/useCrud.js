@@ -1,4 +1,5 @@
 import { ref, computed } from 'vue'
+import { useToast } from '@/composables/useToast'
 
 export function useCrud() {
   const showIdColumn = ref(false)
@@ -11,9 +12,17 @@ export function useCrud() {
   const errorMessage = ref('') 
   const fieldErrors = ref({}) 
 
+  const { showToast } = useToast()
+
   const clearErrors = () => {
     errorMessage.value = ''
     fieldErrors.value = {}
+  }
+
+  const notifySuccess = (action, t) => {
+    if (action === 'created') showToast(t('toast.created'), 'success')
+    if (action === 'updated') showToast(t('toast.updated'), 'success')
+    if (action === 'deleted') showToast(t('toast.deleted'), 'error') 
   }
 
   const openAddDialog = (resetFormCallback) => {
@@ -59,7 +68,6 @@ export function useCrud() {
     })
   }
 
-
   const parseApiError = (error, t, defaultKey = 'errors.save_failed') => {
     if (error.response && error.response.data) {
       const data = error.response.data;
@@ -76,31 +84,24 @@ export function useCrud() {
         return `${firstKey}: ${data[firstKey][0]}`;
       }
     }
-    
     return t(defaultKey);
   };
 
   const handleFormError = (error, t, fallbackKey = 'errors.save_failed') => {
     if (error.response?.data) {
       const serverData = error.response.data
-      
-      // check if we got field-specific errors (drf format)
       if (typeof serverData === 'object' && !serverData.detail) {
         for (const field in serverData) {
-          // get the first string message
           const msg = Array.isArray(serverData[field]) ? serverData[field][0] : serverData[field]
-          
-          // map common database unique errors to our translations
           if (msg && msg.toLowerCase().includes('unique')) {
             fieldErrors.value[field] = t('errors.duplicate_entry')
           } else {
             fieldErrors.value[field] = msg
           }
         }
-        return // exit if we mapped field errors
+        return 
       }
     }
-    // fallback to global error message inside the modal
     errorMessage.value = parseApiError(error, t, fallbackKey)
   }
 
@@ -108,6 +109,6 @@ export function useCrud() {
     showIdColumn, searchQuery, isDialogOpen, isEditing, editingId,
     isConfirmOpen, itemToDelete, errorMessage, fieldErrors,
     openAddDialog, openEditDialog, closeDialog, requestDelete, cancelDelete,
-    clearErrors, createSearchFilter, parseApiError, handleFormError
+    clearErrors, createSearchFilter, parseApiError, handleFormError, notifySuccess
   }
 }

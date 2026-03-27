@@ -89,7 +89,7 @@
 
 <script setup>
 import { ref, computed } from 'vue'
-import BaseModal from './BaseModal.vue'
+import BaseModal from '../ui/BaseModal.vue'
 
 const props = defineProps({
   allOptions: {

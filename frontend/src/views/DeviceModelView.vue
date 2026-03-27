@@ -13,25 +13,13 @@
             <th v-if="crud.showIdColumn.value" class="id-column">{{ $t('common.id') }}</th>
             
             <th style="width: 20%;">
-              <ColumnHeaderFilter 
-                :title="$t('common.name')" 
-                v-model="columnFilters.name" 
-                :placeholder="$t('common.search')" 
-              />
+              <ColumnHeaderFilter :title="$t('common.name')" v-model="columnFilters.name" :placeholder="$t('common.search')" />
             </th>
             <th style="width: 20%;">
-              <ColumnHeaderFilter 
-                :title="$t('master_data.manufacturer')" 
-                v-model="columnFilters.manufacturer" 
-                :placeholder="$t('common.search')" 
-              />
+              <ColumnHeaderFilter :title="$t('master_data.manufacturer')" v-model="columnFilters.manufacturer" :placeholder="$t('common.search')" />
             </th>
             <th style="width: 20%;">
-              <ColumnHeaderFilter 
-                :title="$t('master_data.category')" 
-                v-model="columnFilters.category" 
-                :placeholder="$t('common.search')" 
-              />
+              <ColumnHeaderFilter :title="$t('master_data.category')" v-model="columnFilters.category" :placeholder="$t('common.search')" />
             </th>
             <th style="width: 25%;">
               <ColumnHeaderMultiFilter 
@@ -59,10 +47,7 @@
               <span class="badge secondary-badge">{{ item.channel_names || '-' }}</span>
             </td>
             
-            <TableActionButtons 
-              @edit="crud.openEditDialog(item.id, () => populateForm(item))"
-              @delete="crud.requestDelete(item.id)"
-            />
+            <TableActionButtons @edit="crud.openEditDialog(item.id, () => populateForm(item))" @delete="crud.requestDelete(item.id)" />
           </tr>
         </tbody>
       </table>
@@ -77,12 +62,7 @@
       <form @submit.prevent="saveRecord">
         <div class="form-group">
           <label>{{ $t('common.name') }} *</label>
-          <input 
-            type="text" 
-            v-model="formData.name" 
-            class="form-control"
-            :class="{ 'input-invalid': crud.fieldErrors.value.name }" 
-          />
+          <input type="text" v-model="formData.name" class="form-control" :class="{ 'input-invalid': crud.fieldErrors.value.name }" />
           <BaseInputError :message="crud.fieldErrors.value.name" />
         </div>
 
@@ -123,18 +103,8 @@
       </form>
     </BaseModal>
 
-    <ConfirmDeleteModal 
-      :isOpen="crud.isConfirmOpen.value" 
-      @cancel="crud.cancelDelete" 
-      @confirm="executeDelete" 
-    />
-
-    <WarningModal 
-      :isOpen="showWarningModal" 
-      :title="$t('common.warning')" 
-      :message="warningMessage" 
-      @close="showWarningModal = false" 
-    />
+    <ConfirmDeleteModal :isOpen="crud.isConfirmOpen.value" @cancel="crud.cancelDelete" @confirm="executeDelete" />
+    <WarningModal :isOpen="showWarningModal" :title="$t('common.warning')" :message="warningMessage" @close="showWarningModal = false" />
   </div>
 </template>
 
@@ -144,16 +114,19 @@ import { useI18n } from 'vue-i18n'
 import api from '@/services/api'
 import { useCrud } from '@/composables/useCrud'
 
-import BaseModal from '@/components/BaseModal.vue'
-import BaseInputError from '@/components/BaseInputError.vue'
-import BaseSearchSelect from '@/components/BaseSearchSelect.vue'
-import BaseCheckboxGroup from '@/components/BaseCheckboxGroup.vue'
-import ConfirmDeleteModal from '@/components/ConfirmDeleteModal.vue'
-import WarningModal from '@/components/WarningModal.vue'
-import ColumnHeaderFilter from '@/components/ColumnHeaderFilter.vue'
-import ColumnHeaderMultiFilter from '@/components/ColumnHeaderMultiFilter.vue'
-import CrudHeader from '@/components/CrudHeader.vue'
-import TableActionButtons from '@/components/TableActionButtons.vue'
+// import ui components
+import BaseModal from '@/components/ui/BaseModal.vue'
+import BaseInputError from '@/components/ui/BaseInputError.vue'
+import BaseSearchSelect from '@/components/ui/BaseSearchSelect.vue'
+import BaseCheckboxGroup from '@/components/ui/BaseCheckboxGroup.vue'
+import ConfirmDeleteModal from '@/components/ui/ConfirmDeleteModal.vue'
+import WarningModal from '@/components/ui/WarningModal.vue'
+import CrudHeader from '@/components/ui/CrudHeader.vue'
+
+// import table components
+import ColumnHeaderFilter from '@/components/table/ColumnHeaderFilter.vue'
+import ColumnHeaderMultiFilter from '@/components/table/ColumnHeaderMultiFilter.vue'
+import TableActionButtons from '@/components/table/TableActionButtons.vue'
 
 const { t } = useI18n()
 const crud = useCrud()
@@ -175,29 +148,20 @@ const columnFilters = ref({
 
 const filteredItems = computed(() => {
   return items.value.filter(item => {
-    if (columnFilters.value.name) {
-      const q = columnFilters.value.name.toLowerCase()
-      if (!item.name.toLowerCase().includes(q)) return false
-    }
-    
+    if (columnFilters.value.name && !item.name.toLowerCase().includes(columnFilters.value.name.toLowerCase())) return false
     if (columnFilters.value.manufacturer) {
-      const q = columnFilters.value.manufacturer.toLowerCase()
       const mName = getManufacturerName(item.manufacturer).toLowerCase()
-      if (!mName.includes(q)) return false
+      if (!mName.includes(columnFilters.value.manufacturer.toLowerCase())) return false
     }
-
     if (columnFilters.value.category) {
-      const q = columnFilters.value.category.toLowerCase()
       const cName = getCategoryName(item.category).toLowerCase()
-      if (!cName.includes(q)) return false
+      if (!cName.includes(columnFilters.value.category.toLowerCase())) return false
     }
-
     if (columnFilters.value.channels && columnFilters.value.channels.length > 0) {
       const itemChannels = item.assigned_channels || []
       const hasAllRequired = columnFilters.value.channels.every(reqId => itemChannels.includes(reqId))
       if (!hasAllRequired) return false
     }
-
     return true
   })
 })
@@ -213,7 +177,7 @@ const populateForm = (item) => {
     name: item.name, 
     manufacturer: item.manufacturer, 
     category: item.category,
-    is_eeg: item.is_eeg !== undefined ? item.is_eeg : false, // populate is_eeg safely
+    is_eeg: item.is_eeg !== undefined ? item.is_eeg : false,
     channels: item.assigned_channels || [] 
   } 
 }
@@ -226,10 +190,8 @@ const loadData = async () => {
       api.get('manufacturers/'),
       api.get('eeg-channels/') 
     ])
-    items.value = resModels.data
-    categories.value = resCats.data
-    manufacturers.value = resManuf.data
-    channels.value = resChannels.data 
+    items.value = resModels.data; categories.value = resCats.data
+    manufacturers.value = resManuf.data; channels.value = resChannels.data 
   } catch (error) { 
     warningMessage.value = crud.parseApiError(error, t, 'errors.load_failed')
     showWarningModal.value = true
@@ -257,13 +219,16 @@ const saveRecord = async () => {
   }
 
   const payload = { ...formData.value }
-  if (!payload.is_eeg) {
-    payload.channels = []
-  }
+  if (!payload.is_eeg) payload.channels = []
 
   try {
-    if (crud.isEditing.value) await api.put(`device-models/${crud.editingId.value}/`, payload)
-    else await api.post('device-models/', payload)
+    if (crud.isEditing.value) {
+      await api.put(`device-models/${crud.editingId.value}/`, payload)
+      crud.notifySuccess('updated', t)
+    } else {
+      await api.post('device-models/', payload)
+      crud.notifySuccess('created', t)
+    }
     crud.closeDialog()
     loadData()
   } catch (error) {
@@ -274,6 +239,7 @@ const saveRecord = async () => {
 const executeDelete = async () => {
   try {
     await api.delete(`device-models/${crud.itemToDelete.value}/`)
+    crud.notifySuccess('deleted', t)
     crud.cancelDelete()
     loadData()
   } catch (error) { 
@@ -283,35 +249,12 @@ const executeDelete = async () => {
   }
 }
 
-onMounted(() => {
-  loadData()
-})
+onMounted(() => { loadData() })
 </script>
 
 <style scoped>
-.table-container {
-  overflow: visible !important;
-}
-
-/* styles for the inline checkbox */
-.inline-flex {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  margin-top: 15px;
-  margin-bottom: 15px;
-}
-.inline-flex input {
-  margin: 0;
-  width: auto;
-  cursor: pointer;
-  height: 18px;
-  width: 18px;
-}
-.inline-flex label {
-  margin: 0;
-  font-weight: 600;
-  cursor: pointer;
-  color: #34495e;
-}
+.table-container { overflow: visible !important; }
+.inline-flex { display: flex; align-items: center; gap: 8px; margin-top: 15px; margin-bottom: 15px; }
+.inline-flex input { margin: 0; width: auto; cursor: pointer; height: 18px; width: 18px; }
+.inline-flex label { margin: 0; font-weight: 600; cursor: pointer; color: #34495e; }
 </style>

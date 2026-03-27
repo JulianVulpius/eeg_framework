@@ -28,7 +28,7 @@
 
 <script setup>
 import { ref } from 'vue'
-import BaseCheckboxGroup from './BaseCheckboxGroup.vue'
+import BaseCheckboxGroup from '../ui/BaseCheckboxGroup.vue'
 
 defineProps({
   title: { type: String, required: true },

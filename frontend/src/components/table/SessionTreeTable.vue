@@ -79,7 +79,7 @@
 
 <script setup>
 import { ref } from 'vue'
-import ColumnHeaderFilter from '@/components/ColumnHeaderFilter.vue'
+import ColumnHeaderFilter from './ColumnHeaderFilter.vue'
 
 defineProps({
   groupedData: {

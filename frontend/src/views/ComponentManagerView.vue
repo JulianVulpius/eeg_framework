@@ -131,14 +131,15 @@ import { useCrud } from '@/composables/useCrud'
 import { QuillEditor } from '@vueup/vue-quill'
 import '@vueup/vue-quill/dist/vue-quill.snow.css'
 
-import BaseModal from '@/components/BaseModal.vue'
-import BaseInputError from '@/components/BaseInputError.vue'
-import BaseSearchSelect from '@/components/BaseSearchSelect.vue'
-import ConfirmDeleteModal from '@/components/ConfirmDeleteModal.vue'
-import WarningModal from '@/components/WarningModal.vue'
-import CrudHeader from '@/components/CrudHeader.vue'
-import TableActionButtons from '@/components/TableActionButtons.vue'
-import ColumnHeaderFilter from '@/components/ColumnHeaderFilter.vue' // filter component importiert
+import BaseModal from '@/components/ui/BaseModal.vue'
+import BaseInputError from '@/components/ui/BaseInputError.vue'
+import BaseSearchSelect from '@/components/ui/BaseSearchSelect.vue'
+import ConfirmDeleteModal from '@/components/ui/ConfirmDeleteModal.vue'
+import WarningModal from '@/components/ui/WarningModal.vue'
+import CrudHeader from '@/components/ui/CrudHeader.vue'
+
+import TableActionButtons from '@/components/table/TableActionButtons.vue'
+import ColumnHeaderFilter from '@/components/table/ColumnHeaderFilter.vue'
 
 const { t } = useI18n()
 const crud = useCrud()
@@ -167,24 +168,20 @@ const filteredItems = computed(() => {
       const q = columnFilters.value.name.toLowerCase()
       if (!item.name.toLowerCase().includes(q)) return false
     }
-
     if (columnFilters.value.category) {
       const q = columnFilters.value.category.toLowerCase()
       const cName = getCategoryName(item.category).toLowerCase()
       if (!cName.includes(q)) return false
     }
-
     if (columnFilters.value.type) {
       const q = columnFilters.value.type.toLowerCase()
       const tName = getTypeName(item.component_type).toLowerCase()
       if (!tName.includes(q)) return false
     }
-
     if (columnFilters.value.description) {
       const q = columnFilters.value.description.toLowerCase()
       if (!item.description || !item.description.toLowerCase().includes(q)) return false
     }
-
     return true
   })
 })
@@ -254,14 +251,24 @@ const saveRecord = async () => {
   const payload = { ...formData.value, parameter: JSON.parse(formData.value.parameter || '{}') }
   
   try {
-    if (crud.isEditing.value) await api.put(`components/${crud.editingId.value}/`, payload)
-    else await api.post('components/', payload)
+    if (crud.isEditing.value) {
+      await api.put(`components/${crud.editingId.value}/`, payload)
+      crud.notifySuccess('updated', t)
+    } else {
+      await api.post('components/', payload)
+      crud.notifySuccess('created', t)
+    }
     crud.closeDialog(); loadData()
   } catch (error) { crud.handleFormError(error, t, 'errors.save_failed') }
 }
 
 const executeDelete = async () => {
-  try { await api.delete(`components/${crud.itemToDelete.value}/`); crud.cancelDelete(); loadData() } 
+  try { 
+    await api.delete(`components/${crud.itemToDelete.value}/`); 
+    crud.notifySuccess('deleted', t); 
+    crud.cancelDelete(); 
+    loadData() 
+  } 
   catch (error) { crud.cancelDelete(); warningMessage.value = t('errors.delete_failed'); showWarningModal.value = true }
 }
 
@@ -269,8 +276,6 @@ onMounted(loadData)
 </script>
 
 <style scoped>
-.large-modal { max-width: 900px; width: 90vw; }
-
 .dynamic-config-box {
   background: #fdfdfd; 
   padding: 15px 20px; 

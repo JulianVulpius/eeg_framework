@@ -100,13 +100,14 @@ import { useI18n } from 'vue-i18n'
 import api from '@/services/api'
 import { useCrud } from '@/composables/useCrud'
 
-import BaseModal from '@/components/BaseModal.vue'
-import BaseInputError from '@/components/BaseInputError.vue'
-import ConfirmDeleteModal from '@/components/ConfirmDeleteModal.vue'
-import WarningModal from '@/components/WarningModal.vue'
-import ColumnHeaderFilter from '@/components/ColumnHeaderFilter.vue'
-import CrudHeader from '@/components/CrudHeader.vue'
-import TableActionButtons from '@/components/TableActionButtons.vue'
+import BaseModal from '@/components/ui/BaseModal.vue'
+import BaseInputError from '@/components/ui/BaseInputError.vue'
+import ConfirmDeleteModal from '@/components/ui/ConfirmDeleteModal.vue'
+import WarningModal from '@/components/ui/WarningModal.vue'
+import CrudHeader from '@/components/ui/CrudHeader.vue'
+
+import ColumnHeaderFilter from '@/components/table/ColumnHeaderFilter.vue'
+import TableActionButtons from '@/components/table/TableActionButtons.vue'
 
 const { t } = useI18n()
 const items = ref([])
@@ -157,8 +158,13 @@ const saveRecord = async () => {
   }
 
   try {
-    if (crud.isEditing.value) await api.put(`manufacturers/${crud.editingId.value}/`, formData.value)
-    else await api.post('manufacturers/', formData.value)
+    if (crud.isEditing.value) {
+      await api.put(`manufacturers/${crud.editingId.value}/`, formData.value)
+      crud.notifySuccess('updated', t)
+    } else {
+      await api.post('manufacturers/', formData.value)
+      crud.notifySuccess('created', t)
+    }
     crud.closeDialog()
     loadData()
   } catch (error) {
@@ -169,6 +175,7 @@ const saveRecord = async () => {
 const executeDelete = async () => {
   try {
     await api.delete(`manufacturers/${crud.itemToDelete.value}/`)
+    crud.notifySuccess('deleted', t)
     crud.cancelDelete()
     loadData()
   } catch (error) { 

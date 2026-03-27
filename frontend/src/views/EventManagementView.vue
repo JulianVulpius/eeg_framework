@@ -12,44 +12,22 @@
           <tr>
             <th v-if="crud.showIdColumn.value" class="id-column">{{ $t('common.id') }}</th>
             <th style="width: 15%;">
-              <ColumnHeaderFilter 
-                :title="$t('common.name')" 
-                v-model="columnFilters.name" 
-                :placeholder="$t('common.search')" 
-              />
+              <ColumnHeaderFilter :title="$t('common.name')" v-model="columnFilters.name" :placeholder="$t('common.search')" />
             </th>
             <th style="width: 15%;">
-              <ColumnHeaderDateFilter 
-                :title="$t('views.events.start')" 
-                v-model="columnFilters.event_start" 
-              />
+              <ColumnHeaderDateFilter :title="$t('views.events.start')" v-model="columnFilters.event_start" />
             </th>
             <th style="width: 15%;">
-              <ColumnHeaderDateFilter 
-                :title="$t('views.events.end')" 
-                v-model="columnFilters.event_end" 
-              />
+              <ColumnHeaderDateFilter :title="$t('views.events.end')" v-model="columnFilters.event_end" />
             </th>
             <th style="width: 15%;">
-              <ColumnHeaderFilter 
-                :title="$t('nav.locations')" 
-                v-model="columnFilters.location" 
-                :placeholder="$t('common.search')" 
-              />
+              <ColumnHeaderFilter :title="$t('nav.locations')" v-model="columnFilters.location" :placeholder="$t('common.search')" />
             </th>
             <th style="width: 15%;">
-              <ColumnHeaderFilter 
-                :title="$t('master_data.category')" 
-                v-model="columnFilters.category" 
-                :placeholder="$t('common.search')" 
-              />
+              <ColumnHeaderFilter :title="$t('master_data.category')" v-model="columnFilters.category" :placeholder="$t('common.search')" />
             </th>
             <th style="width: 15%;">
-              <ColumnHeaderFilter 
-                :title="$t('common.creator')" 
-                v-model="columnFilters.creator" 
-                :placeholder="$t('common.search')" 
-              />
+              <ColumnHeaderFilter :title="$t('common.creator')" v-model="columnFilters.creator" :placeholder="$t('common.search')" />
             </th>
             <th class="actions-column">{{ $t('actions.actions') }}</th>
           </tr>
@@ -66,10 +44,7 @@
             <td>{{ getLocationName(item.location) }}</td>
             <td><span class="badge category-badge">{{ getCategoryName(item.category) }}</span></td>
             <td>{{ item.creator || '-' }}</td>
-            <TableActionButtons 
-              @edit="crud.openEditDialog(item.id, () => populateForm(item))"
-              @delete="crud.requestDelete(item.id)"
-            />
+            <TableActionButtons @edit="crud.openEditDialog(item.id, () => populateForm(item))" @delete="crud.requestDelete(item.id)" />
           </tr>
         </tbody>
       </table>
@@ -82,38 +57,21 @@
       customClass="large-modal"
     >
       <form @submit.prevent="saveRecord">
-        
         <div class="form-row" style="display: flex; gap: 1rem; margin-bottom: 1rem;">
           <div class="form-group" style="flex: 1;">
             <label>{{ $t('common.name') }} *</label>
-            <input 
-              type="text" 
-              v-model="formData.name" 
-              class="form-control"
-              :class="{ 'input-invalid': crud.fieldErrors.value.name }"
-            />
+            <input type="text" v-model="formData.name" class="form-control" :class="{ 'input-invalid': crud.fieldErrors.value.name }" />
             <BaseInputError :message="crud.fieldErrors.value.name" />
           </div>
-          
           <div class="form-group" style="flex: 1;">
             <label>{{ $t('master_data.category') }} *</label>
-            <BaseSearchSelect
-              v-model="formData.category"
-              :options="categories"
-              :placeholder="$t('views.events.select_category')"
-              :error="crud.fieldErrors.value.category"
-            />
+            <BaseSearchSelect v-model="formData.category" :options="categories" :placeholder="$t('views.events.select_category')" :error="crud.fieldErrors.value.category" />
           </div>
         </div>
 
         <div class="form-group" style="margin-bottom: 1rem;">
           <label>{{ $t('nav.locations') }}</label>
-          <BaseSearchSelect
-            v-model="formData.location"
-            :options="locations"
-            :placeholder="$t('common.search')"
-            :nullLabel="$t('master_data.none')"
-          />
+          <BaseSearchSelect v-model="formData.location" :options="locations" :placeholder="$t('common.search')" :nullLabel="$t('master_data.none')" />
         </div>
 
         <div class="form-group" style="margin-bottom: 1.5rem;">
@@ -126,29 +84,14 @@
             <label>{{ $t('views.events.start') }}</label>
             <div style="display: flex; gap: 10px;">
               <input type="date" v-model="formData.event_start" class="form-control" />
-              <input 
-                v-if="formData.event_start" 
-                type="time" 
-                v-model="formData.event_start_time" 
-                class="form-control" 
-                style="max-width: 130px;" 
-                title="Optional Time"
-              />
+              <input v-if="formData.event_start" type="time" v-model="formData.event_start_time" class="form-control" style="max-width: 130px;" title="Optional Time" />
             </div>
           </div>
-          
           <div class="form-group" style="flex: 1;">
             <label>{{ $t('views.events.end') }}</label>
             <div style="display: flex; gap: 10px;">
               <input type="date" v-model="formData.event_end" class="form-control" />
-              <input 
-                v-if="formData.event_end" 
-                type="time" 
-                v-model="formData.event_end_time" 
-                class="form-control" 
-                style="max-width: 130px;" 
-                title="Optional Time"
-              />
+              <input v-if="formData.event_end" type="time" v-model="formData.event_end_time" class="form-control" style="max-width: 130px;" title="Optional Time" />
             </div>
           </div>
         </div>
@@ -184,16 +127,17 @@ import { useI18n } from 'vue-i18n'
 import api from '@/services/api'
 import { useCrud } from '@/composables/useCrud'
 
-import BaseModal from '@/components/BaseModal.vue'
-import BaseInputError from '@/components/BaseInputError.vue'
-import BaseSearchSelect from '@/components/BaseSearchSelect.vue'
-import BaseTransferList from '@/components/BaseTransferList.vue'
-import ConfirmDeleteModal from '@/components/ConfirmDeleteModal.vue'
-import WarningModal from '@/components/WarningModal.vue'
-import ColumnHeaderFilter from '@/components/ColumnHeaderFilter.vue'
-import ColumnHeaderDateFilter from '@/components/ColumnHeaderDateFilter.vue'
-import CrudHeader from '@/components/CrudHeader.vue'
-import TableActionButtons from '@/components/TableActionButtons.vue'
+import BaseModal from '@/components/ui/BaseModal.vue'
+import BaseInputError from '@/components/ui/BaseInputError.vue'
+import BaseSearchSelect from '@/components/ui/BaseSearchSelect.vue'
+import BaseTransferList from '@/components/ui/BaseTransferList.vue'
+import ConfirmDeleteModal from '@/components/ui/ConfirmDeleteModal.vue'
+import WarningModal from '@/components/ui/WarningModal.vue'
+import CrudHeader from '@/components/ui/CrudHeader.vue'
+
+import ColumnHeaderFilter from '@/components/table/ColumnHeaderFilter.vue'
+import ColumnHeaderDateFilter from '@/components/table/ColumnHeaderDateFilter.vue'
+import TableActionButtons from '@/components/table/TableActionButtons.vue'
 
 const { t } = useI18n()
 const crud = useCrud()
@@ -211,7 +155,7 @@ const columnFilters = ref({
   event_start: '',
   event_end: '',
   location: '',
-  category: '', // added category filter state
+  category: '',
   creator: ''
 })
 
@@ -229,37 +173,21 @@ const getCategoryName = (id) => {
 
 const filteredItems = computed(() => {
   return items.value.filter(item => {
-    if (columnFilters.value.name) {
-      const q = columnFilters.value.name.toLowerCase()
-      if (!item.name.toLowerCase().includes(q)) return false
-    }
-
-    if (columnFilters.value.event_start) {
-      if (!item.event_start || !item.event_start.startsWith(columnFilters.value.event_start)) return false
-    }
-
-    if (columnFilters.value.event_end) {
-      if (!item.event_end || !item.event_end.startsWith(columnFilters.value.event_end)) return false
-    }
-
+    if (columnFilters.value.name && !item.name.toLowerCase().includes(columnFilters.value.name.toLowerCase())) return false
+    if (columnFilters.value.event_start && (!item.event_start || !item.event_start.startsWith(columnFilters.value.event_start))) return false
+    if (columnFilters.value.event_end && (!item.event_end || !item.event_end.startsWith(columnFilters.value.event_end))) return false
     if (columnFilters.value.location) {
-      const q = columnFilters.value.location.toLowerCase()
       const locName = getLocationName(item.location).toLowerCase()
-      if (!locName.includes(q)) return false
+      if (!locName.includes(columnFilters.value.location.toLowerCase())) return false
     }
-
     if (columnFilters.value.category) {
-      const q = columnFilters.value.category.toLowerCase()
       const catName = getCategoryName(item.category).toLowerCase()
-      if (!catName.includes(q)) return false
+      if (!catName.includes(columnFilters.value.category.toLowerCase())) return false
     }
-
     if (columnFilters.value.creator) {
-      const q = columnFilters.value.creator.toLowerCase()
       const creatorName = item.creator ? item.creator.toLowerCase() : ''
-      if (!creatorName.includes(q)) return false
+      if (!creatorName.includes(columnFilters.value.creator.toLowerCase())) return false
     }
-
     return true
   })
 })
@@ -369,8 +297,10 @@ const saveRecord = async () => {
   try {
     if (crud.isEditing.value) {
       await api.put(`events/${crud.editingId.value}/`, payload)
+      crud.notifySuccess('updated', t)
     } else {
       await api.post('events/', payload)
+      crud.notifySuccess('created', t)
     }
     crud.closeDialog()
     loadData()
@@ -382,6 +312,7 @@ const saveRecord = async () => {
 const executeDelete = async () => {
   try {
     await api.delete(`events/${crud.itemToDelete.value}/`)
+    crud.notifySuccess('deleted', t)
     crud.cancelDelete()
     loadData()
   } catch (error) {
@@ -393,7 +324,3 @@ const executeDelete = async () => {
 
 onMounted(loadData)
 </script>
-
-<style scoped>
-.large-modal { max-width: 800px; width: 90vw; }
-</style>

@@ -12,45 +12,20 @@
           <tr>
             <th v-if="crud.showIdColumn.value" class="id-column">{{ $t('common.id') }}</th>
             <th style="width: 20%;">
-              <ColumnHeaderFilter 
-                :title="$t('common.name')" 
-                v-model="columnFilters.name" 
-                :placeholder="$t('common.search')" 
-              />
+              <ColumnHeaderFilter :title="$t('common.name')" v-model="columnFilters.name" :placeholder="$t('common.search')" />
             </th>
             <th style="width: 20%;">
-              <ColumnHeaderFilter 
-                :title="$t('views.metadata.category')" 
-                v-model="columnFilters.category" 
-                :placeholder="$t('common.search')" 
-              />
+              <ColumnHeaderFilter :title="$t('views.metadata.category')" v-model="columnFilters.category" :placeholder="$t('common.search')" />
             </th>
-            
             <th style="width: 15%;">
-               <ColumnHeaderSelectFilter 
-                :title="$t('views.metadata.data_type')" 
-                v-model="columnFilters.data_type" 
-                :options="dataTypes"
-                :placeholder="$t('master_data.none')" 
-              />
+               <ColumnHeaderSelectFilter :title="$t('views.metadata.data_type')" v-model="columnFilters.data_type" :options="dataTypes" :placeholder="$t('master_data.none')" />
             </th>
-            
             <th style="width: 25%;">
-              <ColumnHeaderFilter 
-                :title="$t('common.description')" 
-                v-model="columnFilters.description" 
-                :placeholder="$t('common.search')" 
-              />
+              <ColumnHeaderFilter :title="$t('common.description')" v-model="columnFilters.description" :placeholder="$t('common.search')" />
             </th>
-
             <th style="width: 20%;">
-              <ColumnHeaderFilter 
-                :title="$t('common.creator')" 
-                v-model="columnFilters.creator" 
-                :placeholder="$t('common.search')" 
-              />
+              <ColumnHeaderFilter :title="$t('common.creator')" v-model="columnFilters.creator" :placeholder="$t('common.search')" />
             </th>
-            
             <th class="actions-column">{{ $t('actions.actions') }}</th>
           </tr>
         </thead>
@@ -65,10 +40,7 @@
             <td><span class="badge secondary-badge">{{ getDataTypeLabel(item.expected_data_type) }}</span></td>
             <td>{{ item.description || '-' }}</td>
             <td>{{ item.creator || '-' }}</td>
-            <TableActionButtons 
-              @edit="crud.openEditDialog(item.id, () => populateForm(item))"
-              @delete="crud.requestDelete(item.id)"
-            />
+            <TableActionButtons @edit="crud.openEditDialog(item.id, () => populateForm(item))" @delete="crud.requestDelete(item.id)" />
           </tr>
         </tbody>
       </table>
@@ -82,13 +54,7 @@
       <form @submit.prevent="saveRecord">
         <div class="form-group">
           <label>{{ $t('common.name') }} *</label>
-          <input 
-            type="text" 
-            v-model="formData.name" 
-            class="form-control"
-            :class="{ 'input-invalid': crud.fieldErrors.value.name }"
-            :placeholder="$t('modal.name_placeholder')" 
-          />
+          <input type="text" v-model="formData.name" class="form-control" :class="{ 'input-invalid': crud.fieldErrors.value.name }" :placeholder="$t('modal.name_placeholder')" />
           <BaseInputError :message="crud.fieldErrors.value.name" />
         </div>
 
@@ -102,11 +68,7 @@
 
         <div class="form-group">
           <label>{{ $t('views.metadata.expected_data_type') }} *</label>
-          <select 
-            v-model="formData.expected_data_type" 
-            class="form-control"
-            :class="{ 'input-invalid': crud.fieldErrors.value.expected_data_type }"
-          >
+          <select v-model="formData.expected_data_type" class="form-control" :class="{ 'input-invalid': crud.fieldErrors.value.expected_data_type }">
             <option v-for="type in dataTypes" :key="type.value" :value="type.value">{{ type.label }}</option>
           </select>
           <BaseInputError :message="crud.fieldErrors.value.expected_data_type" />
@@ -114,13 +76,7 @@
 
         <div class="form-group">
           <label>{{ $t('common.description') }}</label>
-          <textarea 
-            v-model="formData.description" 
-            rows="4" 
-            class="form-control"
-            :class="{ 'input-invalid': crud.fieldErrors.value.description }"
-            :placeholder="$t('modal.desc_placeholder')"
-          ></textarea>
+          <textarea v-model="formData.description" rows="4" class="form-control" :class="{ 'input-invalid': crud.fieldErrors.value.description }" :placeholder="$t('modal.desc_placeholder')"></textarea>
           <BaseInputError :message="crud.fieldErrors.value.description" />
         </div>
 
@@ -131,18 +87,8 @@
       </form>
     </BaseModal>
 
-    <ConfirmDeleteModal 
-      :isOpen="crud.isConfirmOpen.value" 
-      @cancel="crud.cancelDelete" 
-      @confirm="executeDelete" 
-    />
-
-    <WarningModal 
-      :isOpen="showWarningModal" 
-      :title="$t('common.warning')" 
-      :message="warningMessage" 
-      @close="showWarningModal = false" 
-    />
+    <ConfirmDeleteModal :isOpen="crud.isConfirmOpen.value" @cancel="crud.cancelDelete" @confirm="executeDelete" />
+    <WarningModal :isOpen="showWarningModal" :title="$t('common.warning')" :message="warningMessage" @close="showWarningModal = false" />
   </div>
 </template>
 
@@ -152,15 +98,16 @@ import { useI18n } from 'vue-i18n'
 import api from '@/services/api'
 import { useCrud } from '@/composables/useCrud'
 
-import BaseModal from '@/components/BaseModal.vue'
-import BaseInputError from '@/components/BaseInputError.vue'
-import BaseSearchSelect from '@/components/BaseSearchSelect.vue'
-import ConfirmDeleteModal from '@/components/ConfirmDeleteModal.vue'
-import WarningModal from '@/components/WarningModal.vue'
-import ColumnHeaderFilter from '@/components/ColumnHeaderFilter.vue'
-import ColumnHeaderSelectFilter from '@/components/ColumnHeaderSelectFilter.vue' 
-import CrudHeader from '@/components/CrudHeader.vue'
-import TableActionButtons from '@/components/TableActionButtons.vue'
+import BaseModal from '@/components/ui/BaseModal.vue'
+import BaseInputError from '@/components/ui/BaseInputError.vue'
+import BaseSearchSelect from '@/components/ui/BaseSearchSelect.vue'
+import ConfirmDeleteModal from '@/components/ui/ConfirmDeleteModal.vue'
+import WarningModal from '@/components/ui/WarningModal.vue'
+import CrudHeader from '@/components/ui/CrudHeader.vue'
+
+import ColumnHeaderFilter from '@/components/table/ColumnHeaderFilter.vue'
+import ColumnHeaderSelectFilter from '@/components/table/ColumnHeaderSelectFilter.vue' 
+import TableActionButtons from '@/components/table/TableActionButtons.vue'
 
 const { t } = useI18n()
 const items = ref([])
@@ -175,7 +122,7 @@ const columnFilters = ref({
   category: '',
   description: '',
   data_type: '', 
-  creator: '' // added creator filter state
+  creator: '' 
 })
 
 const dataTypes = computed(() => [
@@ -188,45 +135,25 @@ const dataTypes = computed(() => [
 
 const filteredItems = computed(() => {
   return items.value.filter(item => {
-    if (columnFilters.value.name) {
-      const q = columnFilters.value.name.toLowerCase()
-      if (!item.name.toLowerCase().includes(q)) return false
-    }
-    
+    if (columnFilters.value.name && !item.name.toLowerCase().includes(columnFilters.value.name.toLowerCase())) return false
     if (columnFilters.value.category) {
-      const q = columnFilters.value.category.toLowerCase()
       const cName = getCategoryName(item.category).toLowerCase()
-      if (!cName.includes(q)) return false
+      if (!cName.includes(columnFilters.value.category.toLowerCase())) return false
     }
-    
-    if (columnFilters.value.description) {
-      const q = columnFilters.value.description.toLowerCase()
-      if (!item.description || !item.description.toLowerCase().includes(q)) return false
-    }
-
-    if (columnFilters.value.data_type) {
-      if (item.expected_data_type !== columnFilters.value.data_type) return false
-    }
-
+    if (columnFilters.value.description && (!item.description || !item.description.toLowerCase().includes(columnFilters.value.description.toLowerCase()))) return false
+    if (columnFilters.value.data_type && item.expected_data_type !== columnFilters.value.data_type) return false
     if (columnFilters.value.creator) {
-      const q = columnFilters.value.creator.toLowerCase()
       const creatorName = item.creator ? item.creator.toLowerCase() : ''
-      if (!creatorName.includes(q)) return false
+      if (!creatorName.includes(columnFilters.value.creator.toLowerCase())) return false
     }
-
     return true
   })
 })
 
 const formData = ref({ name: '', category: null, expected_data_type: 'STRING', description: '' })
 
-const resetForm = () => { 
-  formData.value = { name: '', category: null, expected_data_type: 'STRING', description: '' } 
-}
-
-const populateForm = (item) => { 
-  formData.value = { name: item.name, category: item.category, expected_data_type: item.expected_data_type, description: item.description } 
-}
+const resetForm = () => { formData.value = { name: '', category: null, expected_data_type: 'STRING', description: '' } }
+const populateForm = (item) => { formData.value = { name: item.name, category: item.category, expected_data_type: item.expected_data_type, description: item.description } }
 
 const getCategoryName = (id) => {
   const cat = categories.value.find(c => c.id === id)
@@ -257,23 +184,25 @@ const saveRecord = async () => {
 
   let hasErrors = false
   if (!formData.value.name || formData.value.name.trim() === '') {
-    crud.fieldErrors.value.name = t('errors.required_field')
-    hasErrors = true
+    crud.fieldErrors.value.name = t('errors.required_field'); hasErrors = true
   }
   if (!formData.value.category) {
-    crud.fieldErrors.value.category = t('errors.required_field')
-    hasErrors = true
+    crud.fieldErrors.value.category = t('errors.required_field'); hasErrors = true
   }
   if (!formData.value.expected_data_type) {
-    crud.fieldErrors.value.expected_data_type = t('errors.required_field')
-    hasErrors = true
+    crud.fieldErrors.value.expected_data_type = t('errors.required_field'); hasErrors = true
   }
 
   if (hasErrors) return
 
   try {
-    if (crud.isEditing.value) await api.put(`metadata/definitions/${crud.editingId.value}/`, formData.value)
-    else await api.post('metadata/definitions/', formData.value)
+    if (crud.isEditing.value) {
+      await api.put(`metadata/definitions/${crud.editingId.value}/`, formData.value)
+      crud.notifySuccess('updated', t)
+    } else {
+      await api.post('metadata/definitions/', formData.value)
+      crud.notifySuccess('created', t)
+    }
     crud.closeDialog()
     loadData()
   } catch (error) { 
@@ -284,6 +213,7 @@ const saveRecord = async () => {
 const executeDelete = async () => {
   try {
     await api.delete(`metadata/definitions/${crud.itemToDelete.value}/`)
+    crud.notifySuccess('deleted', t)
     crud.cancelDelete()
     loadData()
   } catch (error) { 

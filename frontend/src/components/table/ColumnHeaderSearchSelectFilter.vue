@@ -28,7 +28,7 @@
 
 <script setup>
 import { ref } from 'vue'
-import BaseSearchSelect from './BaseSearchSelect.vue'
+import BaseSearchSelect from '../ui/BaseSearchSelect.vue'
 
 defineProps({
   title: { type: String, required: true },

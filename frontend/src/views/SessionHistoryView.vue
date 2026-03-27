@@ -20,7 +20,8 @@
 import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import api from '@/services/api'
-import SessionTreeTable from '@/components/SessionTreeTable.vue'
+
+import SessionTreeTable from '@/components/table/SessionTreeTable.vue'
 
 const router = useRouter()
 
@@ -30,11 +31,7 @@ const subjects = ref([])
 const pageGroups = ref([])
 const locations = ref([])
 
-const columnFilters = ref({
-  event: '',
-  subject: '',
-  creator: ''
-})
+const columnFilters = ref({ event: '', subject: '', creator: '' })
 
 const loadData = async () => {
   try {
@@ -85,13 +82,8 @@ const groupedSessions = computed(() => {
     
     if (!map.has(key)) {
       map.set(key, {
-        id: key,
-        eventId: session.event,
-        subjectId: session.subject,
-        eventName,
-        eventCreator,
-        subjectName,
-        sessions: []
+        id: key, eventId: session.event, subjectId: session.subject,
+        eventName, eventCreator, subjectName, sessions: []
       })
     }
     
