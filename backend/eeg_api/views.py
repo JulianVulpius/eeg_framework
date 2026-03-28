@@ -5,7 +5,7 @@ from rest_framework.serializers import ModelSerializer
 from django.http import Http404
 from rest_framework import serializers
 from .models import TriggerGroup, TriggerPair
-from .models.device import DeviceModel, Manufacturer, EEGChannel, DeviceModelEEGChannel
+from .models.device import DeviceModel, Manufacturer, EEGChannel, DeviceModelEEGChannel, ManufacturerCategory
 from .models.session import FrequencyBand, Session
 from .models.subject import SubjectProfile
 from .models.trigger import TriggerHotkeyMapping, TriggerGroupCategory
@@ -40,6 +40,7 @@ CATEGORY_MODEL_MAP = {
     'trigger-group-categories': TriggerGroupCategory,
     'location-categories': LocationCategory,
     'playlist-categories': PlaylistCategory,
+    'manufacturer-categories': ManufacturerCategory,
 }
 
 class GenericCategoryViewSet(viewsets.ModelViewSet):

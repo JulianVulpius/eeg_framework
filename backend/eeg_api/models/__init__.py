@@ -3,7 +3,7 @@ from .base import AuditBaseModel
 from .media import MediaAssetCategory, MediaAsset
 from .subject import SubjectProfile
 from .device import (
-    EEGChannel, DeviceModelCategory, DeviceModel, DeviceModelEEGChannel, 
+    ManufacturerCategory, Manufacturer, EEGChannel, DeviceModelCategory, DeviceModel, DeviceModelEEGChannel, 
     DeviceInstance, DeviceInstanceEEGChannel
 )
 from .trigger import TriggerDefinition, TriggerGroupCategory, TriggerGroup, TriggerGroupDefinition, TriggerPair

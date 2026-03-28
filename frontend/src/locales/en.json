@@ -42,7 +42,8 @@
     "locations": "Locations",
     "location_categories": "Location Categories",
     "trigger_group_categories": "Trigger Group Categories",
-    "playlist_categories": "Playlist Categories"
+    "playlist_categories": "Playlist Categories",
+    "manufacturer_categories": "Manufacturer Categories"
   },
   "toast": {
     "created": "Data Created",
