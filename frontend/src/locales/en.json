@@ -49,6 +49,15 @@
     "updated": "Data Updated",
     "deleted": "Data Deleted"
   },
+    "dashboard": {
+  "welcome_text": "Select an area to continue.",
+  "events_desc": "",
+  "stimuli_desc": "",
+  "triggers_desc": "",
+  "metadata_desc": "",
+  "masterdata_desc": "",
+  "categories_desc": ""
+  },
   "common": {
     "name": "Name",
     "description": "Description",

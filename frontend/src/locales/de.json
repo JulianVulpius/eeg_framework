@@ -49,6 +49,15 @@
     "updated": "Daten erfolgreich aktualisiert",
     "deleted": "Daten gelöscht"
   },
+  "dashboard": {
+  "welcome_text": "Einen Bereich Wählen, um fortzufahren.",
+  "events_desc": "",
+  "stimuli_desc": "",
+  "triggers_desc": "",
+  "metadata_desc": "",
+  "masterdata_desc": "",
+  "categories_desc": ""
+  },
   "common": {
     "name": "Name",
     "description": "Beschreibung",
