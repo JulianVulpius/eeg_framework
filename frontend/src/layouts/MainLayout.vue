@@ -10,15 +10,15 @@
 
       <nav class="sidebar-nav">
         <div class="nav-section" style="padding: 10px 20px;">
-          <router-link to="/session-control" class="btn-play-sync">
+          <router-link to="/session-control" class="btn-play-sync" active-class="btn-active">
             <span class="play-icon">▶</span> Unicorn Play & Sync
           </router-link>
 
-          <router-link to="/launcher" class="btn-play-sync" style="margin-top: 10px; background: linear-gradient(135deg, #3498db, #2980b9); border-color: #2980b9; box-shadow: 0 4px 6px rgba(52, 152, 219, 0.3);">
+          <router-link to="/launcher" class="btn-play-sync" active-class="btn-active" style="margin-top: 10px; background: linear-gradient(135deg, #3498db, #2980b9); border-color: #2980b9; box-shadow: 0 4px 6px rgba(52, 152, 219, 0.3);">
             ▶ {{ $t('nav.session_launcher') }}
           </router-link>
           
-          <router-link to="/session-history" class="btn-play-sync" style="margin-top: 10px; background: #f1f3f5; color: #333; border-color: #ddd; box-shadow: none;">
+          <router-link to="/session-history" class="btn-play-sync" active-class="btn-active" style="margin-top: 10px; background: #f1f3f5; color: #333; border-color: #ddd; box-shadow: none;">
             📊 {{ $t('nav.session_history') }}
           </router-link>
         </div>
@@ -35,7 +35,7 @@
               :key="item.route" 
               :to="item.route" 
               class="nav-link"
-              active-class="active"
+              active-class="active-nav-link"
             >
               {{ $t(item.labelKey) }}
             </router-link>
@@ -62,11 +62,13 @@
 </template>
 
 <script setup>
-import { ref, reactive } from 'vue'
+import { ref, reactive, onMounted, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { menuStructure } from '@/config/menuConfig.js' // <-- Import der Struktur
+import { useRoute } from 'vue-router'
+import { menuStructure } from '@/config/menuConfig.js'
 
 const { locale } = useI18n()
+const route = useRoute()
 const isSidebarOpen = ref(true)
 
 const initialSections = {}
@@ -76,6 +78,23 @@ const openSections = reactive(initialSections)
 const toggleSidebar = () => { isSidebarOpen.value = !isSidebarOpen.value }
 const toggleSection = (sectionId) => { openSections[sectionId] = !openSections[sectionId] }
 const toggleLanguage = () => { locale.value = locale.value === 'en' ? 'de' : 'en' }
+
+const openActiveSection = () => {
+  menuStructure.forEach(section => {
+    const hasActiveItem = section.items.some(item => route.path.startsWith(item.route))
+    if (hasActiveItem) {
+      openSections[section.id] = true
+    }
+  })
+}
+
+onMounted(() => {
+  openActiveSection()
+})
+
+watch(() => route.path, () => {
+  openActiveSection()
+})
 </script>
 
 <style scoped>
@@ -95,7 +114,11 @@ const toggleLanguage = () => { locale.value = locale.value === 'en' ? 'de' : 'en
 .chevron { font-size: 0.7rem; color: #888; }
 .nav-link { display: block; padding: 10px 20px 10px 30px; color: #000000; text-decoration: none; font-size: 0.95rem; transition: background 0.2s, font-weight 0.2s; }
 .nav-link:hover { background-color: #f1f3f5; }
-.router-link-active { background-color: #e9ecef; font-weight: 600; border-left: 4px solid #3498db; padding-left: 26px; }
+
+.active-nav-link { background-color: #e9ecef; font-weight: 600; border-left: 4px solid #3498db; padding-left: 26px; }
+
+.btn-active { outline: 2px solid #2c3e50; outline-offset: 2px; }
+
 .main-content { flex-grow: 1; display: flex; flex-direction: column; background-color: #f4f7f6; min-width: 0; }
 .top-bar { height: 60px; background-color: #ffffff; border-bottom: 1px solid #e0e0e0; display: flex; align-items: center; justify-content: space-between; padding: 0 20px; }
 .hamburger-btn { background: none; border: none; font-size: 1.5rem; cursor: pointer; color: #000000; }
