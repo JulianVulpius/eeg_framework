@@ -58,8 +58,8 @@
           </div>
           
           <div class="form-group" style="flex: 1;">
-            <label>{{ $t('master_data.category') }} *</label>
-            <BaseSearchSelect v-model="formData.category" :options="categories" :placeholder="$t('views.events.select_category')" :error="crud.fieldErrors.value.category" />
+            <label>{{ $t('master_data.category') }}</label>
+            <BaseSearchSelect v-model="formData.category" :options="categories" :placeholder="$t('views.events.select_category')" :nullLabel="$t('master_data.none')" :error="crud.fieldErrors.value.category" />
           </div>
         </div>
 
@@ -218,7 +218,6 @@ const saveRecord = async () => {
   let hasError = false
 
   if (!formData.value.name) { crud.fieldErrors.value.name = t('errors.required_field'); hasError = true }
-  if (!formData.value.category) { crud.fieldErrors.value.category = t('errors.required_field'); hasError = true }
   
   if (hasError) return
 

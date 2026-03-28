@@ -11,14 +11,21 @@
         <thead>
           <tr>
             <th v-if="crud.showIdColumn.value" class="id-column">{{ $t('common.id') }}</th>
-            <th style="width: 40%;">
+            <th style="width: 30%;">
               <ColumnHeaderFilter 
                 :title="$t('common.name')" 
                 v-model="columnFilters.name" 
                 :placeholder="$t('common.search')" 
               />
             </th>
-            <th style="width: 45%;">
+            <th style="width: 20%;">
+              <ColumnHeaderFilter 
+                :title="$t('master_data.category')" 
+                v-model="columnFilters.category" 
+                :placeholder="$t('common.search')" 
+              />
+            </th>
+            <th style="width: 35%;">
               <ColumnHeaderFilter 
                 :title="$t('common.description')" 
                 v-model="columnFilters.description" 
@@ -30,11 +37,12 @@
         </thead>
         <tbody>
           <tr v-if="filteredItems.length === 0">
-            <td :colspan="crud.showIdColumn.value ? 4 : 3" class="empty-state">{{ $t('common.no_data') }}</td>
+            <td :colspan="crud.showIdColumn.value ? 5 : 4" class="empty-state">{{ $t('common.no_data') }}</td>
           </tr>
           <tr v-for="item in filteredItems" :key="item.id">
             <td v-if="crud.showIdColumn.value" class="id-column">{{ item.id }}</td>
             <td><strong>{{ item.name }}</strong></td>
+            <td><span class="badge category-badge">{{ getCategoryName(item.category) }}</span></td>
             <td>{{ item.description || '-' }}</td>
             <TableActionButtons 
               @edit="crud.openEditDialog(item.id, () => populateForm(item))"
@@ -51,15 +59,26 @@
       @close="crud.closeDialog"
     >
       <form @submit.prevent="saveRecord">
-        <div class="form-group">
-          <label>{{ $t('common.name') }} *</label>
-          <input 
-            type="text" 
-            v-model="formData.name" 
-            class="form-control"
-            :class="{ 'input-invalid': crud.fieldErrors.value.name }"
-          />
-          <BaseInputError :message="crud.fieldErrors.value.name" />
+        <div class="form-row" style="display: flex; gap: 1rem; margin-bottom: 1rem;">
+          <div class="form-group" style="flex: 1;">
+            <label>{{ $t('common.name') }} *</label>
+            <input 
+              type="text" 
+              v-model="formData.name" 
+              class="form-control"
+              :class="{ 'input-invalid': crud.fieldErrors.value.name }"
+            />
+            <BaseInputError :message="crud.fieldErrors.value.name" />
+          </div>
+
+          <div class="form-group" style="flex: 1;">
+            <label>{{ $t('master_data.category') }}</label>
+            <BaseSearchSelect 
+              v-model="formData.category" 
+              :options="categories" 
+              :nullLabel="$t('master_data.none')" 
+            />
+          </div>
         </div>
 
         <div class="form-group">
@@ -101,6 +120,7 @@ import { useCrud } from '@/composables/useCrud'
 
 import BaseModal from '@/components/ui/BaseModal.vue'
 import BaseInputError from '@/components/ui/BaseInputError.vue'
+import BaseSearchSelect from '@/components/ui/BaseSearchSelect.vue'
 import ConfirmDeleteModal from '@/components/ui/ConfirmDeleteModal.vue'
 import WarningModal from '@/components/ui/WarningModal.vue'
 import CrudHeader from '@/components/ui/CrudHeader.vue'
@@ -112,19 +132,31 @@ const { t } = useI18n()
 const crud = useCrud()
 
 const items = ref([])
+const categories = ref([])
 const showWarningModal = ref(false)
 const warningMessage = ref('')
 
 const columnFilters = ref({
   name: '',
+  category: '',
   description: ''
 })
+
+const getCategoryName = (id) => {
+  const cat = categories.value.find(c => c.id === id)
+  return cat ? cat.name : '-'
+}
 
 const filteredItems = computed(() => {
   return items.value.filter(item => {
     if (columnFilters.value.name) {
       const q = columnFilters.value.name.toLowerCase()
       if (!item.name.toLowerCase().includes(q)) return false
+    }
+    if (columnFilters.value.category) {
+      const q = columnFilters.value.category.toLowerCase()
+      const cName = getCategoryName(item.category).toLowerCase()
+      if (!cName.includes(q)) return false
     }
     if (columnFilters.value.description) {
       const q = columnFilters.value.description.toLowerCase()
@@ -136,24 +168,30 @@ const filteredItems = computed(() => {
 
 const formData = ref({
   name: '',
+  category: null,
   description: ''
 })
 
 const resetForm = () => {
-  formData.value = { name: '', description: '' }
+  formData.value = { name: '', category: null, description: '' }
 }
 
 const populateForm = (item) => {
   formData.value = {
     name: item.name,
+    category: item.category || null,
     description: item.description || ''
   }
 }
 
 const loadData = async () => {
   try {
-    const response = await api.get('locations/')
-    items.value = response.data
+    const [resLocs, resCats] = await Promise.all([
+      api.get('locations/'),
+      api.get('category/location-categories/')
+    ])
+    items.value = resLocs.data
+    categories.value = resCats.data
   } catch (error) {
     warningMessage.value = crud.parseApiError(error, t, 'errors.load_failed')
     showWarningModal.value = true

@@ -11,33 +11,39 @@
         <thead>
           <tr>
             <th v-if="crud.showIdColumn.value" class="id-column">{{ $t('common.id') }}</th>
-            <th style="width: 35%;">
+            <th style="width: 25%;">
               <ColumnHeaderFilter 
                 :title="$t('common.name')" 
                 v-model="columnFilters.name" 
                 :placeholder="$t('common.search')" 
               />
             </th>
-            <th style="width: 30%;">Items in Playlist</th>
-            
-            <th style="width: 35%;">
+            <th style="width: 20%;">
+              <ColumnHeaderFilter 
+                :title="$t('master_data.category')" 
+                v-model="columnFilters.category" 
+                :placeholder="$t('common.search')" 
+              />
+            </th>
+            <th style="width: 25%;">Items in Playlist</th>
+            <th style="width: 20%;">
               <ColumnHeaderFilter 
                 :title="$t('common.creator')" 
                 v-model="columnFilters.creator" 
                 :placeholder="$t('common.search')" 
               />
             </th>
-
             <th class="actions-column">{{ $t('actions.actions') }}</th>
           </tr>
         </thead>
         <tbody>
           <tr v-if="filteredItems.length === 0">
-            <td :colspan="crud.showIdColumn.value ? 5 : 4" class="empty-state">{{ $t('common.no_data') }}</td>
+            <td :colspan="crud.showIdColumn.value ? 6 : 5" class="empty-state">{{ $t('common.no_data') }}</td>
           </tr>
           <tr v-for="item in filteredItems" :key="item.id">
             <td v-if="crud.showIdColumn.value" class="id-column">{{ item.id }}</td>
             <td><strong>{{ item.name }}</strong></td>
+            <td><span class="badge category-badge">{{ getCategoryName(item.category) }}</span></td>
             <td>{{ item.stimuli ? item.stimuli.length : 0 }} Items</td>
             <td>{{ item.creator || '-' }}</td>
             <TableActionButtons 
@@ -56,15 +62,25 @@
       @close="crud.closeDialog"
     >
       <form @submit.prevent="saveRecord">
-        <div class="form-group">
-          <label>{{ $t('common.name') }} *</label>
-          <input 
-            type="text" 
-            v-model="formData.name" 
-            class="form-control"
-            :class="{ 'input-invalid': crud.fieldErrors.value.name }"
-          />
-          <BaseInputError :message="crud.fieldErrors.value.name" />
+        <div class="form-row" style="display: flex; gap: 1rem; margin-bottom: 1rem;">
+          <div class="form-group" style="flex: 1;">
+            <label>{{ $t('common.name') }} *</label>
+            <input 
+              type="text" 
+              v-model="formData.name" 
+              class="form-control"
+              :class="{ 'input-invalid': crud.fieldErrors.value.name }"
+            />
+            <BaseInputError :message="crud.fieldErrors.value.name" />
+          </div>
+          <div class="form-group" style="flex: 1;">
+            <label>{{ $t('master_data.category') }}</label>
+            <BaseSearchSelect 
+              v-model="formData.category" 
+              :options="playlistCategories" 
+              :nullLabel="$t('master_data.none')" 
+            />
+          </div>
         </div>
         
         <div class="form-group">
@@ -107,6 +123,7 @@ import { useCrud } from '@/composables/useCrud'
 
 import BaseModal from '@/components/ui/BaseModal.vue'
 import BaseInputError from '@/components/ui/BaseInputError.vue'
+import BaseSearchSelect from '@/components/ui/BaseSearchSelect.vue'
 import ConfirmDeleteModal from '@/components/ui/ConfirmDeleteModal.vue'
 import WarningModal from '@/components/ui/WarningModal.vue'
 import CrudHeader from '@/components/ui/CrudHeader.vue'
@@ -120,6 +137,7 @@ const { t } = useI18n()
 const items = ref([])
 const allStimuli = ref([])
 const stimulusCategories = ref([])
+const playlistCategories = ref([])
 const crud = useCrud()
 
 const showWarningModal = ref(false)
@@ -127,14 +145,26 @@ const warningMessage = ref('')
 
 const columnFilters = ref({
   name: '',
+  category: '',
   creator: '' 
 })
+
+const getCategoryName = (id) => {
+  const cat = playlistCategories.value.find(c => c.id === id)
+  return cat ? cat.name : '-'
+}
 
 const filteredItems = computed(() => {
   return items.value.filter(item => {
     if (columnFilters.value.name) {
       const q = columnFilters.value.name.toLowerCase()
       if (!item.name.toLowerCase().includes(q)) return false
+    }
+
+    if (columnFilters.value.category) {
+      const q = columnFilters.value.category.toLowerCase()
+      const cName = getCategoryName(item.category).toLowerCase()
+      if (!cName.includes(q)) return false
     }
 
     if (columnFilters.value.creator) {
@@ -147,26 +177,28 @@ const filteredItems = computed(() => {
   })
 })
 
-const formData = ref({ name: '', stimuli: [] })
+const formData = ref({ name: '', category: null, stimuli: [] })
 
 const resetForm = () => { 
-  formData.value = { name: '', stimuli: [] } 
+  formData.value = { name: '', category: null, stimuli: [] } 
 }
 
 const populateForm = (item) => { 
-  formData.value = { name: item.name, stimuli: item.stimuli ? [...item.stimuli] : [] }
+  formData.value = { name: item.name, category: item.category || null, stimuli: item.stimuli ? [...item.stimuli] : [] }
 }
 
 const loadData = async () => {
   try {
-    const [resPlaylists, resStimuli, resCats] = await Promise.all([
+    const [resPlaylists, resStimuli, resCats, resPlayCats] = await Promise.all([
       api.get('playlists/'),
       api.get('stimuli/'),
-      api.get('category/stimulus-categories/')
+      api.get('category/stimulus-categories/'),
+      api.get('category/playlist-categories/')
     ])
     items.value = resPlaylists.data
     allStimuli.value = resStimuli.data
     stimulusCategories.value = resCats.data
+    playlistCategories.value = resPlayCats.data
   } catch (error) { 
     warningMessage.value = crud.parseApiError(error, t, 'errors.load_failed')
     showWarningModal.value = true

@@ -53,7 +53,8 @@
         <BaseSearchSelect 
           v-model="formData.category"
           :options="categories"
-          :label="$t('master_data.category') + ' *'"
+          :label="$t('master_data.category')"
+          :nullLabel="$t('master_data.none')"
           :error="crud.fieldErrors.value.category"
         />
 
@@ -204,7 +205,7 @@ const saveRecord = async () => {
 
   let hasErrors = false
   if (!formData.value.name || formData.value.name.trim() === '') { crud.fieldErrors.value.name = t('errors.required_field'); hasErrors = true }
-  if (!formData.value.category) { crud.fieldErrors.value.category = t('errors.required_field'); hasErrors = true }
+  
   if (!formData.value.source || formData.value.source.trim() === '') { crud.fieldErrors.value.source = t('errors.required_field'); hasErrors = true }
   if (formData.value.duration === null || formData.value.duration === '') { crud.fieldErrors.value.duration = t('errors.required_field'); hasErrors = true }
 

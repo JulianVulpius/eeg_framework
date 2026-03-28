@@ -43,8 +43,8 @@
             <BaseInputError :message="crud.fieldErrors.value.name" />
           </div>
           <div class="form-group" style="flex: 1;">
-            <label>{{ $t('master_data.category') }} *</label>
-            <BaseSearchSelect v-model="formData.category" :options="categories" />
+            <label>{{ $t('master_data.category') }}</label>
+            <BaseSearchSelect v-model="formData.category" :options="categories" :nullLabel="$t('master_data.none')" />
           </div>
         </div>
 

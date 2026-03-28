@@ -62,7 +62,7 @@
           </div>
 
           <div class="form-group half-width">
-            <BaseSearchSelect v-model="formData.category" :options="groupCategories" :label="$t('views.metadata.category') + ' *'" :error="crud.fieldErrors.value.category" :placeholder="$t('views.metadata.select_category')" />
+            <BaseSearchSelect v-model="formData.category" :options="groupCategories" :label="$t('views.metadata.category')" :nullLabel="$t('master_data.none')" :error="crud.fieldErrors.value.category" :placeholder="$t('views.metadata.select_category')" />
           </div>
         </div>
 
@@ -182,7 +182,7 @@ const saveRecord = async () => {
   crud.clearErrors()
   const trimmedName = formData.value.name.trim()
   if (!trimmedName) { crud.fieldErrors.value.name = t('errors.required_field'); return }
-  if (!formData.value.category) { crud.fieldErrors.value.category = t('errors.required_field'); return }
+  
   if (items.value.some(item => item.name.toLowerCase() === trimmedName.toLowerCase() && item.id !== crud.editingId.value)) { crud.fieldErrors.value.name = t('errors.duplicate_entry'); return }
 
   try {

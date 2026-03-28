@@ -77,6 +77,7 @@
           v-model="formData.category"
           :options="categories"
           :label="$t('master_data.category')"
+          :nullLabel="$t('master_data.none')"
           :error="crud.fieldErrors.value.category"
         />
 
@@ -114,7 +115,6 @@ import { useI18n } from 'vue-i18n'
 import api from '@/services/api'
 import { useCrud } from '@/composables/useCrud'
 
-// import ui components
 import BaseModal from '@/components/ui/BaseModal.vue'
 import BaseInputError from '@/components/ui/BaseInputError.vue'
 import BaseSearchSelect from '@/components/ui/BaseSearchSelect.vue'
@@ -123,7 +123,6 @@ import ConfirmDeleteModal from '@/components/ui/ConfirmDeleteModal.vue'
 import WarningModal from '@/components/ui/WarningModal.vue'
 import CrudHeader from '@/components/ui/CrudHeader.vue'
 
-// import table components
 import ColumnHeaderFilter from '@/components/table/ColumnHeaderFilter.vue'
 import ColumnHeaderMultiFilter from '@/components/table/ColumnHeaderMultiFilter.vue'
 import TableActionButtons from '@/components/table/TableActionButtons.vue'
