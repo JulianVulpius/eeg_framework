@@ -4,7 +4,7 @@ from .media import MediaAssetCategory, MediaAsset
 from .subject import SubjectProfile
 from .device import (
     ManufacturerCategory, Manufacturer, EEGChannel, DeviceModelCategory, DeviceModel, DeviceModelEEGChannel, 
-    DeviceInstance, DeviceInstanceEEGChannel
+    DeviceInstance, DeviceInstanceEEGChannel, FrequencyBand
 )
 from .trigger import TriggerDefinition, TriggerGroupCategory, TriggerGroup, TriggerGroupDefinition, TriggerPair
 from .stimulus import StimulusCategory, Stimulus, PlaylistCategory, StimulusPlaylist, StimulusPlaylistStimulus
@@ -26,7 +26,7 @@ from .ui import (
     ComponentDataDisplay, ComponentDataProcess
 )
 
-from .session import FrequencyBand, Session
+from .session import Session
 
 from .recordings import (
     GenericRecordingCategory, GenericRecording, 
