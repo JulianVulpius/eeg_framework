@@ -26,6 +26,7 @@
 </template>
 
 <script setup>
+// props: array of objects { label: string, route: string/object }
 defineProps({
   items: {
     type: Array,
@@ -58,7 +59,7 @@ defineProps({
 .breadcrumb-link {
   color: #3498db;
   text-decoration: none;
-  font-weight: 500;
+  font-weight: 700; 
   transition: color 0.2s ease;
 }
 

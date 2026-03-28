@@ -45,6 +45,11 @@
     "playlist_categories": "Playlist",
     "manufacturer_categories": "Hersteller"
   },
+  "breadcrumb": {
+    "history_single_report": "Einzelbericht",
+    "history_combined_report": "Gesamtbericht",
+    "history_page_group_report": "Seiten-Gruppe Bericht"
+  },
   "toast": {
     "created": "Daten erfolgreich erstellt",
     "updated": "Daten erfolgreich aktualisiert",
@@ -138,7 +143,7 @@
     "location": "Standort",
     "btn_combined": "Gesamtbericht",
     "btn_single": "Einzelbericht",
-    "btn_pagegroup": "Seiten-Gruppen Bericht"
+    "btn_pagegroup": "Seiten-Gruppe Bericht"
   },
     "page_groups": {
       "assign_pages": "Seiten (Pages) zuweisen",

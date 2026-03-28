@@ -45,6 +45,11 @@
     "playlist_categories": "Playlist",
     "manufacturer_categories": "Manufacturer"
   },
+    "breadcrumb": {
+    "history_single_report": "Single Report",
+    "history_combined_report": "Combined Report",
+    "history_page_group_report": "PageGroup Report"
+  },
   "toast": {
     "created": "Data Created",
     "updated": "Data Updated",

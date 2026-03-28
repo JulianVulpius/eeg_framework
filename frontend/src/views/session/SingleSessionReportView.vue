@@ -1,13 +1,9 @@
 <template>
   <div class="session-report">
+    <BaseBreadcrumb :items="breadcrumbItems" />
+
     <div class="page-header" style="margin-bottom: 20px;">
       <h1>{{ $t('views.report.title') }}</h1>
-      <div style="display: flex; gap: 10px;">
-        <button v-if="hasCombinedContext" class="btn-secondary" style="background: #eef2f3; color: #2c3e50; border: 1px solid #dcdde1;" @click="goToCombined">
-          ⬅ {{ $t('views.report.back_to_combined') }}
-        </button>
-        <button class="btn-secondary" @click="router.push('/session-history')">{{ $t('actions.back') }}</button>
-      </div>
     </div>
 
     <div v-if="isLoading" class="loading-state">{{ $t('common.loading') }}</div>
@@ -56,7 +52,9 @@
 <script setup>
 import { ref, onMounted, computed } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
+import { useI18n } from 'vue-i18n'
 import api from '@/services/api'
+import BaseBreadcrumb from '@/components/ui/BaseBreadcrumb.vue'
 
 const props = defineProps({
   id: { type: [String, Number], required: true }
@@ -64,6 +62,7 @@ const props = defineProps({
 
 const router = useRouter()
 const route = useRoute()
+const { t } = useI18n()
 
 const reportData = ref(null)
 const isLoading = ref(true)
@@ -72,9 +71,15 @@ const hasCombinedContext = computed(() => {
   return route.query.eventId && route.query.subjectId
 })
 
-const goToCombined = () => {
-  router.push(`/session/aggregate-report/${route.query.eventId}/${route.query.subjectId}`)
-}
+const breadcrumbItems = computed(() => {
+  const items = [
+    { label: t('nav.session_history'), route: '/session-history' }
+  ]
+  
+  items.push({ label: `${t('breadcrumb.history_single_report')} #${props.id}`, route: null })
+  
+  return items
+})
 
 const formatDate = (dateStr) => {
   if (!dateStr) return '-'

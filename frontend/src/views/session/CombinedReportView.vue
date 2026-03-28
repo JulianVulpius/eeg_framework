@@ -1,8 +1,9 @@
 <template>
   <div class="session-report">
+    <BaseBreadcrumb :items="breadcrumbItems" />
+
     <div class="page-header" style="margin-bottom: 20px;">
       <h1>{{ $t('views.report.combined_title') }}</h1>
-      <button class="btn-secondary" @click="router.push('/session-history')">{{ $t('actions.back') }}</button>
     </div>
 
     <div v-if="isLoading" class="loading-state">
@@ -58,9 +59,11 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, computed } from 'vue'
 import { useRouter } from 'vue-router'
+import { useI18n } from 'vue-i18n'
 import api from '@/services/api'
+import BaseBreadcrumb from '@/components/ui/BaseBreadcrumb.vue'
 
 const props = defineProps({
   eventId: { type: [String, Number], required: true },
@@ -68,8 +71,15 @@ const props = defineProps({
 })
 
 const router = useRouter()
+const { t } = useI18n()
+
 const combinedReports = ref([])
 const isLoading = ref(true)
+
+const breadcrumbItems = computed(() => [
+  { label: t('nav.session_history'), route: '/session-history' },
+  { label: t('breadcrumb.history_combined_report'), route: null }
+])
 
 const formatDate = (dateStr) => {
   if (!dateStr) return '-'
