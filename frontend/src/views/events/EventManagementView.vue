@@ -127,13 +127,13 @@
 <script setup>
 import { ref, onMounted, computed } from 'vue'
 import { useI18n } from 'vue-i18n'
+import { useRouter } from 'vue-router'
 import api from '@/services/api'
 import { useCrud } from '@/composables/useCrud'
 
 import BaseModal from '@/components/ui/BaseModal.vue'
 import BaseInputError from '@/components/ui/BaseInputError.vue'
 import BaseSearchSelect from '@/components/ui/BaseSearchSelect.vue'
-import BaseTransferList from '@/components/ui/BaseTransferList.vue'
 import ConfirmDeleteModal from '@/components/ui/ConfirmDeleteModal.vue'
 import WarningModal from '@/components/ui/WarningModal.vue'
 import CrudHeader from '@/components/ui/CrudHeader.vue'
@@ -142,27 +142,19 @@ import ColumnHeaderFilter from '@/components/table/ColumnHeaderFilter.vue'
 import ColumnHeaderDateFilter from '@/components/table/ColumnHeaderDateFilter.vue'
 import TableActionButtons from '@/components/table/TableActionButtons.vue'
 
-import { useRouter } from 'vue-router'
-const router = useRouter()
-
 const { t } = useI18n()
 const crud = useCrud()
+const router = useRouter()
 
 const items = ref([])
 const categories = ref([])
-const pageGroups = ref([])
 const locations = ref([]) 
 
 const showWarningModal = ref(false)
 const warningMessage = ref('')
 
 const columnFilters = ref({
-  name: '',
-  event_start: '',
-  event_end: '',
-  location: '',
-  category: '',
-  creator: ''
+  name: '', event_start: '', event_end: '', location: '', category: '', creator: ''
 })
 
 const getLocationName = (id) => {
@@ -199,26 +191,12 @@ const filteredItems = computed(() => {
 })
 
 const formData = ref({
-  name: '',
-  category: null,
-  description: '',
-  location: null,
-  event_start: '',
-  event_start_time: '',
-  event_end: '',
-  event_end_time: '',
-  page_groups: []
+  name: '', category: null, description: '', location: null,
+  event_start: '', event_start_time: '', event_end: '', event_end_time: ''
 })
 
-const extractDatePart = (isoString) => {
-  if (!isoString) return ''
-  return isoString.split('T')[0]
-}
-
-const extractTimePart = (isoString) => {
-  if (!isoString || !isoString.includes('T')) return ''
-  return isoString.split('T')[1].substring(0, 5)
-}
+const extractDatePart = (isoString) => isoString ? isoString.split('T')[0] : ''
+const extractTimePart = (isoString) => (isoString && isoString.includes('T')) ? isoString.split('T')[1].substring(0, 5) : ''
 
 const formatDisplayDate = (isoString) => {
   if (!isoString) return '-'
@@ -234,37 +212,25 @@ const formatDisplayDate = (isoString) => {
 const resetForm = () => {
   formData.value = { 
     name: '', category: null, description: '', location: null,
-    event_start: '', event_start_time: '', 
-    event_end: '', event_end_time: '', 
-    page_groups: [] 
+    event_start: '', event_start_time: '', event_end: '', event_end_time: ''
   }
 }
 
 const populateForm = (item) => {
   formData.value = {
-    name: item.name,
-    category: item.category,
-    description: item.description || '',
-    location: item.location || null,
-    event_start: extractDatePart(item.event_start),
-    event_start_time: extractTimePart(item.event_start),
-    event_end: extractDatePart(item.event_end),
-    event_end_time: extractTimePart(item.event_end),
-    page_groups: item.page_groups || []
+    name: item.name, category: item.category, description: item.description || '', location: item.location || null,
+    event_start: extractDatePart(item.event_start), event_start_time: extractTimePart(item.event_start),
+    event_end: extractDatePart(item.event_end), event_end_time: extractTimePart(item.event_end)
   }
 }
 
 const loadData = async () => {
   try {
-    const [eventsRes, catRes, pgRes, locRes] = await Promise.all([
-      api.get('events/'),
-      api.get('category/event-categories/'),
-      api.get('page-groups/'),
-      api.get('locations/')
+    const [eventsRes, catRes, locRes] = await Promise.all([
+      api.get('events/'), api.get('category/event-categories/'), api.get('locations/')
     ])
     items.value = eventsRes.data
     categories.value = catRes.data
-    pageGroups.value = pgRes.data
     locations.value = locRes.data
   } catch (error) {
     warningMessage.value = crud.parseApiError(error, t, 'errors.load_failed')
@@ -274,27 +240,19 @@ const loadData = async () => {
 
 const saveRecord = async () => {
   crud.clearErrors()
-  let hasError = false
-
-  if (!formData.value.name) { crud.fieldErrors.value.name = t('errors.required_field'); hasError = true }
-  
-  if (hasError) return
+  if (!formData.value.name) { crud.fieldErrors.value.name = t('errors.required_field'); return }
 
   const payload = { ...formData.value }
   
   if (payload.event_start) {
     const time = payload.event_start_time || '00:00'
     payload.event_start = `${payload.event_start}T${time}:00Z`
-  } else {
-    payload.event_start = null
-  }
+  } else payload.event_start = null
 
   if (payload.event_end) {
     const time = payload.event_end_time || '00:00'
     payload.event_end = `${payload.event_end}T${time}:00Z`
-  } else {
-    payload.event_end = null
-  }
+  } else payload.event_end = null
   
   delete payload.event_start_time
   delete payload.event_end_time
@@ -303,12 +261,14 @@ const saveRecord = async () => {
     if (crud.isEditing.value) {
       await api.put(`events/${crud.editingId.value}/`, payload)
       crud.notifySuccess('updated', t)
+      crud.closeDialog()
+      loadData()
     } else {
-      await api.post('events/', payload)
+      const res = await api.post('events/', payload)
       crud.notifySuccess('created', t)
+      crud.closeDialog()
+      router.push({ name: 'event-detail', params: { id: res.data.id } }) 
     }
-    crud.closeDialog()
-    loadData()
   } catch (error) {
     crud.handleFormError(error, t, 'errors.save_failed')
   }
