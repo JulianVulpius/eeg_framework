@@ -41,6 +41,7 @@ import EventManagementView from '../views/events/EventManagementView.vue'
 import PageGroupView from '../views/events/PageGroupView.vue'
 import ComponentManagerView from '../views/events/ComponentManagerView.vue'
 import PageManagerView from '../views/events/PageManagerView.vue'
+import EventDetailView from '../views/events/EventDetailView.vue'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -79,6 +80,7 @@ const router = createRouter({
         { path: 'metadata/groups', name: 'metadata-groups', component: MetaDataGroupView },
 
         { path: 'events', name: 'events', component: EventManagementView },
+        { path: 'events/:id', name: 'event-detail', component: EventDetailView, props: true },
         { path: 'page-groups', name: 'page-groups', component: PageGroupView },
         { path: 'components', name: 'components', component: ComponentManagerView },
         { path: 'pages', name: 'pages', component: PageManagerView },

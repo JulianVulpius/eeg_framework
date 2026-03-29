@@ -48,9 +48,19 @@
       <header class="top-bar">
         <button @click="toggleSidebar" class="hamburger-btn">☰</button>
         <div class="header-actions">
+        <div class="header-actions" style="display: flex; gap: 15px; align-items: center;">
+          <div class="mock-auth-switcher" style="display: flex; align-items: center; gap: 8px; font-size: 0.9rem;">
+            <label style="color: #555; font-weight: bold;">{{ $t('views.events.mock_user') }}</label>
+            <select :value="activeMockUser" @change="setMockUser($event.target.value)" class="lang-toggle-btn" style="padding: 4px 8px;">
+              <option v-for="u in mockUsers" :key="u.id" :value="u.id">{{ u.name }}</option>
+            </select>
+          </div>
+
           <button @click="toggleLanguage" class="lang-toggle-btn">
             {{ locale === 'en' ? '🇩🇪 DE' : '🇬🇧 EN' }}
           </button>
+        </div>
+          
         </div>
       </header>
 
@@ -66,6 +76,9 @@ import { ref, reactive, onMounted, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRoute } from 'vue-router'
 import { menuStructure } from '@/config/menuConfig.js'
+
+import { useMockAuth } from '@/composables/useMockAuth'
+const { activeMockUser, mockUsers, setMockUser } = useMockAuth()
 
 const { locale } = useI18n()
 const route = useRoute()

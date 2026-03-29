@@ -210,7 +210,15 @@
       "assign_groups": "Seiten-Gruppen zuweisen",
       "available_groups": "Verfügbare Gruppen",
       "selected_groups": "Zugewiesene Gruppen",
-      "select_category": "- Kategorie wählen -"
+      "select_category": "- Kategorie wählen -",
+      "detail_title": "Event Details",
+      "tab_general": "Allgemein",
+      "tab_groups": "EventGruppen & Phasen",
+      "tab_roles": "Rollen & Rechte",
+      "tab_staff": "Personal",
+      "tab_subjects": "Probanden",
+      "mock_user": "Simulierter User:",
+      "permission_denied": "Du hast keine Berechtigung für diesen Bereich."
     },
     "triggers": {
       "available": "Verfügbar",

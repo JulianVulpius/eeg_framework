@@ -43,8 +43,7 @@ class EventSubjectAssignment(models.Model):
 
     class Meta:
         db_table = 'EventSubjectAssignment'
-        # a subject can only be assigned to one group per event
-        unique_together = ('event', 'subject')
+        unique_together = ('event', 'subject', 'group')
 
     def __str__(self):
         group_name = self.group.name if self.group else "unassigned"

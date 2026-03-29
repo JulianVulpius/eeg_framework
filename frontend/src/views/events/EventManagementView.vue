@@ -44,7 +44,10 @@
             <td>{{ getLocationName(item.location) }}</td>
             <td><span class="badge category-badge">{{ getCategoryName(item.category) }}</span></td>
             <td>{{ item.creator || '-' }}</td>
-            <TableActionButtons @edit="crud.openEditDialog(item.id, () => populateForm(item))" @delete="crud.requestDelete(item.id)" />
+            <TableActionButtons 
+              @edit="router.push({ name: 'event-detail', params: { id: item.id } })" 
+              @delete="crud.requestDelete(item.id)" 
+            />
           </tr>
         </tbody>
       </table>
@@ -138,6 +141,9 @@ import CrudHeader from '@/components/ui/CrudHeader.vue'
 import ColumnHeaderFilter from '@/components/table/ColumnHeaderFilter.vue'
 import ColumnHeaderDateFilter from '@/components/table/ColumnHeaderDateFilter.vue'
 import TableActionButtons from '@/components/table/TableActionButtons.vue'
+
+import { useRouter } from 'vue-router'
+const router = useRouter()
 
 const { t } = useI18n()
 const crud = useCrud()

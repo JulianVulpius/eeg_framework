@@ -210,7 +210,15 @@
       "assign_groups": "Assign Page Groups",
       "available_groups": "Available Groups",
       "selected_groups": "Assigned Groups",
-      "select_category": "- Select Category -"
+      "select_category": "- Select Category -",
+      "detail_title": "Event Details",
+      "tab_general": "General",
+      "tab_groups": "Event Groups & Phases",
+      "tab_roles": "Roles & Permissions",
+      "tab_staff": "Personal",
+      "tab_subjects": "Subjects",
+      "mock_user": "Mock User:",
+      "permission_denied": "No permissions for this area."
     },
     "triggers": {
       "available": "Available",
