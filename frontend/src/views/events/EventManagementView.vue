@@ -182,8 +182,16 @@ const formData = ref({
   event_start: '', event_start_time: '', event_end: '', event_end_time: ''
 })
 
-const extractDatePart = (isoString) => isoString ? isoString.split('T')[0] : ''
-const extractTimePart = (isoString) => (isoString && isoString.includes('T')) ? isoString.split('T')[1].substring(0, 5) : ''
+const extractDatePart = (isoString) => {
+  if (!isoString) return ''
+  const d = new Date(isoString)
+  return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0')
+}
+const extractTimePart = (isoString) => {
+  if (!isoString || !isoString.includes('T')) return ''
+  const d = new Date(isoString)
+  return String(d.getHours()).padStart(2, '0') + ':' + String(d.getMinutes()).padStart(2, '0')
+}
 
 const formatDisplayDate = (isoString) => {
   if (!isoString) return '-'
@@ -231,15 +239,19 @@ const saveRecord = async () => {
 
   const payload = { ...formData.value }
   
-  if (payload.event_start) {
+if (payload.event_start) {
     const time = payload.event_start_time || '00:00'
-    payload.event_start = `${payload.event_start}T${time}:00Z`
-  } else payload.event_start = null
+    payload.event_start = new Date(`${payload.event_start}T${time}:00`).toISOString()
+  } else {
+    payload.event_start = null
+  }
 
   if (payload.event_end) {
     const time = payload.event_end_time || '00:00'
-    payload.event_end = `${payload.event_end}T${time}:00Z`
-  } else payload.event_end = null
+    payload.event_end = new Date(`${payload.event_end}T${time}:00`).toISOString()
+  } else {
+    payload.event_end = null
+  }
   
   delete payload.event_start_time
   delete payload.event_end_time

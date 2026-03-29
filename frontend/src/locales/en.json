@@ -87,11 +87,12 @@
     "edit": "Edit",
     "delete": "Delete",
     "cancel": "Cancel",
-    "save": "Save to Database",
+    "save": "Save",
     "clear": "Clear",
     "actions": "Actions",
     "continue": "Continue",
-    "back": "Back"
+    "back": "Back",
+    "select": "Please Select"
   },
   "errors": {
     "save_failed": "Error saving record.",
@@ -106,7 +107,8 @@
     "required_field": "This is a required field.",
     "invalid_input": "Invalid input.",
     "min_length": "Input must be at least {count} characters long.",
-    "protected_error": "Cannot delete: This record is locked because it is still used in the following tables: {models}."
+    "protected_error": "Cannot delete: This record is locked because it is still used in the following tables: {models}.",
+    "time_without_date":"Missing date."
   },
   "modal": {
     "add_record": "Add New Record",
@@ -229,8 +231,14 @@
       "no_phases_available": "No Page Groups available. Please assign them in the 'Page Groups' tab first.",
       "select_event_group": "Select Event Group:",
       "no_phases_assigned": "No phases",
-      "assigned_phases": "Assigned Phases",
-      "phases_description": "Select an Event Group and assign multiple Page Groups (phases) that these participants should go through."
+      "phases_description": "Select an Event Group and assign multiple Page Groups (phases) that these participants should go through.",
+      "tab_phases": "Phases",
+      "assigned_phase": "Assigned Phase",
+      "assign_staff": "Assign Staff",
+      "no_group": "No Group",
+      "global_all_groups": "Global (All Groups)",
+      "search_subject": "Search subject...",
+      "assign_subject": "Assign Subject"
     },
     "triggers": {
       "available": "Available",

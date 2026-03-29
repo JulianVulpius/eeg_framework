@@ -87,11 +87,12 @@
     "edit": "Bearbeiten",
     "delete": "Löschen",
     "cancel": "Abbrechen",
-    "save": "In Datenbank speichern",
+    "save": "Speichern",
     "clear": "Leeren",
     "actions": "Aktionen",
     "continue": "Weiter",
-    "back": "Zurück"
+    "back": "Zurück",
+    "select": "Bitte Wählen"
   },
   "errors": {
     "save_failed": "Fehler beim Speichern des Datensatzes.",
@@ -106,7 +107,8 @@
     "required_field": "Dies ist ein Pflichtfeld.",
     "invalid_input": "Ungültige Eingabe.",
     "min_length": "Die Eingabe muss mindestens {count} Zeichen lang sein.",
-    "protected_error": "Löschen nicht möglich: Dieser Eintrag ist gesperrt, da er noch in diesen Tabellen verwendet wird: {models}."
+    "protected_error": "Löschen nicht möglich: Dieser Eintrag ist gesperrt, da er noch in diesen Tabellen verwendet wird: {models}.",
+    "time_without_date":"Datum fehlt."
   },
   "modal": {
     "add_record": "Neuen Datensatz hinzufügen",
@@ -229,8 +231,14 @@
       "no_phases_available": "Keine Seiten-Gruppen verfügbar. Bitte weise zuerst im Reiter 'Seiten-Gruppen' welche zu.",
       "select_event_group": "Event-Gruppe auswählen:",
       "no_phases_assigned": "Keine Phasen",
-      "assigned_phases": "Zugewiesene Phasen",
-      "phases_description": "Wähle eine Event-Gruppe aus und bestimme, welche Seiten-Gruppen (Phasen) diese Teilnehmer durchlaufen sollen."
+      "phases_description": "Wähle eine Event-Gruppe aus und bestimme, welche Seiten-Gruppen (Phasen) diese Teilnehmer durchlaufen sollen.",
+      "tab_phases": "Phasen",
+      "assigned_phase": "Zugewiesene Phase",
+      "assign_staff": "Personal zuweisen",
+      "no_group": "Keine Gruppe",
+      "global_all_groups": "Global (Alle Gruppen)",
+      "search_subject": "Proband suchen...",
+      "assign_subject": "Proband zuweisen"
     },
     "triggers": {
       "available": "Verfügbar",

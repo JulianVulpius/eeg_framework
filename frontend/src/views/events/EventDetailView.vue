@@ -4,7 +4,7 @@
       <div style="width: 100%;">
         <BaseBreadcrumb :items="breadcrumbItems" />
         <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 5px;">
-          <h2>{{ $t('views.events.detail_title') }}: {{ eventData.name || '...' }}</h2>
+          <h2>{{ $t('views.events.detail_title') }}: {{ eventData.name }}</h2>
         </div>
       </div>
     </div>
@@ -18,7 +18,7 @@
       </button>
       
       <button :class="['tab-btn', { active: activeTab === 'phases' }]" @click="activeTab = 'phases'">
-        Phasen
+        {{ $t('views.events.tab_phases') }}
       </button>
 
       <button :class="['tab-btn', { active: activeTab === 'groups' }]" @click="activeTab = 'groups'">
@@ -46,9 +46,27 @@
           <label>{{ $t('common.name') }} *</label>
           <input v-model="eventData.name" type="text" class="form-control" />
         </div>
-        <div class="form-group" style="max-width: 600px;">
+        <div class="form-group" style="max-width: 600px; margin-bottom: 20px;">
           <label>{{ $t('common.description') }}</label>
           <textarea v-model="eventData.description" class="form-control" rows="4"></textarea>
+        </div>
+        <div class="form-row" style="display: flex; gap: 1rem; max-width: 600px; margin-bottom: 20px;">
+          <div class="form-group" style="flex: 1;">
+            <label>{{ $t('views.events.start') }}</label>
+            <div style="display: flex; gap: 10px;">
+              <input type="date" v-model="eventData.event_start_date" class="form-control" />
+              <input type="time" v-model="eventData.event_start_time" class="form-control" style="max-width: 130px;" />
+            </div>
+            <BaseInputError :message="fieldErrors.start_time" />
+          </div>
+          <div class="form-group" style="flex: 1;">
+            <label>{{ $t('views.events.end') }}</label>
+            <div style="display: flex; gap: 10px;">
+              <input type="date" v-model="eventData.event_end_date" class="form-control" />
+              <input type="time" v-model="eventData.event_end_time" class="form-control" style="max-width: 130px;" />
+            </div>
+            <BaseInputError :message="fieldErrors.end_time" />
+          </div>
         </div>
       </div>
 
@@ -68,10 +86,10 @@
           :rightFilterFn="filterSelectedLogic"
         >
           <template #left-filters>
-            <BaseSearchSelect v-model="filterAvailablePG" :options="pageGroupCategories" placeholder="Kategorie filtern..." />
+            <BaseSearchSelect v-model="filterAvailablePG" :options="pageGroupCategories" :placeholder="$t('views.metadata.search_category')" />
           </template>
           <template #right-filters>
-            <BaseSearchSelect v-model="filterSelectedPG" :options="pageGroupCategories" placeholder="Kategorie filtern..." />
+            <BaseSearchSelect v-model="filterSelectedPG" :options="pageGroupCategories" :placeholder="$t('views.metadata.search_category')" />
           </template>
         </BaseTransferList>
       </div>
@@ -94,13 +112,13 @@
       <div v-if="activeTab === 'groups'" class="panel">
         <div class="panel-header">
           <h3>{{ $t('views.events.tab_groups') }}</h3>
-          <button @click="openModal('group')" class="btn-primary" v-if="hasPermission('admin')">+ {{ $t('actions.add_new') }}</button>
+          <button @click="openModal('group')" class="btn-primary" v-if="hasPermission('admin')">{{ $t('actions.add_new') }}</button>
         </div>
         <table class="data-table">
           <thead>
             <tr>
               <th>{{ $t('views.events.group_name') }}</th>
-              <th>Zugewiesene Phase</th>
+              <th>{{ $t('views.events.assigned_phase') }}</th>
               <th>{{ $t('actions.actions') }}</th>
             </tr>
           </thead>
@@ -127,7 +145,7 @@
       <div v-if="activeTab === 'roles'" class="panel">
         <div class="panel-header">
           <h3>{{ $t('views.events.tab_roles') }}</h3>
-          <button @click="openModal('role')" class="btn-primary">+ {{ $t('actions.add_new') }}</button>
+          <button @click="openModal('role')" class="btn-primary">{{ $t('actions.add_new') }}</button>
         </div>
         <table class="data-table">
           <thead>
@@ -153,7 +171,7 @@
       <div v-if="activeTab === 'staff'" class="panel">
         <div class="panel-header">
           <h3>{{ $t('views.events.tab_staff') }}</h3>
-          <button @click="openModal('staff')" class="btn-primary" v-if="hasPermission('admin')">+ Personal zuweisen</button>
+          <button @click="openModal('staff')" class="btn-primary" v-if="hasPermission('admin')">{{ $t('views.events.assign_staff') }}</button>
         </div>
         <table class="data-table">
           <thead>
@@ -168,7 +186,7 @@
             <tr v-for="staff in staffAssignments" :key="staff.id">
               <td>{{ getMockUserName(staff.user) }}</td>
               <td>{{ getEntityName(eventRoles, staff.role) }}</td>
-              <td>{{ getEntityName(eventGroups, staff.target_group) || 'Global (Alle Gruppen)' }}</td>
+              <td>{{ getEntityName(eventGroups, staff.target_group) || $t('views.events.global_all_groups') }}</td>
               <td>
                 <TableActionButtons @edit="openModal('staff', staff)" @delete="deleteEntity('event-management/staff-assignments', staff.id, loadStaff)" v-if="hasPermission('admin')" />
               </td>
@@ -181,7 +199,7 @@
       <div v-if="activeTab === 'subjects'" class="panel">
         <div class="panel-header">
           <h3>{{ $t('views.events.tab_subjects') }}</h3>
-          <button @click="openModal('subject')" class="btn-primary" v-if="hasPermission('add_subjects') || hasPermission('admin')">+ Proband zuweisen</button>
+          <button @click="openModal('subject')" class="btn-primary" v-if="hasPermission('add_subjects') || hasPermission('admin')"> {{ $t('views.events.assign_subject') }}</button>
         </div>
         <table class="data-table">
           <thead>
@@ -194,7 +212,7 @@
           <tbody>
             <tr v-for="sub in subjectAssignments" :key="sub.id">
               <td>{{ getEntityName(realSubjects, sub.subject, 'identifier') || getEntityName(realSubjects, sub.subject, 'subject_id') }}</td>
-              <td>{{ getEntityName(eventGroups, sub.group) || 'Keine Gruppe' }}</td>
+              <td>{{ getEntityName(eventGroups, sub.group) || $t('views.events.no_group') }}</td>
               <td>
                 <TableActionButtons @edit="openModal('subject', sub)" @delete="deleteEntity('event-management/subject-assignments', sub.id, loadSubjects)" v-if="hasPermission('admin') || hasPermission('add_subjects')" />
               </td>
@@ -220,51 +238,7 @@
       </div>
     </BaseModal>
 
-    <BaseModal :isOpen="modals.role" :title="editingId ? $t('actions.edit') : $t('actions.add_new')" @close="closeModal('role')">
-      <div class="form-group">
-        <label>{{ $t('common.name') }} *</label>
-        <input v-model="forms.role.name" type="text" class="form-control" />
-      </div>
-      <div class="form-group" style="margin-top: 15px;">
-        <label>{{ $t('views.events.permissions') }} (JSON Array Flags)</label>
-        <BaseCheckboxGroup
-          v-model="forms.role.permissions"
-          :options="permissionOptions"
-        />
-      </div>
-      <div class="modal-actions">
-        <button @click="closeModal('role')" class="btn-secondary">{{ $t('actions.cancel') }}</button>
-        <button @click="saveEntity('event-management/roles', forms.role, loadRoles, 'role')" class="btn-primary">{{ $t('actions.save') }}</button>
-      </div>
-    </BaseModal>
-
-    <BaseModal :isOpen="modals.staff" :title="editingId ? $t('actions.edit') : 'Personal zuweisen'" @close="closeModal('staff')">
-      <div class="form-group">
-        <label>{{ $t('views.events.user') }} *</label>
-        <select v-model="forms.staff.user" class="form-control">
-          <option v-for="u in mockUsers" :key="u.id" :value="u.id">{{ u.name }}</option>
-        </select>
-      </div>
-      <div class="form-group">
-        <label>{{ $t('views.events.role') }} *</label>
-        <select v-model="forms.staff.role" class="form-control">
-          <option v-for="r in eventRoles" :key="r.id" :value="r.id">{{ r.name }}</option>
-        </select>
-      </div>
-      <div class="form-group">
-        <label>{{ $t('views.events.target_group') }}</label>
-        <select v-model="forms.staff.target_group" class="form-control">
-          <option :value="null">Global (Alle Gruppen)</option>
-          <option v-for="g in eventGroups" :key="g.id" :value="g.id">{{ g.name }}</option>
-        </select>
-      </div>
-      <div class="modal-actions">
-        <button @click="closeModal('staff')" class="btn-secondary">{{ $t('actions.cancel') }}</button>
-        <button @click="saveEntity('event-management/staff-assignments', forms.staff, loadStaff, 'staff')" class="btn-primary">{{ $t('actions.save') }}</button>
-      </div>
-    </BaseModal>
-
-    <BaseModal :isOpen="modals.subject" :title="editingId ? $t('actions.edit') : 'Proband zuweisen'" @close="closeModal('subject')">
+    <BaseModal :isOpen="modals.subject" :title="editingId ? $t('actions.edit') : $t('views.events.assign_subject')" @close="closeModal('subject')">
       <div class="form-group">
         <label>{{ $t('views.events.subject') }} *</label>
         <BaseSearchSelect
@@ -272,13 +246,13 @@
           :options="realSubjects"
           labelKey="identifier"
           valueKey="id"
-          placeholder="Proband suchen..."
+          :placeholder="$t('views.events.search_subject')"
         />
       </div>
       <div class="form-group">
         <label>{{ $t('views.events.target_group') }}</label>
         <select v-model="forms.subject.group" class="form-control">
-          <option :value="null">Keine Gruppe</option>
+          <option :value="null">{{ $t('views.events.no_group') }}</option>
           <option v-for="g in eventGroups" :key="g.id" :value="g.id">{{ g.name }}</option>
         </select>
       </div>
@@ -288,6 +262,11 @@
       </div>
     </BaseModal>
 
+    <ConfirmDeleteModal 
+      :isOpen="deleteModal.isOpen" 
+      @cancel="cancelDelete" 
+      @confirm="executeDelete" 
+    />
   </div>
 </template>
 
@@ -303,11 +282,11 @@ import BaseBreadcrumb from '@/components/ui/BaseBreadcrumb.vue'
 import BaseTransferList from '@/components/ui/BaseTransferList.vue'
 import BaseModal from '@/components/ui/BaseModal.vue'
 import BaseSearchSelect from '@/components/ui/BaseSearchSelect.vue'
-import BaseCheckboxGroup from '@/components/ui/BaseCheckboxGroup.vue'
 import TableActionButtons from '@/components/table/TableActionButtons.vue'
-import EventGroupPhaseAssignment from '@/components/domain/EventGroupPhaseAssignment.vue' // <-- NEW IMPORT
+import EventGroupPhaseAssignment from '@/components/domain/EventGroupPhaseAssignment.vue'
+import BaseInputError from '@/components/ui/BaseInputError.vue'
+import ConfirmDeleteModal from '@/components/ui/ConfirmDeleteModal.vue'
 
-const router = useRouter()
 const route = useRoute()
 const { t } = useI18n()
 const { hasPermission, mockUsers } = useMockAuth()
@@ -353,28 +332,50 @@ const defaultForms = {
 }
 const forms = reactive(JSON.parse(JSON.stringify(defaultForms)))
 
-const permissionOptions = [
-  { value: 'can_start_session', label: 'Start Session' },
-  { value: 'can_add_subjects', label: 'Add Subjects' },
-  { value: 'can_view_reports', label: 'View Reports' },
-  { value: 'can_upload_media', label: 'Upload Media' },
-  { value: 'admin', label: 'Full Admin' }
-]
+const fieldErrors = reactive({
+  start_time: '',
+  end_time: ''
+})
+
+const deleteModal = reactive({
+  isOpen: false,
+  endpoint: '',
+  id: null,
+  reloadFn: null
+})
 
 const getEntityName = (list, id, key = 'name') => {
   if (!id) return null
   const item = list.find(i => i.id === id)
   return item ? item[key] : id
 }
+
 const getMockUserName = (id) => {
   const u = mockUsers.find(x => x.id === id)
   return u ? u.name : id
+}
+
+const extractDatePart = (isoString) => {
+  if (!isoString) return ''
+  const d = new Date(isoString)
+  return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0')
+}
+const extractTimePart = (isoString) => {
+  if (!isoString || !isoString.includes('T')) return '00:00'
+  const d = new Date(isoString)
+  return String(d.getHours()).padStart(2, '0') + ':' + String(d.getMinutes()).padStart(2, '0')
 }
 
 const loadEventBaseData = async () => {
   try {
     const res = await api.get(`events/${eventId}/`)
     eventData.value = res.data
+    
+    eventData.value.event_start_date = extractDatePart(res.data.event_start)
+    eventData.value.event_start_time = extractTimePart(res.data.event_start)
+    eventData.value.event_end_date = extractDatePart(res.data.event_end)
+    eventData.value.event_end_time = extractTimePart(res.data.event_end)
+
     assignedPageGroups.value = res.data.page_groups || []
   } catch (err) { console.error(err) }
 }
@@ -423,25 +424,70 @@ const loadSubjects = async () => {
 }
 
 const saveGeneral = async () => {
+  fieldErrors.start_time = ''
+  fieldErrors.end_time = ''
+  let hasError = false
+
+  if (eventData.value.event_start_time && !eventData.value.event_start_date) {
+    fieldErrors.start_time = t('errors.time_without_date')
+    hasError = true
+  }
+  if (eventData.value.event_end_time && !eventData.value.event_end_date) {
+    fieldErrors.end_time = t('errors.time_without_date')
+    hasError = true
+  }
+
+  if (hasError) return
+
   try {
-    await api.put(`events/${eventId}/`, eventData.value)
+    const payload = { ...eventData.value }
+
+    if (payload.event_start_date) {
+      const time = payload.event_start_time || '00:00'
+      payload.event_start = new Date(`${payload.event_start_date}T${time}:00`).toISOString()
+    } else {
+      payload.event_start = null
+    }
+
+    if (payload.event_end_date) {
+      const time = payload.event_end_time || '00:00'
+      payload.event_end = new Date(`${payload.event_end_date}T${time}:00`).toISOString()
+    } else {
+      payload.event_end = null
+    }
+
+    delete payload.event_start_date
+    delete payload.event_start_time
+    delete payload.event_end_date
+    delete payload.event_end_time
+
+    await api.put(`events/${eventId}/`, payload)
     crudHelper.notifySuccess('updated', t)
-  } catch (error) { crudHelper.parseApiError(error, t, 'errors.save_failed') }
+  } catch (error) { 
+    crudHelper.parseApiError(error, t, 'errors.save_failed') 
+  }
 }
 
 const savePageGroups = async () => {
   try {
     const payload = { ...eventData.value, page_groups: assignedPageGroups.value }
+    delete payload.event_start_date
+    delete payload.event_start_time
+    delete payload.event_end_date
+    delete payload.event_end_time
+
     await api.put(`events/${eventId}/`, payload)
     crudHelper.notifySuccess('updated', t)
-  } catch (error) { crudHelper.parseApiError(error, t, 'errors.save_failed') }
+  } catch (error) { 
+    crudHelper.parseApiError(error, t, 'errors.save_failed') 
+  }
 }
 
 const saveEventGroupPhase = async (updatedGroup) => {
   try {
     await api.put(`event-management/groups/${updatedGroup.id}/`, updatedGroup)
     crudHelper.notifySuccess('updated', t)
-    loadGroups() // Reload the list so the table updates
+    loadGroups() 
   } catch (err) {
     crudHelper.parseApiError(err, t, 'errors.save_failed')
   }
@@ -478,14 +524,26 @@ const saveEntity = async (endpoint, payload, reloadFn, modalType) => {
   }
 }
 
-const deleteEntity = async (endpoint, id, reloadFn) => {
-  if (!confirm(t('actions.confirm_delete_text') || 'Wirklich löschen?')) return
+const deleteEntity = (endpoint, id, reloadFn) => {
+  deleteModal.endpoint = endpoint
+  deleteModal.id = id
+  deleteModal.reloadFn = reloadFn
+  deleteModal.isOpen = true
+}
+
+const cancelDelete = () => {
+  deleteModal.isOpen = false
+}
+
+const executeDelete = async () => {
   try {
-    await api.delete(`${endpoint}/${id}/`)
+    await api.delete(`${deleteModal.endpoint}/${deleteModal.id}/`)
     crudHelper.notifySuccess('deleted', t)
-    reloadFn()
+    if (deleteModal.reloadFn) deleteModal.reloadFn() 
   } catch (error) {
     alert(crudHelper.parseApiError(error, t, 'errors.delete_failed'))
+  } finally {
+    deleteModal.isOpen = false 
   }
 }
 
