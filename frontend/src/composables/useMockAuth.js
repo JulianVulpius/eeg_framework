@@ -5,7 +5,7 @@ const activeMockUser = ref('admin')
 export function useMockAuth() {
   const mockUsers = [
     { id: 'admin', name: 'Admin (All Rights)', roles: ['admin'] },
-    { id: 'assistant_a', name: 'Assistant A (Group 1)', roles: ['assistant'] },
+    { id: 'assistant_a', name: 'Assistant A', roles: ['assistant'] },
     { id: 'photographer', name: 'Photographer', roles: ['photographer'] }
   ]
 

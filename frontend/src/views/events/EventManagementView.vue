@@ -99,19 +99,6 @@
           </div>
         </div>
 
-        <div class="form-group">
-          <label style="font-weight: bold; font-size: 1.1rem; border-bottom: 1px solid #eee; padding-bottom: 5px;">
-            {{ $t('views.events.assign_groups') }}
-          </label>
-          <BaseTransferList
-            v-model="formData.page_groups"
-            :options="pageGroups"
-            :leftTitle="$t('views.events.available_groups')"
-            :rightTitle="$t('views.events.selected_groups')"
-            :enableOrdering="true"
-          />
-        </div>
-
         <div class="modal-actions" style="margin-top: 2rem;">
           <button type="button" class="btn-secondary" @click="crud.closeDialog">{{ $t('actions.cancel') }}</button>
           <button type="submit" class="btn-primary">{{ $t('actions.save') }}</button>
