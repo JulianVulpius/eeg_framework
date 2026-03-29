@@ -40,16 +40,16 @@
       <div v-if="activeTab === 'general'" class="panel">
         <div class="panel-header">
           <h3>{{ $t('views.events.tab_general') }}</h3>
-          <button @click="saveGeneral" class="btn-primary" v-if="hasPermission('admin')">{{ $t('actions.save') }}</button>
+          <button @click="saveGeneral" class="btn-primary" v-if="hasPermission('admin')">
+            {{ $t('actions.save') }}
+          </button>
         </div>
+
         <div class="form-group" style="max-width: 600px; margin-bottom: 20px;">
           <label>{{ $t('common.name') }} *</label>
           <input v-model="eventData.name" type="text" class="form-control" />
         </div>
-        <div class="form-group" style="max-width: 600px; margin-bottom: 20px;">
-          <label>{{ $t('common.description') }}</label>
-          <textarea v-model="eventData.description" class="form-control" rows="4"></textarea>
-        </div>
+
         <div class="form-row" style="display: flex; gap: 1rem; max-width: 600px; margin-bottom: 20px;">
           <div class="form-group" style="flex: 1;">
             <label>{{ $t('views.events.start') }}</label>
@@ -67,6 +67,11 @@
             </div>
             <BaseInputError :message="fieldErrors.end_time" />
           </div>
+        </div>
+
+        <div class="form-group" style="max-width: 600px; margin-bottom: 20px;">
+          <label>{{ $t('common.description') }}</label>
+          <textarea v-model="eventData.description" class="form-control" rows="4"></textarea>
         </div>
       </div>
 
@@ -244,7 +249,7 @@
         <BaseSearchSelect
           v-model="forms.subject.subject"
           :options="realSubjects"
-          labelKey="identifier"
+          labelKey="name"
           valueKey="id"
           :placeholder="$t('views.events.search_subject')"
         />
@@ -327,7 +332,7 @@ const editingId = ref(null)
 const defaultForms = {
   group: { event: eventId, name: '', description: '', page_groups: [] },
   role: { event: eventId, name: '', permissions: [] },
-  staff: { event: eventId, user: null, role: null, target_group: null },
+  staff: { user: null, role: null, event_group: null },
   subject: { event: eventId, subject: null, group: null }
 }
 const forms = reactive(JSON.parse(JSON.stringify(defaultForms)))
@@ -418,7 +423,12 @@ const loadSubjects = async () => {
       api.get('subjects/'),
       api.get(`event-management/subject-assignments/?event=${eventId}`)
     ])
-    realSubjects.value = subRes.data
+    
+    realSubjects.value = subRes.data.map(sub => ({
+      ...sub,
+      name: sub.identifier // BaseSearchSelect sucht intern nach .name
+    }))
+    
     subjectAssignments.value = assignmentRes.data
   } catch (err) { console.error(err) }
 }
