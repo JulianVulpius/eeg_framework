@@ -198,7 +198,7 @@ const startSession = async () => {
       existingSessionId.value = response.data.id
       isResumeModalOpen.value = true
     } else {
-      router.push(`/session/run/${response.data.id}`)
+      router.push({ path: '/sessions/runner', query: { sessionId: response.data.id } })
     }
   } catch (error) { 
     showError(t('errors.save_failed')) 
@@ -207,14 +207,14 @@ const startSession = async () => {
 
 const resumeSession = () => {
   isResumeModalOpen.value = false
-  router.push(`/session/run/${existingSessionId.value}`)
+  router.push({ path: '/sessions/runner', query: { sessionId: existingSessionId.value } })
 }
 
 const resetSession = async () => {
   try {
     await api.post(`sessions/${existingSessionId.value}/reset/`)
     isResumeModalOpen.value = false
-    router.push(`/session/run/${existingSessionId.value}`)
+    router.push({ path: '/sessions/runner', query: { sessionId: existingSessionId.value } })
   } catch (error) { 
     showError(t('errors.unknown')) 
   }

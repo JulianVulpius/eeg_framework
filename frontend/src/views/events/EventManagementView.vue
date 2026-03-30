@@ -45,8 +45,8 @@
             <td><span class="badge category-badge">{{ getCategoryName(item.category) }}</span></td>
             <td>{{ item.creator || '-' }}</td>
             <TableActionButtons 
-              @edit="router.push({ name: 'event-detail', params: { id: item.id } })" 
-              @delete="crud.requestDelete(item.id)" 
+              @edit="router.push(`/events/${item.id}`)"
+              @delete="crud.requestDelete(item.id)"
             />
           </tr>
         </tbody>
@@ -337,7 +337,7 @@ const saveRecord = async () => {
       const res = await api.post('events/', payload)
       crud.notifySuccess('created', t)
       closeManagerDialog()
-      router.push({ name: 'event-detail', params: { id: res.data.id } }) 
+      router.push(`/events/${res.data.id}`)
     }
   } catch (error) {
     crud.handleFormError(error, t, 'errors.save_failed')

@@ -77,7 +77,7 @@ const combinedReports = ref([])
 const isLoading = ref(true)
 
 const breadcrumbItems = computed(() => [
-  { label: t('nav.session_history'), route: '/session-history' },
+  { label: t('nav.session_history'), route: '/sessions/history' },
   { label: t('breadcrumb.history_combined_report'), route: null }
 ])
 

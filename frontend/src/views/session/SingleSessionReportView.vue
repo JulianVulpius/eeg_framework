@@ -51,32 +51,26 @@
 
 <script setup>
 import { ref, onMounted, computed } from 'vue'
-import { useRouter, useRoute } from 'vue-router'
+import { useRoute } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import api from '@/services/api'
 import BaseBreadcrumb from '@/components/ui/BaseBreadcrumb.vue'
 
-const props = defineProps({
-  id: { type: [String, Number], required: true }
-})
-
-const router = useRouter()
 const route = useRoute()
+
+const sessionId = route.query.sessionId
+
 const { t } = useI18n()
 
 const reportData = ref(null)
 const isLoading = ref(true)
 
-const hasCombinedContext = computed(() => {
-  return route.query.eventId && route.query.subjectId
-})
-
 const breadcrumbItems = computed(() => {
   const items = [
-    { label: t('nav.session_history'), route: '/session-history' }
+    { label: t('nav.session_history'), route: '/sessions/history' }
   ]
   
-  items.push({ label: `${t('breadcrumb.history_single_report')} #${props.id}`, route: null })
+  items.push({ label: `${t('breadcrumb.history_single_report')} #${sessionId}`, route: null })
   
   return items
 })
@@ -92,8 +86,8 @@ const formatDate = (dateStr) => {
 const loadReport = async () => {
   try {
     const [reportRes, sessionRes, locRes] = await Promise.all([
-      api.get(`sessions/${props.id}/report/`),
-      api.get(`sessions/${props.id}/`),
+      api.get(`sessions/${sessionId}/report/`),
+      api.get(`sessions/${sessionId}/`),
       api.get('locations/')
     ])
     

@@ -100,16 +100,13 @@ const groupedSessions = computed(() => {
 })
 
 const goToSingleReport = (sessionId, eventId, subjectId) => {
-  router.push({ path: `/session/report/${sessionId}`, query: { eventId, subjectId } })
+  router.push({ path: '/sessions/reports/single', query: { sessionId, eventId, subjectId } })
 }
-
 const goToCombinedReport = (eventId, subjectId) => {
-  router.push(`/session/aggregate-report/${eventId}/${subjectId}`)
+  router.push({ path: '/sessions/reports/combined', query: { eventId, subjectId } })
 }
-
 const goToPageGroupReport = (eventId, pageGroupId) => {
-  router.push(`/session/pagegroup-report/${eventId}/${pageGroupId}`)
+  router.push({ path: '/sessions/reports/page-groups', query: { eventId, pageGroupId } })
 }
-
 onMounted(loadData)
 </script>

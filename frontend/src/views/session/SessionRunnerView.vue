@@ -27,10 +27,10 @@
             &larr; {{ $t('actions.back') }}
           </button>
 
-          <router-link :to="'/session/report/' + id" class="btn-primary" style="text-decoration: none;">
+          <router-link :to="{ path: '/sessions/reports/single', query: { sessionId: sessionId } }" class="btn-primary" style="text-decoration: none;">
             📊 {{ $t('views.runner.view_report') }}
           </router-link>
-          <router-link to="/session-history" class="btn-secondary" style="text-decoration: none;">
+          <router-link to="/sessions/history" class="btn-secondary" style="text-decoration: none;">
             {{ $t('views.runner.back_home') }}
           </router-link>
         </div>
@@ -54,7 +54,7 @@
             <StandardMetadataForm 
               v-else-if="comp.type === 'METADATA_FORM'" 
               :parameters="comp.parameters" 
-              :sessionId="id"
+              :sessionId="sessionId"
               @completed="nextPage" 
               @go-back="prevPage"
             />
@@ -80,25 +80,31 @@
 
 <script setup>
 import { ref, computed, onMounted } from 'vue'
-import { useRouter } from 'vue-router'
+import { useRoute } from 'vue-router'
 import api from '@/services/api'
 
 import StandardTextBlock from '@/components/runner/StandardTextBlock.vue'
 import StandardMetadataForm from '@/components/runner/StandardMetadataForm.vue'
 
-const props = defineProps({ id: { type: [String, Number], required: true } })
-const router = useRouter()
-const blueprint = ref(null); const isLoading = ref(true); const isFinished = ref(false)
-const currentPageIndex = ref(0)
+const route = useRoute()
 
-const currentPage = computed(() => blueprint.value ? blueprint.value.pages[currentPageIndex.value] : null)
+const sessionId = route.query.sessionId
+
+const blueprint = ref(null)
+const isLoading = ref(true)
+const isFinished = ref(false)
+const currentPageIndex = ref(0)
 
 const loadBlueprint = async () => {
   try {
-    const response = await api.get(`sessions/${props.id}/blueprint/`)
+    const response = await api.get(`sessions/${sessionId}/blueprint/`)
     blueprint.value = response.data
     if (blueprint.value.pages.length === 0) isFinished.value = true
-  } catch (error) { console.error(error) } finally { isLoading.value = false }
+  } catch (error) { 
+    console.error(error) 
+  } finally { 
+    isLoading.value = false 
+  }
 }
 
 const nextPage = () => {
@@ -108,7 +114,7 @@ const nextPage = () => {
 
 const prevPage = () => {
   if (currentPageIndex.value > 0) currentPageIndex.value--
-  else router.push('/launcher')
+  else router.push('/sessions/launcher')
 }
 
 const goBackFromFinished = () => {
