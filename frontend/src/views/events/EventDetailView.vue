@@ -55,17 +55,33 @@
             <label>{{ $t('views.events.start') }}</label>
             <div style="display: flex; gap: 10px;">
               <input type="date" v-model="eventData.event_start_date" class="form-control" />
-              <input type="time" v-model="eventData.event_start_time" class="form-control" style="max-width: 130px;" />
+              <input 
+                type="time" 
+                v-model="eventData.event_start_time" 
+                class="form-control" 
+                style="max-width: 130px;" 
+                :class="{ 'input-invalid': timeErrors.start_time || fieldErrors.start_time }"
+                @focus="initializeTimeField(eventData, 'event_start_time')"
+                @blur="validateTimeField(eventData.event_start_time, 'start_time', $t('errors.invalid_time', 'Enter valid time'))"
+              />
             </div>
-            <BaseInputError :message="fieldErrors.start_time" />
+            <BaseInputError :message="timeErrors.start_time || fieldErrors.start_time" />
           </div>
           <div class="form-group" style="flex: 1;">
             <label>{{ $t('views.events.end') }}</label>
             <div style="display: flex; gap: 10px;">
               <input type="date" v-model="eventData.event_end_date" class="form-control" />
-              <input type="time" v-model="eventData.event_end_time" class="form-control" style="max-width: 130px;" />
+              <input 
+                type="time" 
+                v-model="eventData.event_end_time" 
+                class="form-control" 
+                style="max-width: 130px;" 
+                :class="{ 'input-invalid': timeErrors.end_time || fieldErrors.end_time }"
+                @focus="initializeTimeField(eventData, 'event_end_time')"
+                @blur="validateTimeField(eventData.event_end_time, 'end_time', $t('errors.invalid_time', 'Enter valid time'))"
+              />
             </div>
-            <BaseInputError :message="fieldErrors.end_time" />
+            <BaseInputError :message="timeErrors.end_time || fieldErrors.end_time" />
           </div>
         </div>
 
@@ -246,13 +262,14 @@
     <BaseModal :isOpen="modals.subject" :title="editingId ? $t('actions.edit') : $t('views.events.assign_subject')" @close="closeModal('subject')">
       <div class="form-group">
         <label>{{ $t('views.events.subject') }} *</label>
-        <BaseSearchSelect
+        
+        <SubjectSearchSelect
           v-model="forms.subject.subject"
-          :options="realSubjects"
-          labelKey="name"
-          valueKey="id"
+          :subjects="realSubjects"
+          :assignedIds="assignedSubjectIds"
           :placeholder="$t('views.events.search_subject')"
         />
+
       </div>
       <div class="form-group">
         <label>{{ $t('views.events.target_group') }}</label>
@@ -282,6 +299,7 @@ import { useI18n } from 'vue-i18n'
 import api from '@/services/api'
 import { useMockAuth } from '@/composables/useMockAuth'
 import { useCrud } from '@/composables/useCrud'
+import { useTimeInput } from '@/composables/useTimeInput'
 
 import BaseBreadcrumb from '@/components/ui/BaseBreadcrumb.vue'
 import BaseTransferList from '@/components/ui/BaseTransferList.vue'
@@ -291,11 +309,13 @@ import TableActionButtons from '@/components/table/TableActionButtons.vue'
 import EventGroupPhaseAssignment from '@/components/domain/EventGroupPhaseAssignment.vue'
 import BaseInputError from '@/components/ui/BaseInputError.vue'
 import ConfirmDeleteModal from '@/components/ui/ConfirmDeleteModal.vue'
+import SubjectSearchSelect from '@/components/domain/SubjectSearchSelect.vue'
 
 const route = useRoute()
 const { t } = useI18n()
 const { hasPermission, mockUsers } = useMockAuth()
 const crudHelper = useCrud() 
+const { initializeTime, validateTime, parseApiTime, buildApiPayload } = useTimeInput()
 
 const eventId = route.params.id
 const activeTab = ref('general')
@@ -312,6 +332,10 @@ const realSubjects = ref([])
 const pageGroupCategories = ref([])
 const filterAvailablePG = ref(null)
 const filterSelectedPG = ref(null)
+
+const assignedSubjectIds = computed(() => {
+  return subjectAssignments.value.map(assignment => assignment.subject)
+})
 
 const filterAvailableLogic = (opt) => !filterAvailablePG.value || opt.category === filterAvailablePG.value
 const filterSelectedLogic = (opt) => !filterSelectedPG.value || opt.category === filterSelectedPG.value
@@ -342,6 +366,28 @@ const fieldErrors = reactive({
   end_time: ''
 })
 
+const timeErrors = reactive({
+  start_time: '',
+  end_time: ''
+})
+
+const initializeTimeField = (dataObj, key) => {
+  const tempRef = ref(dataObj[key])
+  initializeTime(tempRef, '00:00')
+  dataObj[key] = tempRef.value
+}
+
+const validateTimeField = (val, key, errorMsg) => {
+  timeErrors[key] = ''
+  if (!val) return true 
+  
+  const isValid = validateTime(val, errorMsg)
+  if (!isValid) {
+    timeErrors[key] = errorMsg
+  }
+  return isValid
+}
+
 const deleteModal = reactive({
   isOpen: false,
   endpoint: '',
@@ -365,11 +411,6 @@ const extractDatePart = (isoString) => {
   const d = new Date(isoString)
   return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0')
 }
-const extractTimePart = (isoString) => {
-  if (!isoString || !isoString.includes('T')) return '00:00'
-  const d = new Date(isoString)
-  return String(d.getHours()).padStart(2, '0') + ':' + String(d.getMinutes()).padStart(2, '0')
-}
 
 const loadEventBaseData = async () => {
   try {
@@ -377,9 +418,9 @@ const loadEventBaseData = async () => {
     eventData.value = res.data
     
     eventData.value.event_start_date = extractDatePart(res.data.event_start)
-    eventData.value.event_start_time = extractTimePart(res.data.event_start)
+    eventData.value.event_start_time = parseApiTime(res.data.event_start) 
     eventData.value.event_end_date = extractDatePart(res.data.event_end)
-    eventData.value.event_end_time = extractTimePart(res.data.event_end)
+    eventData.value.event_end_time = parseApiTime(res.data.event_end)
 
     assignedPageGroups.value = res.data.page_groups || []
   } catch (err) { console.error(err) }
@@ -424,10 +465,7 @@ const loadSubjects = async () => {
       api.get(`event-management/subject-assignments/?event=${eventId}`)
     ])
     
-    realSubjects.value = subRes.data.map(sub => ({
-      ...sub,
-      name: sub.identifier // BaseSearchSelect sucht intern nach .name
-    }))
+    realSubjects.value = subRes.data 
     
     subjectAssignments.value = assignmentRes.data
   } catch (err) { console.error(err) }
@@ -447,6 +485,13 @@ const saveGeneral = async () => {
     hasError = true
   }
 
+  if (eventData.value.event_start_time && !validateTimeField(eventData.value.event_start_time, 'start_time', t('errors.invalid_time', 'Enter valid time'))) {
+    hasError = true
+  }
+  if (eventData.value.event_end_time && !validateTimeField(eventData.value.event_end_time, 'end_time', t('errors.invalid_time', 'Enter valid time'))) {
+    hasError = true
+  }
+
   if (hasError) return
 
   try {
@@ -454,14 +499,14 @@ const saveGeneral = async () => {
 
     if (payload.event_start_date) {
       const time = payload.event_start_time || '00:00'
-      payload.event_start = new Date(`${payload.event_start_date}T${time}:00`).toISOString()
+      payload.event_start = buildApiPayload(payload.event_start_date, time)
     } else {
       payload.event_start = null
     }
 
     if (payload.event_end_date) {
       const time = payload.event_end_time || '00:00'
-      payload.event_end = new Date(`${payload.event_end_date}T${time}:00`).toISOString()
+      payload.event_end = buildApiPayload(payload.event_end_date, time)
     } else {
       payload.event_end = null
     }

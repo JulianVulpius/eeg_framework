@@ -56,7 +56,7 @@
     <BaseModal 
       :isOpen="crud.isDialogOpen.value" 
       :title="crud.isEditing.value ? $t('modal.edit_record') : $t('modal.add_record')"
-      @close="crud.closeDialog"
+      @close="closeManagerDialog"
       customClass="large-modal"
     >
       <form @submit.prevent="saveRecord">
@@ -87,20 +87,42 @@
             <label>{{ $t('views.events.start') }}</label>
             <div style="display: flex; gap: 10px;">
               <input type="date" v-model="formData.event_start" class="form-control" />
-              <input v-if="formData.event_start" type="time" v-model="formData.event_start_time" class="form-control" style="max-width: 130px;" title="Optional Time" />
+              <input 
+                v-if="formData.event_start" 
+                type="time" 
+                v-model="formData.event_start_time" 
+                class="form-control" 
+                style="max-width: 130px;" 
+                title="Optional Time"
+                :class="{ 'input-invalid': timeErrors.start_time || crud.fieldErrors.value.event_start_time }"
+                @focus="initializeTimeField(formData, 'event_start_time')"
+                @blur="validateTimeField(formData.event_start_time, 'start_time', $t('errors.invalid_time', 'Enter valid time'))"
+              />
             </div>
+            <BaseInputError :message="timeErrors.start_time || crud.fieldErrors.value.event_start_time" />
           </div>
           <div class="form-group" style="flex: 1;">
             <label>{{ $t('views.events.end') }}</label>
             <div style="display: flex; gap: 10px;">
               <input type="date" v-model="formData.event_end" class="form-control" />
-              <input v-if="formData.event_end" type="time" v-model="formData.event_end_time" class="form-control" style="max-width: 130px;" title="Optional Time" />
+              <input 
+                v-if="formData.event_end" 
+                type="time" 
+                v-model="formData.event_end_time" 
+                class="form-control" 
+                style="max-width: 130px;" 
+                title="Optional Time"
+                :class="{ 'input-invalid': timeErrors.end_time || crud.fieldErrors.value.event_end_time }"
+                @focus="initializeTimeField(formData, 'event_end_time')"
+                @blur="validateTimeField(formData.event_end_time, 'end_time', $t('errors.invalid_time', 'Enter valid time'))"
+              />
             </div>
+            <BaseInputError :message="timeErrors.end_time || crud.fieldErrors.value.event_end_time" />
           </div>
         </div>
 
         <div class="modal-actions" style="margin-top: 2rem;">
-          <button type="button" class="btn-secondary" @click="crud.closeDialog">{{ $t('actions.cancel') }}</button>
+          <button type="button" class="btn-secondary" @click="closeManagerDialog">{{ $t('actions.cancel') }}</button>
           <button type="submit" class="btn-primary">{{ $t('actions.save') }}</button>
         </div>
       </form>
@@ -112,11 +134,12 @@
 </template>
 
 <script setup>
-import { ref, onMounted, computed } from 'vue'
+import { ref, reactive, onMounted, computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
 import api from '@/services/api'
 import { useCrud } from '@/composables/useCrud'
+import { useTimeInput } from '@/composables/useTimeInput'
 
 import BaseModal from '@/components/ui/BaseModal.vue'
 import BaseInputError from '@/components/ui/BaseInputError.vue'
@@ -132,6 +155,7 @@ import TableActionButtons from '@/components/table/TableActionButtons.vue'
 const { t } = useI18n()
 const crud = useCrud()
 const router = useRouter()
+const { initializeTime, validateTime, parseApiTime, buildApiPayload } = useTimeInput()
 
 const items = ref([])
 const categories = ref([])
@@ -143,6 +167,28 @@ const warningMessage = ref('')
 const columnFilters = ref({
   name: '', event_start: '', event_end: '', location: '', category: '', creator: ''
 })
+
+const timeErrors = reactive({
+  start_time: '',
+  end_time: ''
+})
+
+const initializeTimeField = (dataObj, key) => {
+  const tempRef = ref(dataObj[key])
+  initializeTime(tempRef, '00:00')
+  dataObj[key] = tempRef.value
+}
+
+const validateTimeField = (val, key, errorMsg) => {
+  timeErrors[key] = ''
+  if (!val) return true
+  
+  const isValid = validateTime(val, errorMsg)
+  if (!isValid) {
+    timeErrors[key] = errorMsg
+  }
+  return isValid
+}
 
 const getLocationName = (id) => {
   if (!id) return '-'
@@ -187,7 +233,8 @@ const extractDatePart = (isoString) => {
   const d = new Date(isoString)
   return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0')
 }
-const extractTimePart = (isoString) => {
+
+const extractTimePartForTable = (isoString) => {
   if (!isoString || !isoString.includes('T')) return ''
   const d = new Date(isoString)
   return String(d.getHours()).padStart(2, '0') + ':' + String(d.getMinutes()).padStart(2, '0')
@@ -196,7 +243,7 @@ const extractTimePart = (isoString) => {
 const formatDisplayDate = (isoString) => {
   if (!isoString) return '-'
   const date = new Date(isoString)
-  const timeString = extractTimePart(isoString)
+  const timeString = extractTimePartForTable(isoString)
   if (timeString === '00:00') {
     return date.toLocaleDateString(undefined, { year: 'numeric', month: '2-digit', day: '2-digit' })
   } else {
@@ -209,13 +256,21 @@ const resetForm = () => {
     name: '', category: null, description: '', location: null,
     event_start: '', event_start_time: '', event_end: '', event_end_time: ''
   }
+  timeErrors.start_time = ''
+  timeErrors.end_time = ''
+}
+
+const closeManagerDialog = () => {
+  timeErrors.start_time = ''
+  timeErrors.end_time = ''
+  crud.closeDialog()
 }
 
 const populateForm = (item) => {
   formData.value = {
     name: item.name, category: item.category, description: item.description || '', location: item.location || null,
-    event_start: extractDatePart(item.event_start), event_start_time: extractTimePart(item.event_start),
-    event_end: extractDatePart(item.event_end), event_end_time: extractTimePart(item.event_end)
+    event_start: extractDatePart(item.event_start), event_start_time: parseApiTime(item.event_start), 
+    event_end: extractDatePart(item.event_end), event_end_time: parseApiTime(item.event_end)
   }
 }
 
@@ -235,20 +290,34 @@ const loadData = async () => {
 
 const saveRecord = async () => {
   crud.clearErrors()
-  if (!formData.value.name) { crud.fieldErrors.value.name = t('errors.required_field'); return }
+  let hasError = false
+
+  if (!formData.value.name) { 
+    crud.fieldErrors.value.name = t('errors.required_field')
+    hasError = true 
+  }
+
+  if (formData.value.event_start_time && !validateTimeField(formData.value.event_start_time, 'start_time', t('errors.invalid_time', 'Enter valid time'))) {
+    hasError = true
+  }
+  if (formData.value.event_end_time && !validateTimeField(formData.value.event_end_time, 'end_time', t('errors.invalid_time', 'Enter valid time'))) {
+    hasError = true
+  }
+
+  if (hasError) return
 
   const payload = { ...formData.value }
   
-if (payload.event_start) {
+  if (payload.event_start) {
     const time = payload.event_start_time || '00:00'
-    payload.event_start = new Date(`${payload.event_start}T${time}:00`).toISOString()
+    payload.event_start = buildApiPayload(payload.event_start, time)
   } else {
     payload.event_start = null
   }
 
   if (payload.event_end) {
     const time = payload.event_end_time || '00:00'
-    payload.event_end = new Date(`${payload.event_end}T${time}:00`).toISOString()
+    payload.event_end = buildApiPayload(payload.event_end, time)
   } else {
     payload.event_end = null
   }
@@ -260,12 +329,12 @@ if (payload.event_start) {
     if (crud.isEditing.value) {
       await api.put(`events/${crud.editingId.value}/`, payload)
       crud.notifySuccess('updated', t)
-      crud.closeDialog()
+      closeManagerDialog()
       loadData()
     } else {
       const res = await api.post('events/', payload)
       crud.notifySuccess('created', t)
-      crud.closeDialog()
+      closeManagerDialog()
       router.push({ name: 'event-detail', params: { id: res.data.id } }) 
     }
   } catch (error) {

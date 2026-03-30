@@ -8,8 +8,8 @@
           <tr>
             <th v-if="crud.showIdColumn.value" class="id-column">{{ $t('common.id') }}</th>
             <th style="width: 20%;"><ColumnHeaderFilter :title="$t('master_data.identifier')" v-model="columnFilters.identifier" :placeholder="$t('common.search')" /></th>
-            <th style="width: 25%;"><ColumnHeaderFilter :title="$t('master_data.lastname')" v-model="columnFilters.lastname" :placeholder="$t('common.search')" /></th>
             <th style="width: 25%;"><ColumnHeaderFilter :title="$t('master_data.firstname')" v-model="columnFilters.firstname" :placeholder="$t('common.search')" /></th>
+            <th style="width: 25%;"><ColumnHeaderFilter :title="$t('master_data.lastname')" v-model="columnFilters.lastname" :placeholder="$t('common.search')" /></th>
             <th>{{ $t('master_data.birthday') }}</th>
             <th>{{ $t('master_data.gender') }}</th>
             <th class="actions-column">{{ $t('actions.actions') }}</th>
@@ -20,8 +20,8 @@
           <tr v-for="item in filteredItems" :key="item.id">
             <td v-if="crud.showIdColumn.value" class="id-column">{{ item.id }}</td>
             <td><strong>{{ item.identifier }}</strong></td>
-            <td>{{ item.lastname }}</td>
             <td>{{ item.firstname }}</td>
+            <td>{{ item.lastname }}</td>
             <td>{{ formatDate(item.birthday) }}</td>
             <td>{{ getGenderLabel(item.gender) }}</td>
             <TableActionButtons @edit="crud.openEditDialog(item.id, () => populateForm(item))" @delete="crud.requestDelete(item.id)" />
