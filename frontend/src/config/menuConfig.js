@@ -5,9 +5,9 @@ export const menuStructure = [
     descKey: 'dashboard.events_desc', 
     items: [
       { labelKey: 'nav.events', route: '/events' },
-      { labelKey: 'nav.page_groups', route: '/page-groups' },
-      { labelKey: 'nav.pages', route: '/pages' },
-      { labelKey: 'nav.components', route: '/components' }
+      { labelKey: 'nav.page_groups', route: '/events/page-groups' },
+      { labelKey: 'nav.pages', route: '/events/pages' },
+      { labelKey: 'nav.components', route: '/events/components' }
     ]
   },
   {
@@ -15,8 +15,8 @@ export const menuStructure = [
     titleKey: 'nav.stimuli_management', 
     descKey: 'dashboard.stimuli_desc',
     items: [
-      { labelKey: 'nav.playlists', route: '/playlists' },
-      { labelKey: 'nav.stimuli', route: '/stimuli' }
+      { labelKey: 'nav.playlists', route: '/stimuli/playlists' },
+      { labelKey: 'nav.stimuli', route: '/stimuli/items' }
     ]
   },
   {
@@ -44,13 +44,13 @@ export const menuStructure = [
     titleKey: 'nav.master_data',
     descKey: 'dashboard.masterdata_desc',
     items: [
-      { labelKey: 'nav.subjects', route: '/master-data/subjects' },
-      { labelKey: 'nav.locations', route: '/locations' },
-      { labelKey: 'nav.device_models', route: '/master-data/device-models' },
-      { labelKey: 'nav.manufacturers', route: '/master-data/manufacturers' },
-      { labelKey: 'nav.frequency_bands', route: '/master-data/frequency-bands' },
-      { labelKey: 'nav.eeg_channels', route: '/master-data/eeg-channels' },
-      { labelKey: 'nav.component_types', route: '/component-types' }
+      { labelKey: 'nav.subjects', route: '/masterdata/subjects' },
+      { labelKey: 'nav.locations', route: '/masterdata/locations' },
+      { labelKey: 'nav.device_models', route: '/masterdata/device-models' },
+      { labelKey: 'nav.manufacturers', route: '/masterdata/manufacturers' },
+      { labelKey: 'nav.frequency_bands', route: '/masterdata/frequency-bands' },
+      { labelKey: 'nav.eeg_channels', route: '/masterdata/eeg-channels' },
+      { labelKey: 'nav.component_types', route: '/masterdata/component-types' }
     ]
   },
   {
@@ -58,21 +58,21 @@ export const menuStructure = [
     titleKey: 'nav.categories',
     descKey: 'dashboard.categories_desc',
     items: [
-      { labelKey: 'nav.event_categories', route: '/category/event-categories' },
-      { labelKey: 'nav.page_group_categories', route: '/category/page-group-categories' },
-      { labelKey: 'nav.page_categories', route: '/category/page-categories' },
-      { labelKey: 'nav.component_categories', route: '/category/component-categories' },
-      { labelKey: 'nav.stimulus_categories', route: '/category/stimulus-categories' },
-      { labelKey: 'nav.playlist_categories', route: '/category/playlist-categories' },
-      { labelKey: 'nav.trigger_group_categories', route: '/category/trigger-group-categories' },
-      { labelKey: 'nav.metadata_group_categories', route: '/category/metadata-group-categories' },
-      { labelKey: 'nav.metadata_categories', route: '/category/metadata-categories' },
-      { labelKey: 'nav.location_categories', route: '/category/location-categories' },
-      { labelKey: 'nav.device_model_categories', route: '/category/device-model-categories' },
-      { labelKey: 'nav.manufacturer_categories', route: '/category/manufacturer-categories' },
-      { labelKey: 'nav.custom_script_categories', route: '/category/custom-script-categories' },
-      { labelKey: 'nav.data_process_categories', route: '/category/data-process-categories' },
-      { labelKey: 'nav.data_display_categories', route: '/category/data-display-categories' }
+      { labelKey: 'nav.event_categories', route: '/categories/event' },
+      { labelKey: 'nav.page_group_categories', route: '/categories/page-group' },
+      { labelKey: 'nav.page_categories', route: '/categories/page' },
+      { labelKey: 'nav.component_categories', route: '/categories/component' },
+      { labelKey: 'nav.stimulus_categories', route: '/categories/stimulus' },
+      { labelKey: 'nav.playlist_categories', route: '/categories/playlist' },
+      { labelKey: 'nav.trigger_group_categories', route: '/categories/trigger-group' },
+      { labelKey: 'nav.metadata_group_categories', route: '/categories/metadata-group' },
+      { labelKey: 'nav.metadata_categories', route: '/categories/metadata' },
+      { labelKey: 'nav.location_categories', route: '/categories/location' },
+      { labelKey: 'nav.device_model_categories', route: '/categories/device-model' },
+      { labelKey: 'nav.manufacturer_categories', route: '/categories/manufacturer' },
+      { labelKey: 'nav.custom_script_categories', route: '/categories/custom-script' },
+      { labelKey: 'nav.data_process_categories', route: '/categories/data-process' },
+      { labelKey: 'nav.data_display_categories', route: '/categories/data-display' }
     ]
   }
-]
+];

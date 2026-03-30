@@ -199,9 +199,9 @@ const loadData = async () => {
   try {
     const [pgRes, catRes, pageRes, pageCatRes] = await Promise.all([
       api.get('page-groups/'),
-      api.get('category/page-group-categories/'),
+      api.get('category/page-group/'),
       api.get('pages/'),
-      api.get('category/page-categories/')
+      api.get('category/page/')
     ])
     items.value = pgRes.data
     categories.value = catRes.data

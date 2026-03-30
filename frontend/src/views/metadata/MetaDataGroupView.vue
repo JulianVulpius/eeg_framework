@@ -164,8 +164,8 @@ const populateForm = (item) => {
 const loadData = async () => {
   try {
     const [resGroups, resGroupCats, resDefs, resDefCats] = await Promise.all([
-      api.get('metadata/groups/'), api.get('category/metadata-group-categories/'),
-      api.get('metadata/definitions/'), api.get('category/metadata-categories/')
+      api.get('metadata/groups/'), api.get('category/metadata-group/'),
+      api.get('metadata/definitions/'), api.get('category/metadata/')
     ])
     items.value = resGroups.data; groupCategories.value = resGroupCats.data;
     definitions.value = resDefs.data; defCategories.value = resDefCats.data;

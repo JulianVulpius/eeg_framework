@@ -188,7 +188,7 @@ const loadData = async () => {
   try {
     const [resLocs, resCats] = await Promise.all([
       api.get('locations/'),
-      api.get('category/location-categories/')
+      api.get('category/location/')
     ])
     items.value = resLocs.data
     categories.value = resCats.data

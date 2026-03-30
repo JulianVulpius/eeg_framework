@@ -175,7 +175,7 @@ const loadData = async () => {
   try {
     const [resReg, resCats, resCt] = await Promise.all([
       api.get('metadata/registry/'),
-      api.get('category/metadata-group-categories/'),
+      api.get('category/metadata-group/'),
       api.get('content-types/') 
     ])
     rawRegistryItems.value = resReg.data

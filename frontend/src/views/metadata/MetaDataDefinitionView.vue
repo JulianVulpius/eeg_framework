@@ -170,7 +170,7 @@ const loadData = async () => {
   try {
     const [resDefs, resCats] = await Promise.all([
       api.get('metadata/definitions/'), 
-      api.get('category/metadata-categories/')
+      api.get('category/metadata/')
     ])
     items.value = resDefs.data
     categories.value = resCats.data

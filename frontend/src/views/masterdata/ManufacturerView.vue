@@ -188,7 +188,7 @@ const loadData = async () => {
     // load manufacturers and categories in parallel
     const [resMan, resCats] = await Promise.all([
       api.get('manufacturers/'),
-      api.get('category/manufacturer-categories/')
+      api.get('category/manufacturer/')
     ])
     items.value = resMan.data
     categories.value = resCats.data

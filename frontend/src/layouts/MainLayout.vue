@@ -10,15 +10,15 @@
 
       <nav class="sidebar-nav">
         <div class="nav-section" style="padding: 10px 20px;">
-          <router-link to="/session-control" class="btn-play-sync" active-class="btn-active">
+          <router-link to="/sessions/control" class="btn-play-sync" active-class="btn-active">
             <span class="play-icon">▶</span> Unicorn Play & Sync
           </router-link>
 
-          <router-link to="/launcher" class="btn-play-sync" active-class="btn-active" style="margin-top: 10px; background: linear-gradient(135deg, #3498db, #2980b9); border-color: #2980b9; box-shadow: 0 4px 6px rgba(52, 152, 219, 0.3);">
+          <router-link to="/sessions/launcher" class="btn-play-sync" active-class="btn-active" style="margin-top: 10px; background: linear-gradient(135deg, #3498db, #2980b9); border-color: #2980b9; box-shadow: 0 4px 6px rgba(52, 152, 219, 0.3);">
             ▶ {{ $t('nav.session_launcher') }}
           </router-link>
           
-          <router-link to="/session-history" class="btn-play-sync" active-class="btn-active" style="margin-top: 10px; background: #f1f3f5; color: #333; border-color: #ddd; box-shadow: none;">
+          <router-link to="/sessions/history" class="btn-play-sync" active-class="btn-active" style="margin-top: 10px; background: #f1f3f5; color: #333; border-color: #ddd; box-shadow: none;">
             📊 {{ $t('nav.session_history') }}
           </router-link>
         </div>
@@ -47,7 +47,6 @@
     <div class="main-content">
       <header class="top-bar">
         <button @click="toggleSidebar" class="hamburger-btn">☰</button>
-        <div class="header-actions">
         <div class="header-actions" style="display: flex; gap: 15px; align-items: center;">
           <div class="mock-auth-switcher" style="display: flex; align-items: center; gap: 8px; font-size: 0.9rem;">
             <label style="color: #555; font-weight: bold;">{{ $t('views.events.mock_user') }}</label>
@@ -60,12 +59,10 @@
             {{ locale === 'en' ? '🇩🇪 DE' : '🇬🇧 EN' }}
           </button>
         </div>
-          
-        </div>
       </header>
 
       <main class="page-container">
-        <router-view />
+        <router-view :key="$route.fullPath" />
       </main>
     </div>
   </div>

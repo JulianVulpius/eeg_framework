@@ -183,7 +183,7 @@
               <th>{{ $t('views.events.subject') }} ID</th>
               <th>{{ $t('master_data.firstname') }}</th>
               <th>{{ $t('master_data.lastname') }}</th>
-              <th>{{ $t('views.events.target_group') }} (Optional)</th>
+              <th>{{ $t('views.events.target_group') }}</th>
               <th>{{ $t('actions.actions') }}</th>
             </tr>
           </thead>
@@ -445,8 +445,8 @@ const loadPageGroupsAndCategories = async () => {
   try {
     const [pgRes, catRes, evCatRes, locRes] = await Promise.all([
       api.get('page-groups/'),
-      api.get('category/page-group-categories/'),
-      api.get('category/event-categories/'),
+      api.get('category/page-group/'),
+      api.get('category/event/'),
       api.get('locations/')
     ])
     availablePageGroups.value = pgRes.data

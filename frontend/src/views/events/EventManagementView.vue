@@ -277,7 +277,9 @@ const populateForm = (item) => {
 const loadData = async () => {
   try {
     const [eventsRes, catRes, locRes] = await Promise.all([
-      api.get('events/'), api.get('category/event-categories/'), api.get('locations/')
+      api.get('events/'), 
+      api.get('category/event/'), 
+      api.get('locations/')
     ])
     items.value = eventsRes.data
     categories.value = catRes.data

@@ -99,7 +99,7 @@ const { t } = useI18n()
   list-style: none;
   padding: 1rem 1.2rem;
   margin: 0;
-  flex-grow: 1; /* Schiebt den Footer nach unten */
+  flex-grow: 1;
 }
 
 .card-links li {

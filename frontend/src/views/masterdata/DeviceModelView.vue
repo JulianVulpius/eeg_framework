@@ -185,7 +185,7 @@ const loadData = async () => {
   try {
     const [resModels, resCats, resManuf, resChannels] = await Promise.all([
       api.get('device-models/'),
-      api.get('category/device-model-categories/'),
+      api.get('category/device-model/'),
       api.get('manufacturers/'),
       api.get('eeg-channels/') 
     ])

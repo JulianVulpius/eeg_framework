@@ -192,8 +192,8 @@ const loadData = async () => {
     const [resPlaylists, resStimuli, resCats, resPlayCats] = await Promise.all([
       api.get('playlists/'),
       api.get('stimuli/'),
-      api.get('category/stimulus-categories/'),
-      api.get('category/playlist-categories/')
+      api.get('category/stimulus/'),
+      api.get('category/playlist/')
     ])
     items.value = resPlaylists.data
     allStimuli.value = resStimuli.data

@@ -10,21 +10,21 @@ from eeg_api.models import (
 
 # maps the vue frontend url slugs to django models
 CATEGORY_MODEL_MAP = {
-    'metadata-categories': MetaDataCategory,
-    'stimulus-categories': StimulusCategory,
-    'component-categories': ComponentCategory,
-    'custom-script-categories': CustomScriptCategory,
-    'data-process-categories': DataProcessCategory,
-    'data-display-categories': DataDisplayCategory,
-    'metadata-group-categories': MetaDataGroupCategory,
-    'device-model-categories': DeviceModelCategory,
-    'page-categories': PageCategory,
-    'page-group-categories': PageGroupCategory,
-    'event-categories': EventCategory,
-    'trigger-group-categories': TriggerGroupCategory,
-    'location-categories': LocationCategory,
-    'playlist-categories': PlaylistCategory,
-    'manufacturer-categories': ManufacturerCategory,
+    'metadata': MetaDataCategory,
+    'stimulus': StimulusCategory,
+    'component': ComponentCategory,
+    'custom-script': CustomScriptCategory,
+    'data-process': DataProcessCategory,
+    'data-display': DataDisplayCategory,
+    'metadata-group': MetaDataGroupCategory,
+    'device-model': DeviceModelCategory,
+    'page': PageCategory,
+    'page-group': PageGroupCategory,
+    'event': EventCategory,
+    'trigger-group': TriggerGroupCategory,
+    'location': LocationCategory,
+    'playlist': PlaylistCategory,
+    'manufacturer': ManufacturerCategory,
 }
 
 # single api endpoint for all category tables

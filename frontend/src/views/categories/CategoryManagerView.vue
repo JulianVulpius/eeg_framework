@@ -74,7 +74,7 @@ import ColumnHeaderFilter from '@/components/table/ColumnHeaderFilter.vue'
 import TableActionButtons from '@/components/table/TableActionButtons.vue'
 
 const { t } = useI18n()
-const props = defineProps({ tableName: { type: String, required: true } })
+const props = defineProps({ categoryType: { type: String, required: true } })
 
 const items = ref([])
 const crud = useCrud()
@@ -92,7 +92,7 @@ const filteredItems = computed(() => {
   })
 })
 
-const translatedTitle = computed(() => t(`nav.${props.tableName.replace(/-/g, '_')}`))
+const translatedTitle = computed(() => t(`nav.${props.categoryType.replace(/-/g, '_')}_categories`))
 const formData = ref({ name: '', description: '' })
 
 const resetForm = () => { formData.value = { name: '', description: '' } }
@@ -100,7 +100,7 @@ const populateForm = (item) => { formData.value = { name: item.name, description
 
 const loadData = async () => {
   try {
-    const response = await api.get(`category/${props.tableName}/`)
+    const response = await api.get(`category/${props.categoryType}/`)
     items.value = response.data
   } catch (error) { 
     warningMessage.value = crud.parseApiError(error, t, 'errors.load_failed')
@@ -117,11 +117,11 @@ const saveRecord = async () => {
 
   try {
     if (crud.isEditing.value) {
-      await api.put(`category/${props.tableName}/${crud.editingId.value}/`, formData.value)
-      crud.notifySuccess('updated', t) // <-- NEUER TOAST
+      await api.put(`category/${props.categoryType}/${crud.editingId.value}/`, formData.value)
+      crud.notifySuccess('updated', t)
     } else {
-      await api.post(`category/${props.tableName}/`, formData.value)
-      crud.notifySuccess('created', t) // <-- NEUER TOAST
+      await api.post(`category/${props.categoryType}/`, formData.value)
+      crud.notifySuccess('created', t)
     }
     crud.closeDialog()
     loadData()
@@ -132,8 +132,8 @@ const saveRecord = async () => {
 
 const executeDelete = async () => {
   try {
-    await api.delete(`category/${props.tableName}/${crud.itemToDelete.value}/`)
-    crud.notifySuccess('deleted', t) // <-- NEUER TOAST
+    await api.delete(`category/${props.categoryType}/${crud.itemToDelete.value}/`)
+    crud.notifySuccess('deleted', t)
     crud.cancelDelete()
     loadData()
   } catch (error) { 
@@ -144,5 +144,5 @@ const executeDelete = async () => {
 }
 
 onMounted(loadData)
-watch(() => props.tableName, loadData)
+watch(() => props.categoryType, loadData)
 </script>

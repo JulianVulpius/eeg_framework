@@ -167,9 +167,9 @@ const loadData = async () => {
   try {
     const [pageRes, catRes, compRes, compCatRes] = await Promise.all([
       api.get('pages/'), 
-      api.get('category/page-categories/'), 
+      api.get('category/page/'), 
       api.get('components/'),
-      api.get('category/component-categories/')
+      api.get('category/component/')
     ])
     items.value = pageRes.data
     categories.value = catRes.data

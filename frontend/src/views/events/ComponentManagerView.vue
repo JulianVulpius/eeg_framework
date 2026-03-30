@@ -234,7 +234,7 @@ const loadData = async () => {
   try {
     const [compRes, catRes, typeRes, mdRes] = await Promise.all([
       api.get('components/'), 
-      api.get('category/component-categories/'), 
+      api.get('category/component/'), 
       api.get('component-types/'),
       api.get('metadata/groups/')
     ])
