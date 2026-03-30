@@ -16,22 +16,20 @@
       <button :class="['tab-btn', { active: activeTab === 'page_groups' }]" @click="activeTab = 'page_groups'">
         {{ $t('nav.page_groups') }}
       </button>
-      
       <button :class="['tab-btn', { active: activeTab === 'phases' }]" @click="activeTab = 'phases'">
         {{ $t('views.events.tab_phases') }}
       </button>
-
       <button :class="['tab-btn', { active: activeTab === 'groups' }]" @click="activeTab = 'groups'">
         {{ $t('views.events.tab_groups') }}
       </button>
-      <button :class="['tab-btn', { active: activeTab === 'roles' }]" @click="activeTab = 'roles'" v-if="hasPermission('admin')">
-        {{ $t('views.events.tab_roles') }}
+      <button :class="['tab-btn', { active: activeTab === 'subjects' }]" @click="activeTab = 'subjects'">
+        {{ $t('views.events.tab_subjects') }}
       </button>
       <button :class="['tab-btn', { active: activeTab === 'staff' }]" @click="activeTab = 'staff'">
         {{ $t('views.events.tab_staff') }}
       </button>
-      <button :class="['tab-btn', { active: activeTab === 'subjects' }]" @click="activeTab = 'subjects'">
-        {{ $t('views.events.tab_subjects') }}
+      <button :class="['tab-btn', { active: activeTab === 'roles' }]" @click="activeTab = 'roles'" v-if="hasPermission('admin')">
+        {{ $t('views.events.tab_roles') }}
       </button>
     </div>
 
@@ -45,9 +43,20 @@
           </button>
         </div>
 
+        <div class="form-row" style="display: flex; gap: 1rem; max-width: 600px; margin-bottom: 20px;">
+          <div class="form-group" style="flex: 1;">
+            <label>{{ $t('common.name') }} *</label>
+            <input v-model="eventData.name" type="text" class="form-control" />
+          </div>
+          <div class="form-group" style="flex: 1;">
+            <label>{{ $t('master_data.category') }}</label>
+            <BaseSearchSelect v-model="eventData.category" :options="categories" :placeholder="$t('views.events.select_category')" :nullLabel="$t('master_data.none')" />
+          </div>
+        </div>
+
         <div class="form-group" style="max-width: 600px; margin-bottom: 20px;">
-          <label>{{ $t('common.name') }} *</label>
-          <input v-model="eventData.name" type="text" class="form-control" />
+          <label>{{ $t('nav.locations') }}</label>
+          <BaseSearchSelect v-model="eventData.location" :options="locations" :placeholder="$t('common.search')" :nullLabel="$t('master_data.none')" />
         </div>
 
         <div class="form-row" style="display: flex; gap: 1rem; max-width: 600px; margin-bottom: 20px;">
@@ -163,28 +172,32 @@
         </table>
       </div>
 
-      <div v-if="activeTab === 'roles'" class="panel">
+      <div v-if="activeTab === 'subjects'" class="panel">
         <div class="panel-header">
-          <h3>{{ $t('views.events.tab_roles') }}</h3>
-          <button @click="openModal('role')" class="btn-primary">{{ $t('actions.add_new') }}</button>
+          <h3>{{ $t('views.events.tab_subjects') }}</h3>
+          <button @click="openModal('subject')" class="btn-primary" v-if="hasPermission('add_subjects') || hasPermission('admin')"> {{ $t('views.events.assign_subject') }}</button>
         </div>
         <table class="data-table">
           <thead>
             <tr>
-              <th>{{ $t('common.name') }}</th>
-              <th>{{ $t('views.events.permissions') }}</th>
+              <th>{{ $t('views.events.subject') }} ID</th>
+              <th>{{ $t('master_data.firstname') }}</th>
+              <th>{{ $t('master_data.lastname') }}</th>
+              <th>{{ $t('views.events.target_group') }} (Optional)</th>
               <th>{{ $t('actions.actions') }}</th>
             </tr>
           </thead>
           <tbody>
-            <tr v-for="role in eventRoles" :key="role.id">
-              <td>{{ role.name }}</td>
-              <td>{{ role.permissions ? role.permissions.join(', ') : '-' }}</td>
+            <tr v-for="sub in subjectAssignments" :key="sub.id">
+              <td>{{ getEntityName(realSubjects, sub.subject, 'identifier') || getEntityName(realSubjects, sub.subject, 'subject_id') }}</td>
+              <td>{{ getEntityName(realSubjects, sub.subject, 'firstname') || '-' }}</td>
+              <td>{{ getEntityName(realSubjects, sub.subject, 'lastname') || '-' }}</td>
+              <td>{{ getEntityName(eventGroups, sub.group) || $t('views.events.no_group') }}</td>
               <td>
-                <TableActionButtons @edit="openModal('role', role)" @delete="deleteEntity('event-management/roles', role.id, loadRoles)" />
+                <TableActionButtons @edit="openModal('subject', sub)" @delete="deleteEntity('event-management/subject-assignments', sub.id, loadSubjects)" v-if="hasPermission('admin') || hasPermission('add_subjects')" />
               </td>
             </tr>
-            <tr v-if="!eventRoles.length"><td colspan="3" class="text-center">{{ $t('common.no_data') }}</td></tr>
+            <tr v-if="!subjectAssignments.length"><td colspan="5" class="text-center">{{ $t('common.no_data') }}</td></tr>
           </tbody>
         </table>
       </div>
@@ -217,31 +230,32 @@
         </table>
       </div>
 
-      <div v-if="activeTab === 'subjects'" class="panel">
+      <div v-if="activeTab === 'roles'" class="panel">
         <div class="panel-header">
-          <h3>{{ $t('views.events.tab_subjects') }}</h3>
-          <button @click="openModal('subject')" class="btn-primary" v-if="hasPermission('add_subjects') || hasPermission('admin')"> {{ $t('views.events.assign_subject') }}</button>
+          <h3>{{ $t('views.events.tab_roles') }}</h3>
+          <button @click="openModal('role')" class="btn-primary">{{ $t('actions.add_new') }}</button>
         </div>
         <table class="data-table">
           <thead>
             <tr>
-              <th>{{ $t('views.events.subject') }} ID</th>
-              <th>{{ $t('views.events.target_group') }}</th>
+              <th>{{ $t('common.name') }}</th>
+              <th>{{ $t('views.events.permissions') }}</th>
               <th>{{ $t('actions.actions') }}</th>
             </tr>
           </thead>
           <tbody>
-            <tr v-for="sub in subjectAssignments" :key="sub.id">
-              <td>{{ getEntityName(realSubjects, sub.subject, 'identifier') || getEntityName(realSubjects, sub.subject, 'subject_id') }}</td>
-              <td>{{ getEntityName(eventGroups, sub.group) || $t('views.events.no_group') }}</td>
+            <tr v-for="role in eventRoles" :key="role.id">
+              <td>{{ role.name }}</td>
+              <td>{{ role.permissions ? role.permissions.join(', ') : '-' }}</td>
               <td>
-                <TableActionButtons @edit="openModal('subject', sub)" @delete="deleteEntity('event-management/subject-assignments', sub.id, loadSubjects)" v-if="hasPermission('admin') || hasPermission('add_subjects')" />
+                <TableActionButtons @edit="openModal('role', role)" @delete="deleteEntity('event-management/roles', role.id, loadRoles)" />
               </td>
             </tr>
-            <tr v-if="!subjectAssignments.length"><td colspan="3" class="text-center">{{ $t('common.no_data') }}</td></tr>
+            <tr v-if="!eventRoles.length"><td colspan="3" class="text-center">{{ $t('common.no_data') }}</td></tr>
           </tbody>
         </table>
       </div>
+
     </div>
 
     <BaseModal :isOpen="modals.group" :title="editingId ? $t('actions.edit') : $t('actions.add_new')" @close="closeModal('group')">
@@ -262,14 +276,12 @@
     <BaseModal :isOpen="modals.subject" :title="editingId ? $t('actions.edit') : $t('views.events.assign_subject')" @close="closeModal('subject')">
       <div class="form-group">
         <label>{{ $t('views.events.subject') }} *</label>
-        
         <SubjectSearchSelect
           v-model="forms.subject.subject"
           :subjects="realSubjects"
           :assignedIds="assignedSubjectIds"
           :placeholder="$t('views.events.search_subject')"
         />
-
       </div>
       <div class="form-group">
         <label>{{ $t('views.events.target_group') }}</label>
@@ -330,6 +342,9 @@ const subjectAssignments = ref([])
 const realSubjects = ref([])
 
 const pageGroupCategories = ref([])
+const categories = ref([])
+const locations = ref([])
+
 const filterAvailablePG = ref(null)
 const filterSelectedPG = ref(null)
 
@@ -420,7 +435,7 @@ const loadEventBaseData = async () => {
     eventData.value.event_start_date = extractDatePart(res.data.event_start)
     eventData.value.event_start_time = parseApiTime(res.data.event_start) 
     eventData.value.event_end_date = extractDatePart(res.data.event_end)
-    eventData.value.event_end_time = parseApiTime(res.data.event_end)
+    eventData.value.event_end_time = parseApiTime(res.data.event_end) 
 
     assignedPageGroups.value = res.data.page_groups || []
   } catch (err) { console.error(err) }
@@ -428,12 +443,16 @@ const loadEventBaseData = async () => {
 
 const loadPageGroupsAndCategories = async () => {
   try {
-    const [pgRes, catRes] = await Promise.all([
+    const [pgRes, catRes, evCatRes, locRes] = await Promise.all([
       api.get('page-groups/'),
-      api.get('category/page-group-categories/')
+      api.get('category/page-group-categories/'),
+      api.get('category/event-categories/'),
+      api.get('locations/')
     ])
     availablePageGroups.value = pgRes.data
     pageGroupCategories.value = catRes.data
+    categories.value = evCatRes.data
+    locations.value = locRes.data
   } catch (err) { console.error(err) }
 }
 
@@ -464,9 +483,7 @@ const loadSubjects = async () => {
       api.get('subjects/'),
       api.get(`event-management/subject-assignments/?event=${eventId}`)
     ])
-    
     realSubjects.value = subRes.data 
-    
     subjectAssignments.value = assignmentRes.data
   } catch (err) { console.error(err) }
 }
@@ -602,9 +619,9 @@ const executeDelete = async () => {
   }
 }
 
-onMounted(() => {
-  loadEventBaseData()
-  loadPageGroupsAndCategories()
+onMounted(async () => {
+  await loadPageGroupsAndCategories()
+  await loadEventBaseData()
   loadGroups()
   loadRoles()
   loadStaff()
@@ -616,7 +633,7 @@ onMounted(() => {
 .event-detail-view { display: flex; flex-direction: column; gap: 20px; }
 .header-area { background: white; padding: 15px 20px; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
 .header-area h2 { margin: 0; color: #2c3e50; }
-.tabs { display: flex; gap: 10px; border-bottom: 2px solid #e0e0e0; padding-bottom: 0; }
+.tabs { display: flex; gap: 10px; border-bottom: 2px solid #e0e0e0; padding-bottom: 0; flex-wrap: wrap; }
 .tab-btn { background: transparent; border: none; border-bottom: 3px solid transparent; padding: 10px 20px; font-size: 1rem; font-weight: 600; color: #7f8c8d; cursor: pointer; transition: all 0.2s; }
 .tab-btn:hover { color: #3498db; }
 .tab-btn.active { color: #3498db; border-bottom: 3px solid #3498db; }

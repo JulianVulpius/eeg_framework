@@ -77,11 +77,6 @@
           <BaseSearchSelect v-model="formData.location" :options="locations" :placeholder="$t('common.search')" :nullLabel="$t('master_data.none')" />
         </div>
 
-        <div class="form-group" style="margin-bottom: 1.5rem;">
-          <label>{{ $t('common.description') }}</label>
-          <textarea v-model="formData.description" rows="2" class="form-control"></textarea>
-        </div>
-
         <div class="form-row" style="display: flex; gap: 1rem; margin-bottom: 1.5rem;">
           <div class="form-group" style="flex: 1;">
             <label>{{ $t('views.events.start') }}</label>
@@ -119,6 +114,11 @@
             </div>
             <BaseInputError :message="timeErrors.end_time || crud.fieldErrors.value.event_end_time" />
           </div>
+        </div>
+
+        <div class="form-group" style="margin-bottom: 1.5rem;">
+          <label>{{ $t('common.description') }}</label>
+          <textarea v-model="formData.description" rows="2" class="form-control"></textarea>
         </div>
 
         <div class="modal-actions" style="margin-top: 2rem;">
@@ -269,8 +269,8 @@ const closeManagerDialog = () => {
 const populateForm = (item) => {
   formData.value = {
     name: item.name, category: item.category, description: item.description || '', location: item.location || null,
-    event_start: extractDatePart(item.event_start), event_start_time: parseApiTime(item.event_start), 
-    event_end: extractDatePart(item.event_end), event_end_time: parseApiTime(item.event_end)
+    event_start: extractDatePart(item.event_start), event_start_time: parseApiTime(item.event_start),
+    event_end: extractDatePart(item.event_end), event_end_time: parseApiTime(item.event_end) 
   }
 }
 
@@ -310,14 +310,14 @@ const saveRecord = async () => {
   
   if (payload.event_start) {
     const time = payload.event_start_time || '00:00'
-    payload.event_start = buildApiPayload(payload.event_start, time)
+    payload.event_start = buildApiPayload(payload.event_start, time) 
   } else {
     payload.event_start = null
   }
 
   if (payload.event_end) {
     const time = payload.event_end_time || '00:00'
-    payload.event_end = buildApiPayload(payload.event_end, time)
+    payload.event_end = buildApiPayload(payload.event_end, time) 
   } else {
     payload.event_end = null
   }
