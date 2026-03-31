@@ -239,7 +239,8 @@
       "no_group": "Keine Gruppe",
       "global_all_groups": "Global (Alle Gruppen)",
       "search_subject": "Proband suchen...",
-      "assign_subject": "Proband zuweisen"
+      "assign_subject": "Proband zuweisen",
+      "assigned_phases": "Seiten-Gruppen (Phasen) einer Event-Gruppe Zuweisen."
     },
     "triggers": {
       "available": "Verfügbar",

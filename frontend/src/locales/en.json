@@ -239,7 +239,8 @@
       "no_group": "No Group",
       "global_all_groups": "Global (All Groups)",
       "search_subject": "Search subject...",
-      "assign_subject": "Assign Subject"
+      "assign_subject": "Assign Subject",
+      "assigned_phases": "Allocate Page Groups (Phases) to Event Group."
     },
     "triggers": {
       "available": "Available",
