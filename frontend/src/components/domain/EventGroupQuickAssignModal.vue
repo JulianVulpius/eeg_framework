@@ -43,7 +43,7 @@ const props = defineProps({
   eventId: [String, Number],
   eventGroups: Array,
   subjects: Array,
-  assignments: Array
+  assignments: Array 
 })
 const emit = defineEmits(['close', 'saved'])
 

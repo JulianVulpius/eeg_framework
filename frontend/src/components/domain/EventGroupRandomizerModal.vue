@@ -79,25 +79,28 @@ const executeRandomizer = async () => {
       selectedSubjects.value.includes(a.subject) && selectedGroups.value.includes(a.group)
     )
     
-    const promises = []
-    assignmentsToDelete.forEach(a => {
-      promises.push(api.delete(`event-management/subject-assignments/${a.id}/`))
-    })
+    if (assignmentsToDelete.length > 0) {
+      const deletePromises = assignmentsToDelete.map(a => 
+        api.delete(`event-management/subject-assignments/${a.id}/`)
+      )
+      await Promise.all(deletePromises)
+    }
     
     const shuffledSubjects = [...selectedSubjects.value].sort(() => Math.random() - 0.5)
     
+    const postPromises = []
     for (let i = 0; i < shuffledSubjects.length; i++) {
       const subjectId = shuffledSubjects[i]
       const groupId = selectedGroups.value[i % selectedGroups.value.length]
       
-      promises.push(api.post(`event-management/subject-assignments/`, {
+      postPromises.push(api.post(`event-management/subject-assignments/`, {
         event: props.eventId,
         subject: subjectId,
         group: groupId
       }))
     }
 
-    await Promise.all(promises)
+    await Promise.all(postPromises)
     crudHelper.notifySuccess('updated', t)
     emit('saved')
     closeModal()

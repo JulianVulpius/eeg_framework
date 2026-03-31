@@ -173,16 +173,23 @@
             </tr>
           </thead>
           <tbody>
-            <tr v-for="sub in subjectAssignments" :key="sub.id">
+            <tr v-for="sub in groupedSubjectAssignments" :key="sub.subject">
               <td>{{ getEntityName(realSubjects, sub.subject, 'identifier') || getEntityName(realSubjects, sub.subject, 'subject_id') }}</td>
               <td>{{ getEntityName(realSubjects, sub.subject, 'firstname') || '-' }}</td>
               <td>{{ getEntityName(realSubjects, sub.subject, 'lastname') || '-' }}</td>
-              <td>{{ getEntityName(eventGroups, sub.group) || $t('views.events.no_group') }}</td>
               <td>
-                <TableActionButtons @edit="openModal('subject', sub)" @delete="deleteEntity('event-management/subject-assignments', sub.id, loadSubjects)" v-if="hasPermission('admin') || hasPermission('add_subjects')" />
+                <span v-if="sub.groups.length === 0" class="text-muted">{{ $t('views.events.no_group') }}</span>
+                <span v-else>{{ sub.groups.map(gId => getEntityName(eventGroups, gId)).join(', ') }}</span>
+              </td>
+              <td>
+                <TableActionButtons 
+                  @edit="openModal('subject', sub)" 
+                  @delete="deleteSubjectGroup(sub)" 
+                  v-if="hasPermission('admin') || hasPermission('add_subjects')" 
+                />
               </td>
             </tr>
-            <tr v-if="!subjectAssignments.length"><td colspan="5" class="text-center">{{ $t('common.no_data') }}</td></tr>
+            <tr v-if="!groupedSubjectAssignments.length"><td colspan="5" class="text-center">{{ $t('common.no_data') }}</td></tr>
           </tbody>
         </table>
       </div>
@@ -263,7 +270,7 @@
         <SubjectSearchSelect
           v-model="forms.subject.subject"
           :subjects="realSubjects"
-          :assignedIds="[]"
+          :assignedIds="assignedSubjectIds"
           :placeholder="$t('views.events.search_subject')"
           :disabled="!!editingId" 
         />
@@ -366,14 +373,37 @@ const resolvedAssignedPageGroups = computed(() => {
   return availablePageGroups.value.filter(pg => assignedIds.includes(pg.id))
 })
 
+const assignedSubjectIds = computed(() => {
+  return [...new Set(subjectAssignments.value.map(a => a.subject))]
+})
+
+const groupedSubjectAssignments = computed(() => {
+  const map = new Map()
+  subjectAssignments.value.forEach(a => {
+    if (!map.has(a.subject)) {
+      map.set(a.subject, {
+        subject: a.subject,
+        groups: [],
+        assignmentIds: [] 
+      })
+    }
+    const entry = map.get(a.subject)
+    if (a.group && !entry.groups.includes(a.group)) {
+      entry.groups.push(a.group)
+    }
+    entry.assignmentIds.push(a.id)
+  })
+  return Array.from(map.values())
+})
+
 const modals = reactive({ group: false, role: false, staff: false, subject: false, quickAssign: false, randomizer: false })
 const editingId = ref(null)
 
 const defaultForms = {
   group: { event: eventId, name: '', description: '', page_groups: [] },
   role: { event: eventId, name: '', permissions: [] },
-  staff: { user: null, role: null, target_group: null },
-  subject: { event: eventId, subject: null, groups: [] }
+  staff: { user: null, role: null, target_group: null }, 
+  subject: { event: eventId, subject: null, groups: [] } 
 }
 const forms = reactive(JSON.parse(JSON.stringify(defaultForms)))
 
@@ -393,19 +423,15 @@ const validateTimeField = (val, key, errorMsg) => {
   return isValid
 }
 
-const deleteModal = reactive({ isOpen: false, endpoint: '', id: null, reloadFn: null })
-
 const getEntityName = (list, id, key = 'name') => {
   if (!id) return null
   const item = list.find(i => i.id === id)
   return item ? item[key] : id
 }
-
 const getMockUserName = (id) => {
   const u = mockUsers.find(x => x.id === id)
   return u ? u.name : id
 }
-
 const extractDatePart = (isoString) => {
   if (!isoString) return ''
   const d = new Date(isoString)
@@ -488,11 +514,15 @@ const saveEventGroupPhase = async (updatedGroup) => {
 }
 
 const openModal = (type, item = null) => {
-  editingId.value = item ? item.id : null
+  editingId.value = item ? (item.id || 'multi') : null 
+  
   if (type === 'subject') {
     if (item) {
       forms.subject.subject = item.subject
-      forms.subject.groups = subjectAssignments.value.filter(a => a.subject === item.subject).map(a => a.group)
+      forms.subject.groups = subjectAssignments.value
+        .filter(a => a.subject === item.subject)
+        .map(a => a.group)
+        .filter(Boolean) 
     } else {
       forms.subject = JSON.parse(JSON.stringify(defaultForms.subject))
     }
@@ -512,16 +542,22 @@ const closeModal = (type) => { modals[type] = false; editingId.value = null }
 const saveSubjectAssignments = async () => {
   try {
     const existing = subjectAssignments.value.filter(a => a.subject === forms.subject.subject)
-    const selected = forms.subject.groups || []
+    const selectedGroups = forms.subject.groups || []
 
-    const toRemove = existing.filter(a => !selected.includes(a.group))
-    const toAdd = selected.filter(gId => !existing.some(a => a.group === gId))
+    if (existing.length > 0) {
+      await Promise.all(existing.map(a => api.delete(`event-management/subject-assignments/${a.id}/`)))
+    }
 
-    const promises = []
-    for (const a of toRemove) promises.push(api.delete(`event-management/subject-assignments/${a.id}/`))
-    for (const gId of toAdd) promises.push(api.post(`event-management/subject-assignments/`, { event: eventId, subject: forms.subject.subject, group: gId }))
+    const postPromises = []
+    if (selectedGroups.length === 0) {
+      postPromises.push(api.post(`event-management/subject-assignments/`, { event: eventId, subject: forms.subject.subject, group: null }))
+    } else {
+      for (const gId of selectedGroups) {
+        postPromises.push(api.post(`event-management/subject-assignments/`, { event: eventId, subject: forms.subject.subject, group: gId }))
+      }
+    }
+    await Promise.all(postPromises)
 
-    await Promise.all(promises)
     crudHelper.notifySuccess(editingId.value ? 'updated' : 'created', t)
     closeModal('subject')
     loadSubjects()
@@ -540,14 +576,36 @@ const saveEntity = async (endpoint, payload, reloadFn, modalType) => {
   } catch (error) { alert(crudHelper.parseApiError(error, t, 'errors.save_failed')) }
 }
 
+const deleteModal = reactive({ isOpen: false, endpoint: '', ids: [], reloadFn: null })
+
 const deleteEntity = (endpoint, id, reloadFn) => {
-  deleteModal.endpoint = endpoint; deleteModal.id = id; deleteModal.reloadFn = reloadFn; deleteModal.isOpen = true
+  deleteModal.endpoint = endpoint
+  deleteModal.ids = [id] 
+  deleteModal.reloadFn = reloadFn
+  deleteModal.isOpen = true
 }
+
+const deleteSubjectGroup = (sub) => {
+  deleteModal.endpoint = 'event-management/subject-assignments'
+  deleteModal.ids = sub.assignmentIds
+  deleteModal.reloadFn = loadSubjects
+  deleteModal.isOpen = true
+}
+
 const cancelDelete = () => { deleteModal.isOpen = false }
+
 const executeDelete = async () => {
-  try { await api.delete(`${deleteModal.endpoint}/${deleteModal.id}/`); crudHelper.notifySuccess('deleted', t); if (deleteModal.reloadFn) deleteModal.reloadFn() } 
-  catch (error) { alert(crudHelper.parseApiError(error, t, 'errors.delete_failed')) } 
-  finally { deleteModal.isOpen = false }
+  try {
+    const promises = deleteModal.ids.map(id => api.delete(`${deleteModal.endpoint}/${id}/`))
+    await Promise.all(promises)
+    
+    crudHelper.notifySuccess('deleted', t)
+    if (deleteModal.reloadFn) deleteModal.reloadFn() 
+  } catch (error) { 
+    alert(crudHelper.parseApiError(error, t, 'errors.delete_failed')) 
+  } finally { 
+    deleteModal.isOpen = false 
+  }
 }
 
 onMounted(async () => {
