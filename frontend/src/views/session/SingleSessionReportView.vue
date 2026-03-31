@@ -13,6 +13,7 @@
         <div class="meta-grid">
           <div><label>{{ $t('views.report.session_id') }}</label><div class="val">{{ reportData.session_id }}</div></div>
           <div><label>{{ $t('views.report.event') }}</label><div class="val">{{ reportData.event_name }}</div></div>
+          <div><label>{{ $t('views.report.page_group') }}</label><div class="val">{{ reportData.page_group_name }}</div></div>
           <div><label>{{ $t('views.report.subject') }}</label><div class="val">{{ reportData.subject_identifier }}</div></div>
           <div><label>{{ $t('views.report.date') }}</label><div class="val">{{ formatDate(reportData.start_time) }}</div></div>
           <div v-if="reportData.location_name"><label>{{ $t('views.report.location') }}</label><div class="val">{{ reportData.location_name }}</div></div>

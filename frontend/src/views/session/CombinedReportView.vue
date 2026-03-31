@@ -21,6 +21,7 @@
           <div class="meta-grid">
             <div><label>{{ $t('views.report.session_id') }}</label><div class="val">{{ report.session_id }}</div></div>
             <div><label>{{ $t('views.report.event') }}</label><div class="val">{{ report.event_name }}</div></div>
+            <div><label>{{ $t('views.report.page_group') }}</label><div class="val">{{ report.page_group_name }}</div></div>
             <div><label>{{ $t('views.report.subject') }}</label><div class="val">{{ report.subject_identifier }}</div></div>
             <div><label>{{ $t('views.report.date') }}</label><div class="val">{{ formatDate(report.start_time) }}</div></div>
             <div v-if="report.location_name"><label>{{ $t('views.report.location') }}</label><div class="val">{{ report.location_name }}</div></div>
@@ -60,17 +61,16 @@
 
 <script setup>
 import { ref, onMounted, computed } from 'vue'
-import { useRouter } from 'vue-router'
+import { useRoute } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import api from '@/services/api'
 import BaseBreadcrumb from '@/components/ui/BaseBreadcrumb.vue'
 
-const props = defineProps({
-  eventId: { type: [String, Number], required: true },
-  subjectId: { type: [String, Number], required: true }
-})
+const route = useRoute()
 
-const router = useRouter()
+const eventId = route.query.eventId
+const subjectId = route.query.subjectId
+
 const { t } = useI18n()
 
 const combinedReports = ref([])
@@ -91,7 +91,7 @@ const formatDate = (dateStr) => {
 const loadCombinedReport = async () => {
   try {
     const [sessionsRes, locRes] = await Promise.all([
-      api.get(`sessions/?event=${props.eventId}&subject=${props.subjectId}`),
+      api.get(`sessions/?event=${eventId}&subject=${subjectId}`),
       api.get('locations/')
     ])
     

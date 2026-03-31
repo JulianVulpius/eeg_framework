@@ -180,7 +180,8 @@
       "question": "Frage / Parameter",
       "answer": "Antwort / Wert",
       "pagegroup_title": "Seiten-Gruppe Sitzungsbericht",
-      "location": "Standort"
+      "location": "Standort",
+      "page_group":"Phase / Seiten-Gruppe"
     },
     "runner": {
       "page": "Seite",

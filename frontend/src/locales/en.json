@@ -179,8 +179,9 @@
       "no_data": "No metadata recorded for this session.",
       "question": "Question / Parameter",
       "answer": "Answer / Value",
-      "pagegroup_title": "PageGroup Session Report",
-      "location": "Location"
+      "pagegroup_title": "Page Group Session Report",
+      "location": "Location",
+      "page_group":"Phase / Page Group"
     },
     "runner": {
       "page": "Page",

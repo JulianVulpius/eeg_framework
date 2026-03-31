@@ -3,7 +3,12 @@
     <BaseBreadcrumb :items="breadcrumbItems" />
 
     <div class="page-header" style="margin-bottom: 20px;">
-      <h1>{{ $t('views.report.pagegroup_title') }}</h1>
+      <h1 v-if="pageGroupReports.length > 0">
+        {{ pageGroupReports[0].page_group_name }}
+      </h1>
+      <h1 v-else>
+        {{ $t('views.report.pagegroup_title') }}
+      </h1>
     </div>
 
     <div v-if="isLoading" class="loading-state">
@@ -61,17 +66,16 @@
 
 <script setup>
 import { ref, onMounted, computed } from 'vue'
-import { useRouter } from 'vue-router'
+import { useRoute } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import api from '@/services/api'
 import BaseBreadcrumb from '@/components/ui/BaseBreadcrumb.vue'
 
-const props = defineProps({
-  eventId: { type: [String, Number], required: true },
-  pageGroupId: { type: [String, Number], required: true }
-})
+const route = useRoute()
 
-const router = useRouter()
+const eventId = route.query.eventId
+const pageGroupId = route.query.pageGroupId
+
 const { t } = useI18n()
 
 const pageGroupReports = ref([])
@@ -92,7 +96,7 @@ const formatDate = (dateStr) => {
 const loadPageGroupReport = async () => {
   try {
     const [sessionsRes, locRes] = await Promise.all([
-      api.get(`sessions/?event=${props.eventId}&page_group=${props.pageGroupId}`),
+      api.get(`sessions/?event=${eventId}&page_group=${pageGroupId}`),
       api.get('locations/')
     ])
     
