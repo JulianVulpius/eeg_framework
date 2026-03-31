@@ -16,11 +16,11 @@
       <button :class="['tab-btn', { active: activeTab === 'page_groups' }]" @click="activeTab = 'page_groups'">
         {{ $t('nav.page_groups') }}
       </button>
-      <button :class="['tab-btn', { active: activeTab === 'phases' }]" @click="activeTab = 'phases'">
-        {{ $t('views.events.tab_phases') }}
-      </button>
       <button :class="['tab-btn', { active: activeTab === 'groups' }]" @click="activeTab = 'groups'">
         {{ $t('views.events.tab_groups') }}
+      </button>
+      <button :class="['tab-btn', { active: activeTab === 'phases' }]" @click="activeTab = 'phases'">
+        {{ $t('views.events.tab_phases') }}
       </button>
       <button :class="['tab-btn', { active: activeTab === 'subjects' }]" @click="activeTab = 'subjects'">
         {{ $t('views.events.tab_subjects') }}
@@ -38,11 +38,8 @@
       <div v-if="activeTab === 'general'" class="panel">
         <div class="panel-header">
           <h3>{{ $t('views.events.tab_general') }}</h3>
-          <button @click="saveGeneral" class="btn-primary" v-if="hasPermission('admin')">
-            {{ $t('actions.save') }}
-          </button>
+          <button @click="saveGeneral" class="btn-primary" v-if="hasPermission('admin')">{{ $t('actions.save') }}</button>
         </div>
-
         <div class="form-row" style="display: flex; gap: 1rem; max-width: 600px; margin-bottom: 20px;">
           <div class="form-group" style="flex: 1;">
             <label>{{ $t('common.name') }} *</label>
@@ -53,26 +50,16 @@
             <BaseSearchSelect v-model="eventData.category" :options="categories" :placeholder="$t('views.events.select_category')" :nullLabel="$t('master_data.none')" />
           </div>
         </div>
-
         <div class="form-group" style="max-width: 600px; margin-bottom: 20px;">
           <label>{{ $t('nav.locations') }}</label>
           <BaseSearchSelect v-model="eventData.location" :options="locations" :placeholder="$t('common.search')" :nullLabel="$t('master_data.none')" />
         </div>
-
         <div class="form-row" style="display: flex; gap: 1rem; max-width: 600px; margin-bottom: 20px;">
           <div class="form-group" style="flex: 1;">
             <label>{{ $t('views.events.start') }}</label>
             <div style="display: flex; gap: 10px;">
               <input type="date" v-model="eventData.event_start_date" class="form-control" />
-              <input 
-                type="time" 
-                v-model="eventData.event_start_time" 
-                class="form-control" 
-                style="max-width: 130px;" 
-                :class="{ 'input-invalid': timeErrors.start_time || fieldErrors.start_time }"
-                @focus="initializeTimeField(eventData, 'event_start_time')"
-                @blur="validateTimeField(eventData.event_start_time, 'start_time', $t('errors.invalid_time', 'Enter valid time'))"
-              />
+              <input type="time" v-model="eventData.event_start_time" class="form-control" style="max-width: 130px;" :class="{ 'input-invalid': timeErrors.start_time || fieldErrors.start_time }" @focus="initializeTimeField(eventData, 'event_start_time')" @blur="validateTimeField(eventData.event_start_time, 'start_time', $t('errors.invalid_time', 'Enter valid time'))"/>
             </div>
             <BaseInputError :message="timeErrors.start_time || fieldErrors.start_time" />
           </div>
@@ -80,20 +67,11 @@
             <label>{{ $t('views.events.end') }}</label>
             <div style="display: flex; gap: 10px;">
               <input type="date" v-model="eventData.event_end_date" class="form-control" />
-              <input 
-                type="time" 
-                v-model="eventData.event_end_time" 
-                class="form-control" 
-                style="max-width: 130px;" 
-                :class="{ 'input-invalid': timeErrors.end_time || fieldErrors.end_time }"
-                @focus="initializeTimeField(eventData, 'event_end_time')"
-                @blur="validateTimeField(eventData.event_end_time, 'end_time', $t('errors.invalid_time', 'Enter valid time'))"
-              />
+              <input type="time" v-model="eventData.event_end_time" class="form-control" style="max-width: 130px;" :class="{ 'input-invalid': timeErrors.end_time || fieldErrors.end_time }" @focus="initializeTimeField(eventData, 'event_end_time')" @blur="validateTimeField(eventData.event_end_time, 'end_time', $t('errors.invalid_time', 'Enter valid time'))"/>
             </div>
             <BaseInputError :message="timeErrors.end_time || fieldErrors.end_time" />
           </div>
         </div>
-
         <div class="form-group" style="max-width: 600px; margin-bottom: 20px;">
           <label>{{ $t('common.description') }}</label>
           <textarea v-model="eventData.description" class="form-control" rows="4"></textarea>
@@ -110,7 +88,7 @@
           :options="availablePageGroups"
           :leftTitle="$t('views.events.available_groups')"
           :rightTitle="$t('views.events.selected_groups')"
-          :enableOrdering="true"
+          :enableOrdering="false" 
           :disabled="!hasPermission('admin')"
           :leftFilterFn="filterAvailableLogic"
           :rightFilterFn="filterSelectedLogic"
@@ -122,21 +100,6 @@
             <BaseSearchSelect v-model="filterSelectedPG" :options="pageGroupCategories" :placeholder="$t('views.metadata.search_category')" />
           </template>
         </BaseTransferList>
-      </div>
-
-      <div v-if="activeTab === 'phases'" class="panel">
-        <div class="panel-header">
-          <h3>{{ $t('views.events.assigned_phases') }}</h3>
-        </div>
-        <p style="margin-bottom: 20px; color: #555;">
-          {{ $t('views.events.phases_description') }}
-        </p>
-        
-        <EventGroupPhaseAssignment 
-          :eventGroups="eventGroups"
-          :pageGroups="resolvedAssignedPageGroups"
-          @update-assignment="saveEventGroupPhase"
-        />
       </div>
 
       <div v-if="activeTab === 'groups'" class="panel">
@@ -172,10 +135,32 @@
         </table>
       </div>
 
+      <div v-if="activeTab === 'phases'" class="panel">
+        <div class="panel-header">
+          <h3>{{ $t('views.events.assigned_phases') }}</h3>
+        </div>
+        <p style="margin-bottom: 20px; color: #555;">{{ $t('views.events.phases_description') }}</p>
+        <EventGroupPhaseAssignment 
+          :eventGroups="eventGroups"
+          :pageGroups="resolvedAssignedPageGroups"
+          @update-assignment="saveEventGroupPhase"
+        />
+      </div>
+
       <div v-if="activeTab === 'subjects'" class="panel">
         <div class="panel-header">
           <h3>{{ $t('views.events.tab_subjects') }}</h3>
-          <button @click="openModal('subject')" class="btn-primary" v-if="hasPermission('add_subjects') || hasPermission('admin')"> {{ $t('views.events.assign_subject') }}</button>
+          <div style="display: flex; gap: 10px;">
+            <button @click="modals.randomizer = true" class="btn-primary" style="background-color: #9b59b6; border-color: #8e44ad;" v-if="hasPermission('add_subjects') || hasPermission('admin')">
+              🎲 {{ $t('views.events.randomize') }}
+            </button>
+            <button @click="modals.quickAssign = true" class="btn-secondary" v-if="hasPermission('add_subjects') || hasPermission('admin')">
+              ⚡ {{ $t('views.events.quick_assign') }}
+            </button>
+            <button @click="openModal('subject')" class="btn-primary" v-if="hasPermission('add_subjects') || hasPermission('admin')">
+              + {{ $t('views.events.assign_subject') }}
+            </button>
+          </div>
         </div>
         <table class="data-table">
           <thead>
@@ -255,7 +240,6 @@
           </tbody>
         </table>
       </div>
-
     </div>
 
     <BaseModal :isOpen="modals.group" :title="editingId ? $t('actions.edit') : $t('actions.add_new')" @close="closeModal('group')">
@@ -279,28 +263,46 @@
         <SubjectSearchSelect
           v-model="forms.subject.subject"
           :subjects="realSubjects"
-          :assignedIds="assignedSubjectIds"
+          :assignedIds="[]"
           :placeholder="$t('views.events.search_subject')"
+          :disabled="!!editingId" 
         />
       </div>
       <div class="form-group">
-        <label>{{ $t('views.events.target_group') }}</label>
-        <select v-model="forms.subject.group" class="form-control">
-          <option :value="null">{{ $t('views.events.no_group') }}</option>
-          <option v-for="g in eventGroups" :key="g.id" :value="g.id">{{ g.name }}</option>
-        </select>
+        <label>{{ $t('views.events.target_group') }} ({{ $t('views.events.multiple') }})</label>
+        <SearchableCheckboxGroup 
+          v-model="forms.subject.groups" 
+          :options="eventGroups" 
+          :searchPlaceholder="$t('views.events.search_groups')"
+        />
       </div>
       <div class="modal-actions">
         <button @click="closeModal('subject')" class="btn-secondary">{{ $t('actions.cancel') }}</button>
-        <button @click="saveEntity('event-management/subject-assignments', forms.subject, loadSubjects, 'subject')" class="btn-primary">{{ $t('actions.save') }}</button>
+        <button @click="saveSubjectAssignments" class="btn-primary">{{ $t('actions.save') }}</button>
       </div>
     </BaseModal>
 
-    <ConfirmDeleteModal 
-      :isOpen="deleteModal.isOpen" 
-      @cancel="cancelDelete" 
-      @confirm="executeDelete" 
+    <EventGroupQuickAssignModal 
+      :isOpen="modals.quickAssign"
+      :eventId="eventId"
+      :eventGroups="eventGroups"
+      :subjects="realSubjects"
+      :assignments="subjectAssignments"
+      @close="modals.quickAssign = false"
+      @saved="loadSubjects"
     />
+
+    <EventGroupRandomizerModal 
+      :isOpen="modals.randomizer"
+      :eventId="eventId"
+      :eventGroups="eventGroups"
+      :subjects="realSubjects"
+      :assignments="subjectAssignments"
+      @close="modals.randomizer = false"
+      @saved="loadSubjects"
+    />
+
+    <ConfirmDeleteModal :isOpen="deleteModal.isOpen" @cancel="cancelDelete" @confirm="executeDelete" />
   </div>
 </template>
 
@@ -322,6 +324,9 @@ import EventGroupPhaseAssignment from '@/components/domain/EventGroupPhaseAssign
 import BaseInputError from '@/components/ui/BaseInputError.vue'
 import ConfirmDeleteModal from '@/components/ui/ConfirmDeleteModal.vue'
 import SubjectSearchSelect from '@/components/domain/SubjectSearchSelect.vue'
+import SearchableCheckboxGroup from '@/components/ui/SearchableCheckboxGroup.vue'
+import EventGroupQuickAssignModal from '@/components/domain/EventGroupQuickAssignModal.vue'
+import EventGroupRandomizerModal from '@/components/domain/EventGroupRandomizerModal.vue'
 
 const route = useRoute()
 const { t } = useI18n()
@@ -348,10 +353,6 @@ const locations = ref([])
 const filterAvailablePG = ref(null)
 const filterSelectedPG = ref(null)
 
-const assignedSubjectIds = computed(() => {
-  return subjectAssignments.value.map(assignment => assignment.subject)
-})
-
 const filterAvailableLogic = (opt) => !filterAvailablePG.value || opt.category === filterAvailablePG.value
 const filterSelectedLogic = (opt) => !filterSelectedPG.value || opt.category === filterSelectedPG.value
 
@@ -365,50 +366,34 @@ const resolvedAssignedPageGroups = computed(() => {
   return availablePageGroups.value.filter(pg => assignedIds.includes(pg.id))
 })
 
-const modals = reactive({ group: false, role: false, staff: false, subject: false })
+const modals = reactive({ group: false, role: false, staff: false, subject: false, quickAssign: false, randomizer: false })
 const editingId = ref(null)
 
 const defaultForms = {
   group: { event: eventId, name: '', description: '', page_groups: [] },
   role: { event: eventId, name: '', permissions: [] },
-  staff: { user: null, role: null, event_group: null },
-  subject: { event: eventId, subject: null, group: null }
+  staff: { user: null, role: null, target_group: null },
+  subject: { event: eventId, subject: null, groups: [] }
 }
 const forms = reactive(JSON.parse(JSON.stringify(defaultForms)))
 
-const fieldErrors = reactive({
-  start_time: '',
-  end_time: ''
-})
-
-const timeErrors = reactive({
-  start_time: '',
-  end_time: ''
-})
+const fieldErrors = reactive({ start_time: '', end_time: '' })
+const timeErrors = reactive({ start_time: '', end_time: '' })
 
 const initializeTimeField = (dataObj, key) => {
   const tempRef = ref(dataObj[key])
   initializeTime(tempRef, '00:00')
   dataObj[key] = tempRef.value
 }
-
 const validateTimeField = (val, key, errorMsg) => {
   timeErrors[key] = ''
   if (!val) return true 
-  
   const isValid = validateTime(val, errorMsg)
-  if (!isValid) {
-    timeErrors[key] = errorMsg
-  }
+  if (!isValid) timeErrors[key] = errorMsg
   return isValid
 }
 
-const deleteModal = reactive({
-  isOpen: false,
-  endpoint: '',
-  id: null,
-  reloadFn: null
-})
+const deleteModal = reactive({ isOpen: false, endpoint: '', id: null, reloadFn: null })
 
 const getEntityName = (list, id, key = 'name') => {
   if (!id) return null
@@ -431,201 +416,144 @@ const loadEventBaseData = async () => {
   try {
     const res = await api.get(`events/${eventId}/`)
     eventData.value = res.data
-    
     eventData.value.event_start_date = extractDatePart(res.data.event_start)
     eventData.value.event_start_time = parseApiTime(res.data.event_start) 
     eventData.value.event_end_date = extractDatePart(res.data.event_end)
     eventData.value.event_end_time = parseApiTime(res.data.event_end) 
-
     assignedPageGroups.value = res.data.page_groups || []
   } catch (err) { console.error(err) }
 }
-
 const loadPageGroupsAndCategories = async () => {
   try {
     const [pgRes, catRes, evCatRes, locRes] = await Promise.all([
-      api.get('page-groups/'),
-      api.get('category/page-group/'),
-      api.get('category/event/'),
-      api.get('locations/')
+      api.get('page-groups/'), api.get('category/page-group/'),
+      api.get('category/event/'), api.get('locations/')
     ])
-    availablePageGroups.value = pgRes.data
-    pageGroupCategories.value = catRes.data
-    categories.value = evCatRes.data
-    locations.value = locRes.data
+    availablePageGroups.value = pgRes.data; pageGroupCategories.value = catRes.data
+    categories.value = evCatRes.data; locations.value = locRes.data
   } catch (err) { console.error(err) }
 }
-
 const loadGroups = async () => {
-  try {
-    const res = await api.get(`event-management/groups/?event=${eventId}`)
-    eventGroups.value = res.data
-  } catch (err) { console.error(err) }
+  try { const res = await api.get(`event-management/groups/?event=${eventId}`); eventGroups.value = res.data } catch (err) { console.error(err) }
 }
-
 const loadRoles = async () => {
-  try {
-    const res = await api.get(`event-management/roles/?event=${eventId}`)
-    eventRoles.value = res.data
-  } catch (err) { console.error(err) }
+  try { const res = await api.get(`event-management/roles/?event=${eventId}`); eventRoles.value = res.data } catch (err) { console.error(err) }
 }
-
 const loadStaff = async () => {
-  try {
-    const res = await api.get(`event-management/staff-assignments/?event=${eventId}`)
-    staffAssignments.value = res.data
-  } catch (err) { console.error(err) }
+  try { const res = await api.get(`event-management/staff-assignments/?event=${eventId}`); staffAssignments.value = res.data } catch (err) { console.error(err) }
 }
-
 const loadSubjects = async () => {
   try {
     const [subRes, assignmentRes] = await Promise.all([
-      api.get('subjects/'),
-      api.get(`event-management/subject-assignments/?event=${eventId}`)
+      api.get('subjects/'), api.get(`event-management/subject-assignments/?event=${eventId}`)
     ])
-    realSubjects.value = subRes.data 
-    subjectAssignments.value = assignmentRes.data
+    realSubjects.value = subRes.data; subjectAssignments.value = assignmentRes.data
   } catch (err) { console.error(err) }
 }
 
 const saveGeneral = async () => {
-  fieldErrors.start_time = ''
-  fieldErrors.end_time = ''
+  fieldErrors.start_time = ''; fieldErrors.end_time = ''
   let hasError = false
-
-  if (eventData.value.event_start_time && !eventData.value.event_start_date) {
-    fieldErrors.start_time = t('errors.time_without_date')
-    hasError = true
-  }
-  if (eventData.value.event_end_time && !eventData.value.event_end_date) {
-    fieldErrors.end_time = t('errors.time_without_date')
-    hasError = true
-  }
-
-  if (eventData.value.event_start_time && !validateTimeField(eventData.value.event_start_time, 'start_time', t('errors.invalid_time', 'Enter valid time'))) {
-    hasError = true
-  }
-  if (eventData.value.event_end_time && !validateTimeField(eventData.value.event_end_time, 'end_time', t('errors.invalid_time', 'Enter valid time'))) {
-    hasError = true
-  }
-
+  if (eventData.value.event_start_time && !eventData.value.event_start_date) { fieldErrors.start_time = t('errors.time_without_date'); hasError = true }
+  if (eventData.value.event_end_time && !eventData.value.event_end_date) { fieldErrors.end_time = t('errors.time_without_date'); hasError = true }
+  if (eventData.value.event_start_time && !validateTimeField(eventData.value.event_start_time, 'start_time', t('errors.invalid_time', 'Enter valid time'))) hasError = true
+  if (eventData.value.event_end_time && !validateTimeField(eventData.value.event_end_time, 'end_time', t('errors.invalid_time', 'Enter valid time'))) hasError = true
   if (hasError) return
 
   try {
     const payload = { ...eventData.value }
+    if (payload.event_start_date) payload.event_start = buildApiPayload(payload.event_start_date, payload.event_start_time || '00:00')
+    else payload.event_start = null
+    if (payload.event_end_date) payload.event_end = buildApiPayload(payload.event_end_date, payload.event_end_time || '00:00')
+    else payload.event_end = null
 
-    if (payload.event_start_date) {
-      const time = payload.event_start_time || '00:00'
-      payload.event_start = buildApiPayload(payload.event_start_date, time)
-    } else {
-      payload.event_start = null
-    }
-
-    if (payload.event_end_date) {
-      const time = payload.event_end_time || '00:00'
-      payload.event_end = buildApiPayload(payload.event_end_date, time)
-    } else {
-      payload.event_end = null
-    }
-
-    delete payload.event_start_date
-    delete payload.event_start_time
-    delete payload.event_end_date
-    delete payload.event_end_time
-
+    delete payload.event_start_date; delete payload.event_start_time; delete payload.event_end_date; delete payload.event_end_time
     await api.put(`events/${eventId}/`, payload)
     crudHelper.notifySuccess('updated', t)
-  } catch (error) { 
-    crudHelper.parseApiError(error, t, 'errors.save_failed') 
-  }
+  } catch (error) { crudHelper.parseApiError(error, t, 'errors.save_failed') }
 }
 
 const savePageGroups = async () => {
   try {
     const payload = { ...eventData.value, page_groups: assignedPageGroups.value }
-    delete payload.event_start_date
-    delete payload.event_start_time
-    delete payload.event_end_date
-    delete payload.event_end_time
-
+    delete payload.event_start_date; delete payload.event_start_time; delete payload.event_end_date; delete payload.event_end_time
     await api.put(`events/${eventId}/`, payload)
     crudHelper.notifySuccess('updated', t)
-  } catch (error) { 
-    crudHelper.parseApiError(error, t, 'errors.save_failed') 
-  }
+  } catch (error) { crudHelper.parseApiError(error, t, 'errors.save_failed') }
 }
 
 const saveEventGroupPhase = async (updatedGroup) => {
-  try {
-    await api.put(`event-management/groups/${updatedGroup.id}/`, updatedGroup)
-    crudHelper.notifySuccess('updated', t)
-    loadGroups() 
-  } catch (err) {
-    crudHelper.parseApiError(err, t, 'errors.save_failed')
-  }
+  try { await api.put(`event-management/groups/${updatedGroup.id}/`, updatedGroup); crudHelper.notifySuccess('updated', t); loadGroups() } 
+  catch (err) { crudHelper.parseApiError(err, t, 'errors.save_failed') }
 }
 
 const openModal = (type, item = null) => {
   editingId.value = item ? item.id : null
-  if (item) {
-    forms[type] = { ...item }
-    if (type === 'role' && !forms[type].permissions) forms[type].permissions = []
+  if (type === 'subject') {
+    if (item) {
+      forms.subject.subject = item.subject
+      forms.subject.groups = subjectAssignments.value.filter(a => a.subject === item.subject).map(a => a.group)
+    } else {
+      forms.subject = JSON.parse(JSON.stringify(defaultForms.subject))
+    }
   } else {
-    forms[type] = JSON.parse(JSON.stringify(defaultForms[type]))
+    if (item) {
+      forms[type] = { ...item }
+      if (type === 'role' && !forms[type].permissions) forms[type].permissions = []
+    } else {
+      forms[type] = JSON.parse(JSON.stringify(defaultForms[type]))
+    }
   }
   modals[type] = true
 }
 
-const closeModal = (type) => {
-  modals[type] = false
-  editingId.value = null
-}
+const closeModal = (type) => { modals[type] = false; editingId.value = null }
 
-const saveEntity = async (endpoint, payload, reloadFn, modalType) => {
+const saveSubjectAssignments = async () => {
   try {
-    if (editingId.value) {
-      await api.put(`${endpoint}/${editingId.value}/`, payload)
-    } else {
-      await api.post(`${endpoint}/`, payload)
-    }
+    const existing = subjectAssignments.value.filter(a => a.subject === forms.subject.subject)
+    const selected = forms.subject.groups || []
+
+    const toRemove = existing.filter(a => !selected.includes(a.group))
+    const toAdd = selected.filter(gId => !existing.some(a => a.group === gId))
+
+    const promises = []
+    for (const a of toRemove) promises.push(api.delete(`event-management/subject-assignments/${a.id}/`))
+    for (const gId of toAdd) promises.push(api.post(`event-management/subject-assignments/`, { event: eventId, subject: forms.subject.subject, group: gId }))
+
+    await Promise.all(promises)
     crudHelper.notifySuccess(editingId.value ? 'updated' : 'created', t)
-    closeModal(modalType)
-    reloadFn()
+    closeModal('subject')
+    loadSubjects()
   } catch (error) {
     alert(crudHelper.parseApiError(error, t, 'errors.save_failed'))
   }
 }
 
-const deleteEntity = (endpoint, id, reloadFn) => {
-  deleteModal.endpoint = endpoint
-  deleteModal.id = id
-  deleteModal.reloadFn = reloadFn
-  deleteModal.isOpen = true
-}
-
-const cancelDelete = () => {
-  deleteModal.isOpen = false
-}
-
-const executeDelete = async () => {
+const saveEntity = async (endpoint, payload, reloadFn, modalType) => {
   try {
-    await api.delete(`${deleteModal.endpoint}/${deleteModal.id}/`)
-    crudHelper.notifySuccess('deleted', t)
-    if (deleteModal.reloadFn) deleteModal.reloadFn() 
-  } catch (error) {
-    alert(crudHelper.parseApiError(error, t, 'errors.delete_failed'))
-  } finally {
-    deleteModal.isOpen = false 
-  }
+    if (editingId.value) await api.put(`${endpoint}/${editingId.value}/`, payload)
+    else await api.post(`${endpoint}/`, payload)
+    crudHelper.notifySuccess(editingId.value ? 'updated' : 'created', t)
+    closeModal(modalType)
+    reloadFn()
+  } catch (error) { alert(crudHelper.parseApiError(error, t, 'errors.save_failed')) }
+}
+
+const deleteEntity = (endpoint, id, reloadFn) => {
+  deleteModal.endpoint = endpoint; deleteModal.id = id; deleteModal.reloadFn = reloadFn; deleteModal.isOpen = true
+}
+const cancelDelete = () => { deleteModal.isOpen = false }
+const executeDelete = async () => {
+  try { await api.delete(`${deleteModal.endpoint}/${deleteModal.id}/`); crudHelper.notifySuccess('deleted', t); if (deleteModal.reloadFn) deleteModal.reloadFn() } 
+  catch (error) { alert(crudHelper.parseApiError(error, t, 'errors.delete_failed')) } 
+  finally { deleteModal.isOpen = false }
 }
 
 onMounted(async () => {
   await loadPageGroupsAndCategories()
   await loadEventBaseData()
-  loadGroups()
-  loadRoles()
-  loadStaff()
-  loadSubjects()
+  loadGroups(); loadRoles(); loadStaff(); loadSubjects()
 })
 </script>
 
