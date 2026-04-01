@@ -1,0 +1,42 @@
+.card { 
+  background: white; 
+  padding: 25px; 
+  border-radius: 8px; 
+  box-shadow: 0 2px 8px rgba(0,0,0,0.05); 
+  margin-bottom: 20px; 
+  border: 1px solid var(--border-color); 
+}
+
+.meta-card { 
+  background: #f8f9fa; 
+  border-left: 4px solid var(--primary-color); 
+}
+
+.meta-grid { 
+  display: grid; 
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); 
+  gap: 15px; 
+}
+
+.meta-grid label { 
+  font-size: 0.85rem; 
+  color: var(--text-muted); 
+  text-transform: uppercase; 
+  letter-spacing: 0.5px; 
+  margin-bottom: 5px; 
+  display: block;
+}
+
+.meta-grid .val { 
+  font-size: 1.1rem; 
+  font-weight: bold; 
+  color: var(--text-main); 
+}
+
+.group-card h3 { 
+  margin-top: 0; 
+  color: var(--text-main); 
+  border-bottom: 2px solid var(--bg-color); 
+  padding-bottom: 10px; 
+  margin-bottom: 15px; 
+}

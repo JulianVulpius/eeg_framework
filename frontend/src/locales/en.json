@@ -80,7 +80,8 @@
     "yes": "Yes",
     "no": "No",
     "must_include": "Must Include",
-    "creator": "Creator"
+    "creator": "Creator",
+    "select": "Select..."
   },
   "actions": {
     "add_new": "+ Add New",

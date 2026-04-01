@@ -1,0 +1,10 @@
+.modal-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background-color: rgba(0, 0, 0, 0.5); display: flex; justify-content: center; align-items: center; z-index: 1000; }
+.modal-content { background: white; padding: 30px; border-radius: 8px; width: 100%; max-width: 500px; box-shadow: 0 4px 20px rgba(0,0,0,0.15); max-height: 90vh; overflow-y: auto;}
+.large-modal { max-width: 800px !important; width: 90vw; }
+.warning-modal { max-width: 400px; text-align: center; }
+.warning-modal h2 { color: var(--danger-color); margin-top: 0; margin-bottom: 15px; }
+
+.modal-actions { 
+  display: flex; justify-content: flex-end; gap: 10px; 
+  margin-top: 25px; padding-top: 15px; border-top: 1px solid #eee; 
+}

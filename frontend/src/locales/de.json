@@ -80,7 +80,8 @@
     "yes": "Ja",
     "no": "Nein",
     "must_include": "Muss beinhalten",
-    "creator": "Ersteller"
+    "creator": "Ersteller",
+    "select": "Auswählen..."
   },
   "actions": {
     "add_new": "+ Neu hinzufügen",
