@@ -47,17 +47,17 @@ const { t } = useI18n()
 .header-banner {
   margin-bottom: 2rem;
   padding-bottom: 1rem;
-  border-bottom: 2px solid #e0e0e0;
+  border-bottom: 2px solid var(--border-color);
 }
 
 .header-banner h1 {
   font-size: 2rem;
-  color: #2c3e50;
+  color: var(--text-main);
   margin-bottom: 0.5rem;
 }
 
 .header-banner p {
-  color: #7f8c8d;
+  color: var(--text-muted);
   font-size: 1.1rem;
 }
 
@@ -68,9 +68,9 @@ const { t } = useI18n()
 }
 
 .dashboard-card {
-  background: white;
+  background: var(--sidebar-bg);
   border-radius: 8px;
-  border: 1px solid #e0e0e0;
+  border: 1px solid var(--border-color);
   box-shadow: 0 4px 6px rgba(0,0,0,0.04);
   display: flex;
   flex-direction: column;
@@ -83,16 +83,16 @@ const { t } = useI18n()
 }
 
 .card-header {
-  background: #f8f9fa;
+  background: var(--bg-color);
   padding: 1rem 1.2rem;
-  border-bottom: 1px solid #e0e0e0;
+  border-bottom: 1px solid var(--border-color);
   border-radius: 8px 8px 0 0;
 }
 
 .card-header h2 {
   margin: 0;
   font-size: 1.15rem;
-  color: #34495e;
+  color: var(--text-main);
 }
 
 .card-links {
@@ -112,27 +112,27 @@ const { t } = useI18n()
 
 .dash-link {
   text-decoration: none;
-  color: #2980b9;
+  color: var(--primary-hover);
   font-weight: 500;
   transition: color 0.2s;
 }
 
 .dash-link:hover {
-  color: #1a5276;
+  color: var(--primary-color);
   text-decoration: underline;
 }
 
 .card-footer {
   padding: 1rem 1.2rem;
-  background: #fdfdfd;
-  border-top: 1px solid #f1f3f5;
+  background: var(--sidebar-bg);
+  border-top: 1px solid var(--border-light);
   border-radius: 0 0 8px 8px;
 }
 
 .card-footer p {
   margin: 0;
   font-size: 0.85rem;
-  color: #95a5a6;
+  color: var(--text-muted);
   line-height: 1.4;
 }
 </style>

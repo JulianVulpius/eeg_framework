@@ -9,7 +9,7 @@
       <p class="danger-message">{{ $t('modal.confirm_delete_desc') }}</p>
     </div>
     
-    <div class="modal-actions right-actions">
+    <div class="modal-actions">
       <button class="btn-secondary" @click="$emit('cancel')">
         {{ $t('actions.cancel') }}
       </button>
@@ -35,7 +35,7 @@ defineEmits(['cancel', 'confirm'])
   padding: 1.25rem;
   background-color: #fdeaea;
   border-radius: 8px;
-  border-left: 4px solid #e74c3c;
+  border-left: 4px solid var(--danger-color);
   margin-bottom: 1.5rem;
 }
 
@@ -46,28 +46,9 @@ defineEmits(['cancel', 'confirm'])
 
 .danger-message {
   font-size: 1.05rem;
-  color: #2c3e50;
+  color: var(--text-main);
   line-height: 1.5;
   margin: 0;
   flex: 1;
-}
-
-.right-actions {
-  justify-content: flex-end;
-}
-
-.btn-danger {
-  background-color: #e74c3c;
-  color: white;
-  border: none;
-  padding: 0.5rem 1rem;
-  border-radius: 4px;
-  cursor: pointer;
-  font-weight: bold;
-  transition: background-color 0.2s;
-}
-
-.btn-danger:hover {
-  background-color: #c0392b;
 }
 </style>

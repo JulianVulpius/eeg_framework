@@ -1,6 +1,6 @@
 <template>
   <div class="session-history">
-    <div class="page-header" style="margin-bottom: 20px;">
+    <div class="page-header">
       <h1>{{ $t('nav.session_history') }}</h1>
     </div>
 

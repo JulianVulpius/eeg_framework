@@ -9,7 +9,7 @@
       <p class="warning-message">{{ message }}</p>
     </div>
     
-    <div class="modal-actions right-actions">
+    <div class="modal-actions">
       <button 
         v-if="!hideCancel" 
         type="button" 
@@ -20,7 +20,7 @@
       </button>
       <button 
         type="button" 
-        class="btn-primary warning-btn" 
+        class="btn-warning" 
         @click="handleConfirm"
       >
         {{ confirmText || 'OK' }}
@@ -33,31 +33,12 @@
 import BaseModal from './BaseModal.vue'
 
 defineProps({
-  isOpen: {
-    type: Boolean,
-    required: true
-  },
-  title: {
-    type: String,
-    default: ''
-  },
-  message: {
-    type: String,
-    required: true
-  },
-  cancelText: {
-    type: String,
-    default: ''
-  },
-  confirmText: {
-    type: String,
-    default: ''
-  },
-  // hide the cancel button by default to use it as a simple error alert
-  hideCancel: {
-    type: Boolean,
-    default: true 
-  }
+  isOpen: { type: Boolean, required: true },
+  title: { type: String, default: '' },
+  message: { type: String, required: true },
+  cancelText: { type: String, default: '' },
+  confirmText: { type: String, default: '' },
+  hideCancel: { type: Boolean, default: true }
 })
 
 const emit = defineEmits(['cancel', 'confirm', 'close'])
@@ -74,7 +55,6 @@ const handleConfirm = () => {
 </script>
 
 <style scoped>
-/* highlighted box for the warning text */
 .warning-content {
   display: flex;
   align-items: center;
@@ -82,7 +62,7 @@ const handleConfirm = () => {
   padding: 1.25rem;
   background-color: #fdf5e6;
   border-radius: 8px;
-  border-left: 4px solid #f39c12;
+  border-left: 4px solid var(--warning-color);
   margin-bottom: 1.5rem;
 }
 
@@ -93,23 +73,9 @@ const handleConfirm = () => {
 
 .warning-message {
   font-size: 1.05rem;
-  color: #2c3e50;
+  color: var(--text-main);
   line-height: 1.5;
   margin: 0;
   flex: 1;
-}
-
-.right-actions {
-  justify-content: flex-end;
-}
-
-.warning-btn {
-  background-color: #f39c12; 
-  border-color: #e67e22;
-  color: white;
-}
-
-.warning-btn:hover {
-  background-color: #d68910;
 }
 </style>

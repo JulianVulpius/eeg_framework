@@ -185,7 +185,6 @@ const populateForm = (item) => {
 
 const loadData = async () => {
   try {
-    // load manufacturers and categories in parallel
     const [resMan, resCats] = await Promise.all([
       api.get('manufacturers/'),
       api.get('category/manufacturer/')

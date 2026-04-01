@@ -29,3 +29,14 @@ input:focus, select:focus, textarea:focus { outline: none; border-color: var(--p
 }
 .dropdown-list li { padding: 10px; cursor: pointer; border-bottom: 1px solid #eee; font-size: 0.85rem;}
 .dropdown-list li:hover { background-color: #f1f3f5; color: var(--primary-color); }
+
+/* Layout für nebeneinanderliegende Formular-Felder */
+.form-row { 
+  display: flex; 
+  gap: 1rem; 
+  margin-bottom: 1.5rem; 
+}
+.form-row .form-group { 
+  flex: 1; 
+  margin-bottom: 0;
+}

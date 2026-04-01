@@ -113,20 +113,3 @@ const moveDown = () => {
   emit('update:modelValue', arr)
 }
 </script>
-
-<style scoped>
-.shuffle-container { display: flex; justify-content: space-between; align-items: stretch; gap: 15px; margin-top: 10px; }
-.shuffle-box { flex: 1; display: flex; flex-direction: column; gap: 10px; }
-.shuffle-box label { font-size: 0.9rem; margin: 0; color: #7f8c8d; font-weight: 600;}
-.shuffle-search { padding: 6px; border: 1px solid #ddd; border-radius: 4px; font-size: 0.85rem; width: 100%; box-sizing: border-box; }
-.shuffle-list { height: 250px; width: 100%; padding: 5px; border: 1px solid #ddd; border-radius: 4px; font-family: inherit; }
-.shuffle-controls { display: flex; flex-direction: column; justify-content: center; gap: 10px; }
-.btn-shuffle { background: #ecf0f1; border: 1px solid #bdc3c7; border-radius: 4px; padding: 10px; cursor: pointer; font-weight: bold; transition: 0.2s; font-size: 0.9rem; }
-.btn-shuffle:hover:not(:disabled) { background: #bdc3c7; }
-.btn-shuffle:disabled { opacity: 0.4; cursor: not-allowed; }
-.list-with-controls { display: flex; gap: 10px; align-items: stretch; }
-.order-controls { display: flex; flex-direction: column; justify-content: center; gap: 10px; }
-.btn-order { background: #fdfefe; border: 1px solid #d0d3d4; color: #34495e; border-radius: 4px; padding: 8px; cursor: pointer; font-weight: bold; font-size: 1.1rem; transition: 0.2s; }
-.btn-order:hover:not(:disabled) { background: #e5e8e8; }
-.btn-order:disabled { opacity: 0.4; cursor: not-allowed; }
-</style>

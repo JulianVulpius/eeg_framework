@@ -211,26 +211,31 @@ onUnmounted(() => { window.removeEventListener('keydown', handleKeydown); if (is
 </script>
 
 <style scoped>
-/* unique dashboard styling kept isolated */
 .control-grid { display: grid; grid-template-columns: 1fr 2fr; gap: 20px; margin-top: 20px; }
 .setup-panel, .execution-panel { display: flex; flex-direction: column; gap: 20px; }
-.panel-section { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); }
-.panel-section h3 { margin-top: 0; border-bottom: 1px solid #eee; padding-bottom: 10px; color: #2c3e50; }
+
+.panel-section { background: var(--sidebar-bg); padding: 20px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); }
+.panel-section h3 { margin-top: 0; border-bottom: 1px solid var(--border-color); padding-bottom: 10px; color: var(--text-main); }
+
 .hotkey-list { list-style: none; padding: 0; margin: 0; }
-.hotkey-list li { padding: 8px 0; border-bottom: 1px dashed #eee; font-size: 0.95rem; }
+.hotkey-list li { padding: 8px 0; border-bottom: 1px dashed var(--border-light); font-size: 0.95rem; }
+
 .engine-controls { display: flex; gap: 15px; }
 .engine-controls button { flex: 1; padding: 15px; font-size: 1.1rem; font-weight: bold; border: none; border-radius: 8px; cursor: pointer; transition: opacity 0.2s, transform 0.1s; }
 .engine-controls button:disabled { opacity: 0.5; cursor: not-allowed; }
 .engine-controls button:not(:disabled):active { transform: scale(0.98); }
-.btn-start { background-color: #2ecc71; color: white; }
-.btn-pause { background-color: #f39c12; color: white; }
-.btn-stop { background-color: #e74c3c; color: white; }
-.status-box { padding: 15px; border-radius: 8px; background-color: #f8f9fa; border-left: 5px solid #bdc3c7; font-size: 1.1rem; }
-.status-box.is-running { border-color: #2ecc71; background-color: #eafaf1; }
-.status-box.is-paused { border-color: #f39c12; background-color: #fef5e6; }
+
+.btn-start { background-color: var(--success-color); color: white; }
+.btn-pause { background-color: var(--warning-color); color: white; }
+.btn-stop { background-color: var(--danger-color); color: white; }
+
+.status-box { padding: 15px; border-radius: 8px; background-color: var(--bg-color); border-left: 5px solid var(--border-color); font-size: 1.1rem; }
+.status-box.is-running { border-color: var(--success-color); background-color: rgba(46, 204, 113, 0.1); }
+.status-box.is-paused { border-color: var(--warning-color); background-color: rgba(243, 156, 18, 0.1); }
+
 .log-section { flex-grow: 1; display: flex; flex-direction: column; position: relative; }
-.btn-clear { position: absolute; top: 15px; right: 20px; background: none; border: 1px solid #ccc; border-radius: 4px; cursor: pointer; padding: 4px 8px; font-size: 0.8rem; }
-.log-container { background: #2c3e50; color: #ecf0f1; font-family: 'Consolas', monospace; font-size: 0.9rem; padding: 10px; border-radius: 4px; height: 300px; overflow-y: auto; margin-top: 10px; }
+.btn-clear { position: absolute; top: 15px; right: 20px; background: none; border: 1px solid var(--border-color); border-radius: 4px; cursor: pointer; padding: 4px 8px; font-size: 0.8rem; }
+.log-container { background: var(--text-main); color: var(--bg-color); font-family: 'Consolas', monospace; font-size: 0.9rem; padding: 10px; border-radius: 4px; height: 300px; overflow-y: auto; margin-top: 10px; }
 .log-entry { margin-bottom: 4px; }
-.log-time { color: #95a5a6; margin-right: 8px; }
+.log-time { color: var(--text-muted); margin-right: 8px; }
 </style>

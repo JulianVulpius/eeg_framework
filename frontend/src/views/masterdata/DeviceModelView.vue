@@ -255,5 +255,5 @@ onMounted(() => { loadData() })
 .table-container { overflow: visible !important; }
 .inline-flex { display: flex; align-items: center; gap: 8px; margin-top: 15px; margin-bottom: 15px; }
 .inline-flex input { margin: 0; width: auto; cursor: pointer; height: 18px; width: 18px; }
-.inline-flex label { margin: 0; font-weight: 600; cursor: pointer; color: #34495e; }
+.inline-flex label { margin: 0; font-weight: 600; cursor: pointer; color: var(--text-main); }
 </style>

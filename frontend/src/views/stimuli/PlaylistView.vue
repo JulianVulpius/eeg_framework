@@ -62,8 +62,8 @@
       @close="crud.closeDialog"
     >
       <form @submit.prevent="saveRecord">
-        <div class="form-row" style="display: flex; gap: 1rem; margin-bottom: 1rem;">
-          <div class="form-group" style="flex: 1;">
+        <div class="form-row">
+          <div class="form-group">
             <label>{{ $t('common.name') }} *</label>
             <input 
               type="text" 
@@ -73,7 +73,7 @@
             />
             <BaseInputError :message="crud.fieldErrors.value.name" />
           </div>
-          <div class="form-group" style="flex: 1;">
+          <div class="form-group">
             <label>{{ $t('master_data.category') }}</label>
             <BaseSearchSelect 
               v-model="formData.category" 

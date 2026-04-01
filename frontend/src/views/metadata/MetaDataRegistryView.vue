@@ -292,7 +292,7 @@ const saveRecord = async () => {
     })
 
     await Promise.all(apiCalls)
-    crud.notifySuccess('updated', t) // Zeige Toast an
+    crud.notifySuccess('updated', t)
     closeDialog()
     await loadData()
   } catch (error) {
@@ -305,7 +305,7 @@ const executeDelete = async () => {
   try {
     const apiCalls = groupToDelete.value.registryItems.map(item => api.delete(`metadata/registry/${item.id}/`))
     await Promise.all(apiCalls)
-    crud.notifySuccess('deleted', t) // Zeige Toast an
+    crud.notifySuccess('deleted', t)
     isConfirmOpen.value = false
     groupToDelete.value = null
     await loadData()
@@ -318,10 +318,3 @@ const executeDelete = async () => {
 
 onMounted(() => { loadData() })
 </script>
-
-<style scoped>
-.table-container { overflow: visible !important; }
-.inline-flex { display: flex; align-items: center; gap: 8px; margin-bottom: 20px; }
-.inline-flex input { margin: 0; width: auto; }
-.inline-flex label { margin: 0; font-weight: normal; }
-</style>

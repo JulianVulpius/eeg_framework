@@ -125,7 +125,6 @@ onMounted(loadBlueprint)
 </script>
 
 <style scoped>
-/* specialized runner styling */
 .runner-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; padding-bottom: 15px; border-bottom: 2px solid #e0e0e0; }
 .breadcrumb { font-size: 1.2rem; color: #2c3e50; }
 .event-name { font-weight: bold; }
