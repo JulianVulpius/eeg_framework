@@ -8,32 +8,16 @@
           <tr>
             <th v-if="crud.showIdColumn.value" class="id-column">{{ $t('common.id') }}</th>
             <th style="width: 20%;">
-              <ColumnHeaderFilter 
-                :title="$t('common.name')" 
-                v-model="columnFilters.name" 
-                :placeholder="$t('common.search')" 
-              />
+              <ColumnHeaderFilter :title="$t('common.name')" v-model="columnFilters.name" :placeholder="$t('common.search')" />
             </th>
             <th style="width: 20%;">
-              <ColumnHeaderFilter 
-                :title="$t('master_data.category')" 
-                v-model="columnFilters.category" 
-                :placeholder="$t('common.search')" 
-              />
+              <ColumnHeaderFilter :title="$t('master_data.category')" v-model="columnFilters.category" :placeholder="$t('common.search')" />
             </th>
             <th style="width: 20%;">
-              <ColumnHeaderFilter 
-                :title="$t('views.components.type')" 
-                v-model="columnFilters.type" 
-                :placeholder="$t('common.search')" 
-              />
+              <ColumnHeaderFilter :title="$t('views.components.type')" v-model="columnFilters.type" :placeholder="$t('common.search')" />
             </th>
             <th style="width: 25%;">
-              <ColumnHeaderFilter 
-                :title="$t('common.description')" 
-                v-model="columnFilters.description" 
-                :placeholder="$t('common.search')" 
-              />
+              <ColumnHeaderFilter :title="$t('common.description')" v-model="columnFilters.description" :placeholder="$t('common.search')" />
             </th>
             <th class="actions-column">{{ $t('actions.actions') }}</th>
           </tr>
@@ -48,7 +32,7 @@
             <td><span class="badge category-badge">{{ getCategoryName(item.category) }}</span></td>
             <td><span class="badge secondary-badge">{{ getTypeName(item.component_type) }}</span></td>
             <td>{{ item.description || '-' }}</td>
-            <TableActionButtons @edit="crud.openEditDialog(item.id, () => populateForm(item))" @delete="crud.requestDelete(item.id)" />
+            <TableActionButtons @edit="crud.openEditDialog(item.id, () => populateForm(item))" @delete="confirmAndDelete(item.id)" />
           </tr>
         </tbody>
       </table>
@@ -116,9 +100,6 @@
         </div>
       </form>
     </BaseModal>
-
-    <ConfirmDeleteModal :isOpen="crud.isConfirmOpen.value" @cancel="crud.cancelDelete" @confirm="executeDelete" />
-    <WarningModal :isOpen="showWarningModal" :message="warningMessage" @close="showWarningModal = false" />
   </div>
 </template>
 
@@ -127,6 +108,7 @@ import { ref, onMounted, computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import api from '@/services/api'
 import { useCrud } from '@/composables/useCrud'
+import { useGlobalModal } from '@/composables/useGlobalModal'
 
 import { QuillEditor } from '@vueup/vue-quill'
 import '@vueup/vue-quill/dist/vue-quill.snow.css'
@@ -134,8 +116,6 @@ import '@vueup/vue-quill/dist/vue-quill.snow.css'
 import BaseModal from '@/components/ui/BaseModal.vue'
 import BaseInputError from '@/components/ui/BaseInputError.vue'
 import BaseSearchSelect from '@/components/ui/BaseSearchSelect.vue'
-import ConfirmDeleteModal from '@/components/ui/ConfirmDeleteModal.vue'
-import WarningModal from '@/components/ui/WarningModal.vue'
 import CrudHeader from '@/components/ui/CrudHeader.vue'
 
 import TableActionButtons from '@/components/table/TableActionButtons.vue'
@@ -143,9 +123,9 @@ import ColumnHeaderFilter from '@/components/table/ColumnHeaderFilter.vue'
 
 const { t } = useI18n()
 const crud = useCrud()
+const { requireConfirmation } = useGlobalModal()
 
 const items = ref([]); const categories = ref([]); const types = ref([]); const metadataGroups = ref([])
-const showWarningModal = ref(false); const warningMessage = ref('')
 
 const formData = ref({ name: '', category: null, component_type: null, description: '', parameter: '{}' })
 
@@ -239,7 +219,7 @@ const loadData = async () => {
       api.get('metadata/groups/')
     ])
     items.value = compRes.data; categories.value = catRes.data; types.value = typeRes.data; metadataGroups.value = mdRes.data
-  } catch (error) { warningMessage.value = t('errors.load_failed'); showWarningModal.value = true }
+  } catch (error) {}
 }
 
 const saveRecord = async () => {
@@ -253,23 +233,20 @@ const saveRecord = async () => {
   try {
     if (crud.isEditing.value) {
       await api.put(`components/${crud.editingId.value}/`, payload)
-      crud.notifySuccess('updated', t)
     } else {
       await api.post('components/', payload)
-      crud.notifySuccess('created', t)
     }
     crud.closeDialog(); loadData()
-  } catch (error) { crud.handleFormError(error, t, 'errors.save_failed') }
+  } catch (error) { crud.handleFormError(error, t) }
 }
 
-const executeDelete = async () => {
-  try { 
-    await api.delete(`components/${crud.itemToDelete.value}/`); 
-    crud.notifySuccess('deleted', t); 
-    crud.cancelDelete(); 
-    loadData() 
-  } 
-  catch (error) { crud.cancelDelete(); warningMessage.value = t('errors.delete_failed'); showWarningModal.value = true }
+const confirmAndDelete = (id) => {
+  requireConfirmation(async () => {
+    try { 
+      await api.delete(`components/${id}/`); 
+      loadData() 
+    } catch (error) {}
+  })
 }
 
 onMounted(loadData)

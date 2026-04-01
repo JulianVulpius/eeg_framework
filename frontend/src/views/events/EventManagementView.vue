@@ -46,7 +46,7 @@
             <td>{{ item.creator || '-' }}</td>
             <TableActionButtons 
               @edit="router.push(`/events/${item.id}`)"
-              @delete="crud.requestDelete(item.id)"
+              @delete="confirmAndDelete(item.id)"
             />
           </tr>
         </tbody>
@@ -127,9 +127,6 @@
         </div>
       </form>
     </BaseModal>
-
-    <ConfirmDeleteModal :isOpen="crud.isConfirmOpen.value" @cancel="crud.cancelDelete" @confirm="executeDelete" />
-    <WarningModal :isOpen="showWarningModal" :message="warningMessage" @close="showWarningModal = false" />
   </div>
 </template>
 
@@ -139,13 +136,12 @@ import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
 import api from '@/services/api'
 import { useCrud } from '@/composables/useCrud'
+import { useGlobalModal } from '@/composables/useGlobalModal'
 import { useTimeInput } from '@/composables/useTimeInput'
 
 import BaseModal from '@/components/ui/BaseModal.vue'
 import BaseInputError from '@/components/ui/BaseInputError.vue'
 import BaseSearchSelect from '@/components/ui/BaseSearchSelect.vue'
-import ConfirmDeleteModal from '@/components/ui/ConfirmDeleteModal.vue'
-import WarningModal from '@/components/ui/WarningModal.vue'
 import CrudHeader from '@/components/ui/CrudHeader.vue'
 
 import ColumnHeaderFilter from '@/components/table/ColumnHeaderFilter.vue'
@@ -155,14 +151,12 @@ import TableActionButtons from '@/components/table/TableActionButtons.vue'
 const { t } = useI18n()
 const crud = useCrud()
 const router = useRouter()
+const { requireConfirmation } = useGlobalModal()
 const { initializeTime, validateTime, parseApiTime, buildApiPayload } = useTimeInput()
 
 const items = ref([])
 const categories = ref([])
 const locations = ref([]) 
-
-const showWarningModal = ref(false)
-const warningMessage = ref('')
 
 const columnFilters = ref({
   name: '', event_start: '', event_end: '', location: '', category: '', creator: ''
@@ -284,10 +278,7 @@ const loadData = async () => {
     items.value = eventsRes.data
     categories.value = catRes.data
     locations.value = locRes.data
-  } catch (error) {
-    warningMessage.value = crud.parseApiError(error, t, 'errors.load_failed')
-    showWarningModal.value = true
-  }
+  } catch (error) {}
 }
 
 const saveRecord = async () => {
@@ -330,31 +321,25 @@ const saveRecord = async () => {
   try {
     if (crud.isEditing.value) {
       await api.put(`events/${crud.editingId.value}/`, payload)
-      crud.notifySuccess('updated', t)
       closeManagerDialog()
       loadData()
     } else {
       const res = await api.post('events/', payload)
-      crud.notifySuccess('created', t)
       closeManagerDialog()
       router.push(`/events/${res.data.id}`)
     }
   } catch (error) {
-    crud.handleFormError(error, t, 'errors.save_failed')
+    crud.handleFormError(error, t)
   }
 }
 
-const executeDelete = async () => {
-  try {
-    await api.delete(`events/${crud.itemToDelete.value}/`)
-    crud.notifySuccess('deleted', t)
-    crud.cancelDelete()
-    loadData()
-  } catch (error) {
-    crud.cancelDelete()
-    warningMessage.value = crud.parseApiError(error, t, 'errors.delete_failed')
-    showWarningModal.value = true
-  }
+const confirmAndDelete = (id) => {
+  requireConfirmation(async () => {
+    try {
+      await api.delete(`events/${id}/`)
+      loadData()
+    } catch (error) {}
+  })
 }
 
 onMounted(loadData)

@@ -60,7 +60,7 @@
             </td>
             <td class="actions-cell">
               <button class="btn-icon" @click="openEditDialog(group)" :title="$t('actions.edit')">✏️</button>
-              <button class="btn-icon" @click="requestDelete(group)" :title="$t('actions.delete')">🗑️</button>
+              <button class="btn-icon" @click="confirmAndDelete(group)" :title="$t('actions.delete')">🗑️</button>
             </td>
           </tr>
         </tbody>
@@ -116,9 +116,6 @@
         </div>
       </form>
     </BaseModal>
-
-    <ConfirmDeleteModal :isOpen="isConfirmOpen" @cancel="cancelDelete" @confirm="executeDelete" />
-    <WarningModal :isOpen="showWarningModal" :title="$t('common.warning')" :message="warningMessage" @close="showWarningModal = false" />
   </div>
 </template>
 
@@ -126,26 +123,23 @@
 import { ref, onMounted, computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import api from '@/services/api'
-import { useCrud } from '@/composables/useCrud'
+import { useGlobalModal } from '@/composables/useGlobalModal'
 
 import BaseModal from '@/components/ui/BaseModal.vue'
 import BaseInputError from '@/components/ui/BaseInputError.vue'
 import BaseTransferList from '@/components/ui/BaseTransferList.vue'
-import ConfirmDeleteModal from '@/components/ui/ConfirmDeleteModal.vue'
-import WarningModal from '@/components/ui/WarningModal.vue'
 
 import ColumnHeaderFilter from '@/components/table/ColumnHeaderFilter.vue'
 import ColumnHeaderMultiFilter from '@/components/table/ColumnHeaderMultiFilter.vue'
 import ColumnHeaderSelectFilter from '@/components/table/ColumnHeaderSelectFilter.vue'
 
 const { t } = useI18n()
-const crud = useCrud() 
+const { requireConfirmation } = useGlobalModal()
 
 const rawRegistryItems = ref([])
 const categories = ref([])
 const contentTypes = ref([])
 
-// Column Filter State
 const columnFilters = ref({
   target_table: '',
   categories: [],
@@ -154,11 +148,6 @@ const columnFilters = ref({
 
 const isDialogOpen = ref(false)
 const isEditing = ref(false)
-const isConfirmOpen = ref(false)
-const groupToDelete = ref(null)
-
-const showWarningModal = ref(false)
-const warningMessage = ref('')
 const fieldErrorTable = ref('')
 
 const showTableDropdown = ref(false)
@@ -181,10 +170,7 @@ const loadData = async () => {
     rawRegistryItems.value = resReg.data
     categories.value = resCats.data
     contentTypes.value = resCt.data
-  } catch (error) {
-    warningMessage.value = crud.parseApiError(error, t, 'errors.load_failed')
-    showWarningModal.value = true
-  }
+  } catch (error) {}
 }
 
 const groupedRegistry = computed(() => {
@@ -266,9 +252,6 @@ const openEditDialog = (group) => {
 
 const closeDialog = () => { isDialogOpen.value = false }
 
-const requestDelete = (group) => { groupToDelete.value = group; isConfirmOpen.value = true }
-const cancelDelete = () => { isConfirmOpen.value = false; groupToDelete.value = null }
-
 const saveRecord = async () => {
   fieldErrorTable.value = ''
   if (!formData.value.target_table) { fieldErrorTable.value = t('errors.required_field'); return }
@@ -292,28 +275,19 @@ const saveRecord = async () => {
     })
 
     await Promise.all(apiCalls)
-    crud.notifySuccess('updated', t)
     closeDialog()
     await loadData()
-  } catch (error) {
-    warningMessage.value = crud.parseApiError(error, t, 'errors.save_failed')
-    showWarningModal.value = true
-  }
+  } catch (error) {}
 }
 
-const executeDelete = async () => {
-  try {
-    const apiCalls = groupToDelete.value.registryItems.map(item => api.delete(`metadata/registry/${item.id}/`))
-    await Promise.all(apiCalls)
-    crud.notifySuccess('deleted', t)
-    isConfirmOpen.value = false
-    groupToDelete.value = null
-    await loadData()
-  } catch (error) {
-    isConfirmOpen.value = false
-    warningMessage.value = crud.parseApiError(error, t, 'errors.delete_failed')
-    showWarningModal.value = true
-  }
+const confirmAndDelete = (group) => {
+  requireConfirmation(async () => {
+    try {
+      const apiCalls = group.registryItems.map(item => api.delete(`metadata/registry/${item.id}/`))
+      await Promise.all(apiCalls)
+      await loadData()
+    } catch (error) {}
+  })
 }
 
 onMounted(() => { loadData() })

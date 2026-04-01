@@ -91,8 +91,6 @@
         </div>
       </div>
     </BaseModal>
-
-    <WarningModal :isOpen="showWarningModal" :message="warningMessage" @close="showWarningModal = false" />
   </div>
 </template>
 
@@ -105,7 +103,6 @@ import { useToast } from '@/composables/useToast'
 
 import BaseSearchSelect from '@/components/ui/BaseSearchSelect.vue'
 import BaseModal from '@/components/ui/BaseModal.vue'
-import WarningModal from '@/components/ui/WarningModal.vue'
 
 const { t } = useI18n()
 const router = useRouter()
@@ -124,9 +121,6 @@ const selectedLocationId = ref(null)
 const isSubjectModalOpen = ref(false)
 const isResumeModalOpen = ref(false)
 const existingSessionId = ref(null)
-
-const showWarningModal = ref(false)
-const warningMessage = ref('')
 
 const subjectForm = ref({ identifier: '', first_name: '', last_name: '', date_of_birth: '', gender: null })
 
@@ -159,9 +153,7 @@ const loadData = async () => {
     rawSubjects.value = subjectsRes.data
     rawPageGroups.value = pgRes.data
     rawLocations.value = locRes.data
-  } catch (error) { 
-    showError(t('errors.load_failed')) 
-  }
+  } catch (error) {}
 }
 
 const closeSubjectModal = () => {
@@ -176,11 +168,8 @@ const saveSubject = async () => {
     const response = await api.post('subjects/', payload)
     rawSubjects.value.push(response.data)
     selectedSubjectId.value = response.data.id
-    showToast(t('toast.created'), 'success')
     closeSubjectModal()
-  } catch (error) { 
-    showError(t('errors.save_failed')) 
-  }
+  } catch (error) {}
 }
 
 const startSession = async () => {
@@ -200,9 +189,7 @@ const startSession = async () => {
     } else {
       router.push({ path: '/sessions/runner', query: { sessionId: response.data.id } })
     }
-  } catch (error) { 
-    showError(t('errors.save_failed')) 
-  }
+  } catch (error) {}
 }
 
 const resumeSession = () => {
@@ -215,14 +202,7 @@ const resetSession = async () => {
     await api.post(`sessions/${existingSessionId.value}/reset/`)
     isResumeModalOpen.value = false
     router.push({ path: '/sessions/runner', query: { sessionId: existingSessionId.value } })
-  } catch (error) { 
-    showError(t('errors.unknown')) 
-  }
-}
-
-const showError = (msg) => { 
-  warningMessage.value = msg
-  showWarningModal.value = true 
+  } catch (error) {}
 }
 
 onMounted(loadData)

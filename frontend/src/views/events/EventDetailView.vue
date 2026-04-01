@@ -308,8 +308,6 @@
       @close="modals.randomizer = false"
       @saved="loadSubjects"
     />
-
-    <ConfirmDeleteModal :isOpen="deleteModal.isOpen" @cancel="cancelDelete" @confirm="executeDelete" />
   </div>
 </template>
 
@@ -320,6 +318,7 @@ import { useI18n } from 'vue-i18n'
 import api from '@/services/api'
 import { useMockAuth } from '@/composables/useMockAuth'
 import { useCrud } from '@/composables/useCrud'
+import { useGlobalModal } from '@/composables/useGlobalModal'
 import { useTimeInput } from '@/composables/useTimeInput'
 
 import BaseBreadcrumb from '@/components/ui/BaseBreadcrumb.vue'
@@ -329,7 +328,6 @@ import BaseSearchSelect from '@/components/ui/BaseSearchSelect.vue'
 import TableActionButtons from '@/components/table/TableActionButtons.vue'
 import EventGroupPhaseAssignment from '@/components/domain/EventGroupPhaseAssignment.vue'
 import BaseInputError from '@/components/ui/BaseInputError.vue'
-import ConfirmDeleteModal from '@/components/ui/ConfirmDeleteModal.vue'
 import SubjectSearchSelect from '@/components/domain/SubjectSearchSelect.vue'
 import SearchableCheckboxGroup from '@/components/ui/SearchableCheckboxGroup.vue'
 import EventGroupQuickAssignModal from '@/components/domain/EventGroupQuickAssignModal.vue'
@@ -339,6 +337,7 @@ const route = useRoute()
 const { t } = useI18n()
 const { hasPermission, mockUsers } = useMockAuth()
 const crudHelper = useCrud() 
+const { requireConfirmation } = useGlobalModal()
 const { initializeTime, validateTime, parseApiTime, buildApiPayload } = useTimeInput()
 
 const eventId = route.params.id
@@ -447,7 +446,7 @@ const loadEventBaseData = async () => {
     eventData.value.event_end_date = extractDatePart(res.data.event_end)
     eventData.value.event_end_time = parseApiTime(res.data.event_end) 
     assignedPageGroups.value = res.data.page_groups || []
-  } catch (err) { console.error(err) }
+  } catch (err) {}
 }
 const loadPageGroupsAndCategories = async () => {
   try {
@@ -457,16 +456,16 @@ const loadPageGroupsAndCategories = async () => {
     ])
     availablePageGroups.value = pgRes.data; pageGroupCategories.value = catRes.data
     categories.value = evCatRes.data; locations.value = locRes.data
-  } catch (err) { console.error(err) }
+  } catch (err) {}
 }
 const loadGroups = async () => {
-  try { const res = await api.get(`event-management/groups/?event=${eventId}`); eventGroups.value = res.data } catch (err) { console.error(err) }
+  try { const res = await api.get(`event-management/groups/?event=${eventId}`); eventGroups.value = res.data } catch (err) {}
 }
 const loadRoles = async () => {
-  try { const res = await api.get(`event-management/roles/?event=${eventId}`); eventRoles.value = res.data } catch (err) { console.error(err) }
+  try { const res = await api.get(`event-management/roles/?event=${eventId}`); eventRoles.value = res.data } catch (err) {}
 }
 const loadStaff = async () => {
-  try { const res = await api.get(`event-management/staff-assignments/?event=${eventId}`); staffAssignments.value = res.data } catch (err) { console.error(err) }
+  try { const res = await api.get(`event-management/staff-assignments/?event=${eventId}`); staffAssignments.value = res.data } catch (err) {}
 }
 const loadSubjects = async () => {
   try {
@@ -474,7 +473,7 @@ const loadSubjects = async () => {
       api.get('subjects/'), api.get(`event-management/subject-assignments/?event=${eventId}`)
     ])
     realSubjects.value = subRes.data; subjectAssignments.value = assignmentRes.data
-  } catch (err) { console.error(err) }
+  } catch (err) {}
 }
 
 const saveGeneral = async () => {
@@ -495,8 +494,7 @@ const saveGeneral = async () => {
 
     delete payload.event_start_date; delete payload.event_start_time; delete payload.event_end_date; delete payload.event_end_time
     await api.put(`events/${eventId}/`, payload)
-    crudHelper.notifySuccess('updated', t)
-  } catch (error) { crudHelper.parseApiError(error, t, 'errors.save_failed') }
+  } catch (error) { crudHelper.handleFormError(error, t) }
 }
 
 const savePageGroups = async () => {
@@ -504,13 +502,12 @@ const savePageGroups = async () => {
     const payload = { ...eventData.value, page_groups: assignedPageGroups.value }
     delete payload.event_start_date; delete payload.event_start_time; delete payload.event_end_date; delete payload.event_end_time
     await api.put(`events/${eventId}/`, payload)
-    crudHelper.notifySuccess('updated', t)
-  } catch (error) { crudHelper.parseApiError(error, t, 'errors.save_failed') }
+  } catch (error) {}
 }
 
 const saveEventGroupPhase = async (updatedGroup) => {
-  try { await api.put(`event-management/groups/${updatedGroup.id}/`, updatedGroup); crudHelper.notifySuccess('updated', t); loadGroups() } 
-  catch (err) { crudHelper.parseApiError(err, t, 'errors.save_failed') }
+  try { await api.put(`event-management/groups/${updatedGroup.id}/`, updatedGroup); loadGroups() } 
+  catch (err) {}
 }
 
 const openModal = (type, item = null) => {
@@ -558,54 +555,37 @@ const saveSubjectAssignments = async () => {
     }
     await Promise.all(postPromises)
 
-    crudHelper.notifySuccess(editingId.value ? 'updated' : 'created', t)
     closeModal('subject')
     loadSubjects()
-  } catch (error) {
-    alert(crudHelper.parseApiError(error, t, 'errors.save_failed'))
-  }
+  } catch (error) {}
 }
 
 const saveEntity = async (endpoint, payload, reloadFn, modalType) => {
   try {
     if (editingId.value) await api.put(`${endpoint}/${editingId.value}/`, payload)
     else await api.post(`${endpoint}/`, payload)
-    crudHelper.notifySuccess(editingId.value ? 'updated' : 'created', t)
     closeModal(modalType)
     reloadFn()
-  } catch (error) { alert(crudHelper.parseApiError(error, t, 'errors.save_failed')) }
+  } catch (error) {}
 }
 
-const deleteModal = reactive({ isOpen: false, endpoint: '', ids: [], reloadFn: null })
-
 const deleteEntity = (endpoint, id, reloadFn) => {
-  deleteModal.endpoint = endpoint
-  deleteModal.ids = [id] 
-  deleteModal.reloadFn = reloadFn
-  deleteModal.isOpen = true
+  requireConfirmation(async () => {
+    try {
+      await api.delete(`${endpoint}/${id}/`)
+      reloadFn()
+    } catch (error) {}
+  })
 }
 
 const deleteSubjectGroup = (sub) => {
-  deleteModal.endpoint = 'event-management/subject-assignments'
-  deleteModal.ids = sub.assignmentIds
-  deleteModal.reloadFn = loadSubjects
-  deleteModal.isOpen = true
-}
-
-const cancelDelete = () => { deleteModal.isOpen = false }
-
-const executeDelete = async () => {
-  try {
-    const promises = deleteModal.ids.map(id => api.delete(`${deleteModal.endpoint}/${id}/`))
-    await Promise.all(promises)
-    
-    crudHelper.notifySuccess('deleted', t)
-    if (deleteModal.reloadFn) deleteModal.reloadFn() 
-  } catch (error) { 
-    alert(crudHelper.parseApiError(error, t, 'errors.delete_failed')) 
-  } finally { 
-    deleteModal.isOpen = false 
-  }
+  requireConfirmation(async () => {
+    try {
+      const promises = sub.assignmentIds.map(id => api.delete(`event-management/subject-assignments/${id}/`))
+      await Promise.all(promises)
+      loadSubjects()
+    } catch (error) {}
+  })
 }
 
 onMounted(async () => {
