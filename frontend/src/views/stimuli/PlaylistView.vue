@@ -48,7 +48,7 @@
             <td>{{ item.creator || '-' }}</td>
             <TableActionButtons 
               @edit="crud.openEditDialog(item.id, () => populateForm(item))"
-              @delete="crud.requestDelete(item.id)"
+              @delete="confirmAndDelete(item.id)"
             />
           </tr>
         </tbody>
@@ -99,19 +99,6 @@
         </div>
       </form>
     </BaseModal>
-
-    <ConfirmDeleteModal 
-      :isOpen="crud.isConfirmOpen.value" 
-      @cancel="crud.cancelDelete" 
-      @confirm="executeDelete" 
-    />
-
-    <WarningModal 
-      :isOpen="showWarningModal" 
-      :title="$t('common.warning')" 
-      :message="warningMessage" 
-      @close="showWarningModal = false" 
-    />
   </div>
 </template>
 
@@ -120,12 +107,11 @@ import { ref, onMounted, computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import api from '@/services/api'
 import { useCrud } from '@/composables/useCrud'
+import { useGlobalModal } from '@/composables/useGlobalModal'
 
 import BaseModal from '@/components/ui/BaseModal.vue'
 import BaseInputError from '@/components/ui/BaseInputError.vue'
 import BaseSearchSelect from '@/components/ui/BaseSearchSelect.vue'
-import ConfirmDeleteModal from '@/components/ui/ConfirmDeleteModal.vue'
-import WarningModal from '@/components/ui/WarningModal.vue'
 import CrudHeader from '@/components/ui/CrudHeader.vue'
 
 import ColumnHeaderFilter from '@/components/table/ColumnHeaderFilter.vue'
@@ -139,9 +125,7 @@ const allStimuli = ref([])
 const stimulusCategories = ref([])
 const playlistCategories = ref([])
 const crud = useCrud()
-
-const showWarningModal = ref(false)
-const warningMessage = ref('')
+const { requireConfirmation } = useGlobalModal()
 
 const columnFilters = ref({
   name: '',
@@ -200,8 +184,6 @@ const loadData = async () => {
     stimulusCategories.value = resCats.data
     playlistCategories.value = resPlayCats.data
   } catch (error) { 
-    warningMessage.value = crud.parseApiError(error, t, 'errors.load_failed')
-    showWarningModal.value = true
   }
 }
 
@@ -216,29 +198,23 @@ const saveRecord = async () => {
   try {
     if (crud.isEditing.value) {
       await api.put(`playlists/${crud.editingId.value}/`, formData.value)
-      crud.notifySuccess('updated', t)
     } else {
       await api.post('playlists/', formData.value)
-      crud.notifySuccess('created', t)
     }
     crud.closeDialog()
     loadData()
   } catch (error) { 
-    crud.handleFormError(error, t, 'errors.save_failed')
+    crud.handleFormError(error, t)
   }
 }
 
-const executeDelete = async () => {
-  try {
-    await api.delete(`playlists/${crud.itemToDelete.value}/`)
-    crud.notifySuccess('deleted', t)
-    crud.cancelDelete()
-    loadData()
-  } catch (error) { 
-    crud.cancelDelete()
-    warningMessage.value = crud.parseApiError(error, t, 'errors.delete_failed')
-    showWarningModal.value = true
-  }
+const confirmAndDelete = (id) => {
+  requireConfirmation(async () => {
+    try {
+      await api.delete(`playlists/${id}/`)
+      loadData()
+    } catch (error) {}
+  })
 }
 
 onMounted(loadData)

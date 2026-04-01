@@ -28,7 +28,10 @@
             <td v-if="crud.showIdColumn.value" class="id-column">{{ item.id }}</td>
             <td><strong>{{ item.name }}</strong></td>
             <td>{{ item.description }}</td>
-            <TableActionButtons @edit="crud.openEditDialog(item.id, () => populateForm(item))" @delete="crud.requestDelete(item.id)" />
+            <TableActionButtons 
+              @edit="crud.openEditDialog(item.id, () => populateForm(item))" 
+              @delete="confirmAndDelete(item.id)" 
+            />
           </tr>
         </tbody>
       </table>
@@ -53,9 +56,7 @@
       </form>
     </BaseModal>
 
-    <ConfirmDeleteModal :isOpen="crud.isConfirmOpen.value" @cancel="crud.cancelDelete" @confirm="executeDelete" />
-    <WarningModal :isOpen="showWarningModal" :title="$t('common.warning')" :message="warningMessage" @close="showWarningModal = false" />
-  </div>
+    </div>
 </template>
 
 <script setup>
@@ -63,13 +64,11 @@ import { ref, watch, onMounted, computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import api from '@/services/api'
 import { useCrud } from '@/composables/useCrud'
+import { useGlobalModal } from '@/composables/useGlobalModal'
 
 import BaseModal from '@/components/ui/BaseModal.vue'
 import BaseInputError from '@/components/ui/BaseInputError.vue'
-import ConfirmDeleteModal from '@/components/ui/ConfirmDeleteModal.vue'
-import WarningModal from '@/components/ui/WarningModal.vue'
 import CrudHeader from '@/components/ui/CrudHeader.vue'
-
 import ColumnHeaderFilter from '@/components/table/ColumnHeaderFilter.vue'
 import TableActionButtons from '@/components/table/TableActionButtons.vue'
 
@@ -78,9 +77,7 @@ const props = defineProps({ categoryType: { type: String, required: true } })
 
 const items = ref([])
 const crud = useCrud()
-
-const showWarningModal = ref(false)
-const warningMessage = ref('')
+const { requireConfirmation } = useGlobalModal()
 
 const columnFilters = ref({ name: '', description: '' })
 
@@ -103,8 +100,6 @@ const loadData = async () => {
     const response = await api.get(`category/${props.categoryType}/`)
     items.value = response.data
   } catch (error) { 
-    warningMessage.value = crud.parseApiError(error, t, 'errors.load_failed')
-    showWarningModal.value = true
   }
 }
 
@@ -118,29 +113,24 @@ const saveRecord = async () => {
   try {
     if (crud.isEditing.value) {
       await api.put(`category/${props.categoryType}/${crud.editingId.value}/`, formData.value)
-      crud.notifySuccess('updated', t)
     } else {
       await api.post(`category/${props.categoryType}/`, formData.value)
-      crud.notifySuccess('created', t)
     }
     crud.closeDialog()
     loadData()
   } catch (error) { 
-    crud.handleFormError(error, t, 'errors.save_failed')
+    crud.handleFormError(error, t)
   }
 }
 
-const executeDelete = async () => {
-  try {
-    await api.delete(`category/${props.categoryType}/${crud.itemToDelete.value}/`)
-    crud.notifySuccess('deleted', t)
-    crud.cancelDelete()
-    loadData()
-  } catch (error) { 
-    crud.cancelDelete()
-    warningMessage.value = crud.parseApiError(error, t, 'errors.delete_failed')
-    showWarningModal.value = true
-  }
+const confirmAndDelete = (id) => {
+  requireConfirmation(async () => {
+    try {
+      await api.delete(`category/${props.categoryType}/${id}/`)
+      loadData()
+    } catch (error) {
+    }
+  })
 }
 
 onMounted(loadData)

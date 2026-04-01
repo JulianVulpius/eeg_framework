@@ -34,7 +34,7 @@
             <td>{{ item.description }}</td>
             <td>{{ item.triggers ? item.triggers.length : 0 }} Assigned</td>
             <td>{{ item.creator || '-' }}</td>
-            <TableActionButtons @edit="crud.openEditDialog(item.id, () => populateForm(item))" @delete="crud.requestDelete(item.id)" />
+            <TableActionButtons @edit="crud.openEditDialog(item.id, () => populateForm(item))" @delete="confirmAndDelete(item.id)" />
           </tr>
         </tbody>
       </table>
@@ -44,7 +44,6 @@
       :isOpen="crud.isDialogOpen.value" 
       :title="crud.isEditing.value ? $t('modal.edit_record') : $t('modal.add_record')"
       customClass="large-modal"
-      :errorMessage="crud.errorMessage.value"
       @close="crud.closeDialog"
     >
       <form @submit.prevent="saveRecord(false)">
@@ -83,9 +82,6 @@
       @cancel="isWarningOpen = false"
       @confirm="confirmSaveWithWarning"
     />
-
-    <ConfirmDeleteModal :isOpen="crud.isConfirmOpen.value" @cancel="crud.cancelDelete" @confirm="executeDelete" />
-    <WarningModal :isOpen="showWarningModal" :title="$t('common.warning')" :message="warningMessage" @close="showWarningModal = false" />
   </div>
 </template>
 
@@ -93,11 +89,11 @@
 import { ref, computed, onMounted } from 'vue'
 import api from '@/services/api'
 import { useCrud } from '@/composables/useCrud'
+import { useGlobalModal } from '@/composables/useGlobalModal'
 import { useI18n } from 'vue-i18n'
 
 import BaseModal from '@/components/ui/BaseModal.vue'
 import BaseInputError from '@/components/ui/BaseInputError.vue'
-import ConfirmDeleteModal from '@/components/ui/ConfirmDeleteModal.vue'
 import WarningModal from '@/components/ui/WarningModal.vue'
 import CrudHeader from '@/components/ui/CrudHeader.vue'
 
@@ -112,9 +108,7 @@ const allTriggerDefs = ref([])
 const allTriggerPairs = ref([])
 const allHotkeys = ref([])
 const crud = useCrud()
-
-const showWarningModal = ref(false)
-const warningMessage = ref('')
+const { requireConfirmation, showWarning } = useGlobalModal()
 
 const columnFilters = ref({ name: '', description: '', creator: '' })
 
@@ -140,8 +134,8 @@ const sanitizeHotkeys = (newMap) => {
     if (newMap[triggerId]) {
       newMap[triggerId] = newMap[triggerId]
         .toLowerCase()
-        .replace(/[^a-z0-9]/g, '') // remove everything except a-z and 0-9
-        .substring(0, 1) // keep only the first character
+        .replace(/[^a-z0-9]/g, '')
+        .substring(0, 1)
     }
   }
   formData.value.hotkeys = newMap
@@ -175,8 +169,6 @@ const loadData = async () => {
     allHotkeys.value = resHotkeys.data
     allTriggerPairs.value = resPairs.data 
   } catch (error) { 
-    warningMessage.value = crud.parseApiError(error, t, 'errors.load_failed')
-    showWarningModal.value = true
   }
 }
 
@@ -193,7 +185,7 @@ const saveRecord = async (skipWarning = false) => {
     const key = formData.value.hotkeys[triggerId]?.trim()
     if (key) {
       if (hotkeyValues.includes(key.toLowerCase())) {
-        crud.errorMessage.value = t('errors.duplicate_hotkey', { key: key })
+        showWarning(t('errors.duplicate_hotkey', { key: key }), t('common.error'))
         return 
       }
       hotkeyValues.push(key.toLowerCase())
@@ -222,11 +214,9 @@ const saveRecord = async (skipWarning = false) => {
     
     if (crud.isEditing.value) {
       await api.put(`triggers/groups/${groupId}/`, groupPayload)
-      crud.notifySuccess('updated', t)
     } else {
       const res = await api.post('triggers/groups/', groupPayload)
       groupId = res.data.id
-      crud.notifySuccess('created', t)
     }
 
     const existingHotkeys = allHotkeys.value.filter(hk => hk.group === groupId)
@@ -249,23 +239,19 @@ const saveRecord = async (skipWarning = false) => {
     crud.closeDialog()
     loadData()
   } catch (error) { 
-    crud.handleFormError(error, t, 'errors.save_failed')
+    crud.handleFormError(error, t)
   }
 }
 
 const confirmSaveWithWarning = () => { saveRecord(true) }
 
-const executeDelete = async () => {
-  try {
-    await api.delete(`triggers/groups/${crud.itemToDelete.value}/`)
-    crud.notifySuccess('deleted', t)
-    crud.cancelDelete()
-    loadData()
-  } catch (error) { 
-    crud.cancelDelete()
-    warningMessage.value = crud.parseApiError(error, t, 'errors.delete_failed')
-    showWarningModal.value = true
-  }
+const confirmAndDelete = (id) => {
+  requireConfirmation(async () => {
+    try {
+      await api.delete(`triggers/groups/${id}/`)
+      loadData()
+    } catch (error) {}
+  })
 }
 
 onMounted(loadData)
