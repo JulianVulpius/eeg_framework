@@ -92,7 +92,9 @@
     "actions": "Actions",
     "continue": "Continue",
     "back": "Back",
-    "select": "Please Select"
+    "select": "Please Select",
+    "move_selected": "Move selected",
+    "move_all": "Move all"
   },
   "errors": {
     "save_failed": "Error saving record.",
@@ -240,7 +242,22 @@
       "global_all_groups": "Global (All Groups)",
       "search_subject": "Search subject...",
       "assign_subject": "Assign Subject",
-      "assigned_phases": "Allocate Page Groups (Phases) to Event Group."
+      "assigned_phases": "Allocate Page Groups (Phases) to Event Group.",
+      "multiple": "Multiple",
+      "search_groups": "Search groups...",
+      "select_target_group": "Select Target Group",
+      "available_subjects": "Available Subjects",
+      "assigned_subjects": "Assigned Subjects",
+      "selected_subjects": "Selected Subjects",
+      "please_select_group_first": "Please select a target group first.",
+      "randomize_assignment": "Randomize Group Assignment",
+      "select_groups_to_randomize": "Select Groups for Distribution",
+      "need_at_least_two_groups": "At least two groups must be selected.",
+      "subjects_to_randomize": "Subjects to Distribute",
+      "randomize_btn": "Randomize",
+      "randomize_success": "Subjects successfully distributed.",
+      "randomize": "Randomize",
+      "quick_assign": "Quick Assign"
     },
     "triggers": {
       "available": "Available",

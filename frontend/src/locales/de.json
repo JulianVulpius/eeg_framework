@@ -92,7 +92,9 @@
     "actions": "Aktionen",
     "continue": "Weiter",
     "back": "Zurück",
-    "select": "Bitte Wählen"
+    "select": "Bitte Wählen",
+    "move_selected": "Ausgewählte verschieben",
+    "move_all": "Alle verschieben"
   },
   "errors": {
     "save_failed": "Fehler beim Speichern des Datensatzes.",
@@ -240,7 +242,23 @@
       "global_all_groups": "Global (Alle Gruppen)",
       "search_subject": "Proband suchen...",
       "assign_subject": "Proband zuweisen",
-      "assigned_phases": "Seiten-Gruppen (Phasen) einer Event-Gruppe Zuweisen."
+      "assigned_phases": "Seiten-Gruppen (Phasen) einer Event-Gruppe Zuweisen.",
+      "multiple": "Mehrfachauswahl",
+      "search_groups": "Gruppen suchen...",
+      "select_target_group": "Zielgruppe auswählen",
+      "available_subjects": "Verfügbare Probanden",
+      "assigned_subjects": "Zugewiesene Probanden",
+      "selected_subjects": "Ausgewählte Probanden",
+      "please_select_group_first": "Bitte wählen Sie zuerst eine Zielgruppe aus.",
+      "randomize_assignment": "Zufällige Gruppenverteilung",
+      "select_groups_to_randomize": "Gruppen für die Verteilung auswählen",
+      "need_at_least_two_groups": "Es müssen mindestens zwei Gruppen ausgewählt werden.",
+      "subjects_to_randomize": "Zu verteilende Probanden",
+      "randomize_btn": "Verteilen",
+      "randomize_success": "Probanden wurden erfolgreich verteilt.",
+      "randomize": "Randomisieren",
+      "quick_assign": "Schnellzuweisung"
+      
     },
     "triggers": {
       "available": "Verfügbar",
