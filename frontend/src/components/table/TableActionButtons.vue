@@ -18,6 +18,5 @@
 </template>
 
 <script setup>
-// emit standard events so the parent view can handle the logic
 defineEmits(['edit', 'delete'])
 </script>

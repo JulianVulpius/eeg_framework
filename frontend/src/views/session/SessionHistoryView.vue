@@ -30,18 +30,22 @@ const events = ref([])
 const subjects = ref([])
 const pageGroups = ref([])
 const locations = ref([])
+const eventGroups = ref([])
+const subjectAssignments = ref([])
 
-const columnFilters = ref({ event: '', subject: '', creator: '' })
+const columnFilters = ref({ event: '', subject: '', creator: '', eventGroup: '' })
 
 const loadData = async () => {
   try {
-    const [sessRes, evRes, subRes, pgRes, locRes] = await Promise.all([
+    const [sessRes, evRes, subRes, pgRes, locRes, grpRes, assignRes] = await Promise.all([
       api.get('sessions/'), api.get('events/'), api.get('subjects/'),
-      api.get('page-groups/'), api.get('locations/')
+      api.get('page-groups/'), api.get('locations/'),
+      api.get('event-management/groups/'), api.get('event-management/subject-assignments/')
     ])
     sessions.value = sessRes.data; events.value = evRes.data
     subjects.value = subRes.data; pageGroups.value = pgRes.data
-    locations.value = locRes.data
+    locations.value = locRes.data; eventGroups.value = grpRes.data
+    subjectAssignments.value = assignRes.data
   } catch (error) {
     console.error('failed to load history data', error)
   }
@@ -51,6 +55,7 @@ const getEvent = (id) => events.value.find(e => e.id === id) || {}
 const getSubject = (id) => subjects.value.find(s => s.id === id) || {}
 const getPageGroup = (id) => pageGroups.value.find(p => p.id === id) || {}
 const getLocation = (id) => locations.value.find(l => l.id === id) || {}
+const getEventGroup = (id) => eventGroups.value.find(g => g.id === id) || {}
 
 const formatDisplayDate = (isoString) => {
   if (!isoString) return '-'
@@ -65,6 +70,7 @@ const groupedSessions = computed(() => {
   const searchEv = columnFilters.value.event.toLowerCase()
   const searchSub = columnFilters.value.subject.toLowerCase()
   const searchCreator = columnFilters.value.creator.toLowerCase()
+  const searchGroup = columnFilters.value.eventGroup.toLowerCase()
   
   sessions.value.forEach(session => {
     const ev = getEvent(session.event)
@@ -74,16 +80,21 @@ const groupedSessions = computed(() => {
     const eventCreator = ev.creator || '-'
     const subjectName = `${sub.identifier || ''} ${sub.first_name ? `(${sub.first_name} ${sub.last_name})` : ''}`.trim() || `Subject ${session.subject}`
     
+    const assignments = subjectAssignments.value.filter(a => a.subject === session.subject && a.event === session.event)
+    const assignedGroupNames = assignments.map(a => getEventGroup(a.group).name).filter(Boolean)
+    const assignedGroupsString = assignedGroupNames.join(', ').toLowerCase()
+
     if (searchEv && !eventName.toLowerCase().includes(searchEv)) return
     if (searchSub && !subjectName.toLowerCase().includes(searchSub)) return
     if (searchCreator && !eventCreator.toLowerCase().includes(searchCreator)) return
+    if (searchGroup && !assignedGroupsString.includes(searchGroup)) return
 
     const key = `${session.event}_${session.subject}`
     
     if (!map.has(key)) {
       map.set(key, {
         id: key, eventId: session.event, subjectId: session.subject,
-        eventName, eventCreator, subjectName, sessions: []
+        eventName, eventCreator, subjectName, eventGroups: assignedGroupNames, sessions: []
       })
     }
     
@@ -108,5 +119,6 @@ const goToCombinedReport = (eventId, subjectId) => {
 const goToPageGroupReport = (eventId, pageGroupId) => {
   router.push({ path: '/sessions/reports/page-groups', query: { eventId, pageGroupId } })
 }
+
 onMounted(loadData)
 </script>

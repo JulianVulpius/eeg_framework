@@ -2,26 +2,17 @@
   <table class="data-table tree-table">
     <thead>
       <tr>
-        <th style="width: 30%;">
-          <ColumnHeaderFilter 
-            :title="$t('views.history.study_event')" 
-            v-model="columnFilters.event" 
-            :placeholder="$t('common.search')" 
-          />
-        </th>
         <th style="width: 25%;">
-          <ColumnHeaderFilter 
-            :title="$t('views.history.subject')" 
-            v-model="columnFilters.subject" 
-            :placeholder="$t('common.search')" 
-          />
+          <ColumnHeaderFilter :title="$t('views.history.study_event')" v-model="columnFilters.event" :placeholder="$t('common.search')" />
         </th>
         <th style="width: 20%;">
-          <ColumnHeaderFilter 
-            :title="$t('views.history.event_creator')" 
-            v-model="columnFilters.creator" 
-            :placeholder="$t('common.search')" 
-          />
+          <ColumnHeaderFilter :title="$t('views.history.subject')" v-model="columnFilters.subject" :placeholder="$t('common.search')" />
+        </th>
+        <th style="width: 20%;">
+          <ColumnHeaderFilter :title="$t('views.events.target_group')" v-model="columnFilters.eventGroup" :placeholder="$t('common.search')" />
+        </th>
+        <th style="width: 20%;">
+          <ColumnHeaderFilter :title="$t('views.history.event_creator')" v-model="columnFilters.creator" :placeholder="$t('common.search')" />
         </th>
         <th class="actions-column">{{ $t('actions.actions') }}</th>
       </tr>
@@ -29,7 +20,7 @@
     
     <tbody v-if="groupedData.length === 0">
       <tr>
-        <td colspan="4" class="empty-state" style="text-align: center; padding: 30px; color: #7f8c8d;">
+        <td colspan="5" class="empty-state" style="text-align: center; padding: 30px; color: #7f8c8d;">
           {{ $t('common.no_data') }}
         </td>
       </tr>
@@ -42,6 +33,12 @@
           <strong>{{ group.eventName }}</strong>
         </td>
         <td><strong>{{ group.subjectName }}</strong></td>
+        <td>
+          <span v-if="group.eventGroups && group.eventGroups.length">
+            {{ group.eventGroups.join(', ') }}
+          </span>
+          <span v-else class="text-muted">-</span>
+        </td>
         <td>{{ group.eventCreator }}</td>
         <td class="actions-cell" @click.stop>
           <button class="btn-primary btn-sm" @click="$emit('combined-report', group.eventId, group.subjectId)">
@@ -52,7 +49,7 @@
 
       <template v-if="expandedGroups.includes(group.id)">
         <tr v-for="sess in group.sessions" :key="sess.id" class="child-row">
-          <td class="child-indent">
+          <td colspan="2" class="child-indent">
             <span class="child-connector">└─</span> 
             <span style="margin-right: 12px;">{{ sess.pageGroupName }}</span>
             <button class="btn-primary" style="background-color: #709aca; border-color: #16a085; padding: 2px 8px; font-size: 0.75rem; border-radius: 4px;" @click="$emit('pagegroup-report', group.eventId, sess.pageGroupId)">
@@ -82,14 +79,8 @@ import { ref } from 'vue'
 import ColumnHeaderFilter from './ColumnHeaderFilter.vue'
 
 defineProps({
-  groupedData: {
-    type: Array,
-    required: true
-  },
-  columnFilters: {
-    type: Object,
-    required: true
-  }
+  groupedData: { type: Array, required: true },
+  columnFilters: { type: Object, required: true }
 })
 
 defineEmits(['combined-report', 'single-report', 'pagegroup-report'])
@@ -107,7 +98,7 @@ const toggleGroup = (groupId) => {
 </script>
 
 <style scoped>
-.tree-table { border-collapse: collapse; }
+.tree-table { border-collapse: collapse; width: 100%; }
 .group-body { border-bottom: 2px solid #e0e0e0; }
 .root-row { cursor: pointer; background-color: #f8fafc; transition: background-color 0.2s; }
 .root-row:hover { background-color: #f1f5f9; }
@@ -119,5 +110,5 @@ const toggleGroup = (groupId) => {
 .timestamp-cell { font-family: monospace; color: #64748b; }
 .actions-cell { text-align: right; }
 .btn-sm { padding: 5px 10px; font-size: 0.85rem; }
-.location-badge { background-color: #e2e8f0; color: #334155; }
+.location-badge { background-color: #e2e8f0; color: #334155; border-radius: 4px; padding: 2px 6px; font-size: 0.8rem;}
 </style>

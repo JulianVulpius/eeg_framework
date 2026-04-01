@@ -48,7 +48,7 @@ class MetaDataGroupCategory(models.Model):
     def __str__(self):
         return self.name
 
-class MetaDataGroup(models.Model):
+class MetaDataGroup(AuditBaseModel):
     category = models.ForeignKey(MetaDataGroupCategory, on_delete=models.PROTECT, null=True, blank=True)
     name = models.CharField(max_length=150)
     description = models.TextField(blank=True, null=True)

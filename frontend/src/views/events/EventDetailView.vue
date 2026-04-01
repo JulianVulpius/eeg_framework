@@ -34,7 +34,6 @@
     </div>
 
     <div class="tab-content">
-
       <div v-if="activeTab === 'general'" class="panel">
         <div class="panel-header">
           <h3>{{ $t('views.events.tab_general') }}</h3>
@@ -110,14 +109,16 @@
         <table class="data-table">
           <thead>
             <tr>
-              <th>{{ $t('views.events.group_name') }}</th>
-              <th>{{ $t('views.events.assigned_phase') }}</th>
-              <th>{{ $t('actions.actions') }}</th>
+              <th style="width: 25%;"><ColumnHeaderFilter :title="$t('views.events.group_name')" v-model="groupFilters.name" :placeholder="$t('common.search')" /></th>
+              <th style="width: 35%;"><ColumnHeaderFilter :title="$t('common.description')" v-model="groupFilters.description" :placeholder="$t('common.search')" /></th>
+              <th style="width: 25%;">{{ $t('views.events.assigned_phase') }}</th>
+              <th class="actions-column">{{ $t('actions.actions') }}</th>
             </tr>
           </thead>
           <tbody>
-            <tr v-for="grp in eventGroups" :key="grp.id">
-              <td>{{ grp.name }}</td>
+            <tr v-for="grp in filteredGroups" :key="grp.id">
+              <td><strong>{{ grp.name }}</strong></td>
+              <td>{{ grp.description || '-' }}</td>
               <td>
                 <div v-if="grp.page_groups && grp.page_groups.length > 0" style="display: flex; gap: 5px; flex-wrap: wrap;">
                   <span v-for="pgId in grp.page_groups" :key="pgId" class="badge category-badge">
@@ -130,7 +131,7 @@
                 <TableActionButtons @edit="openModal('group', grp)" @delete="deleteEntity('event-management/groups', grp.id, loadGroups)" v-if="hasPermission('admin')" />
               </td>
             </tr>
-            <tr v-if="!eventGroups.length"><td colspan="3" class="text-center">{{ $t('common.no_data') }}</td></tr>
+            <tr v-if="!filteredGroups.length"><td colspan="4" class="text-center">{{ $t('common.no_data') }}</td></tr>
           </tbody>
         </table>
       </div>
@@ -140,11 +141,7 @@
           <h3>{{ $t('views.events.assigned_phases') }}</h3>
         </div>
         <p style="margin-bottom: 20px; color: #555;">{{ $t('views.events.phases_description') }}</p>
-        <EventGroupPhaseAssignment 
-          :eventGroups="eventGroups"
-          :pageGroups="resolvedAssignedPageGroups"
-          @update-assignment="saveEventGroupPhase"
-        />
+        <EventGroupPhaseAssignment :eventGroups="eventGroups" :pageGroups="resolvedAssignedPageGroups" @update-assignment="saveEventGroupPhase" />
       </div>
 
       <div v-if="activeTab === 'subjects'" class="panel">
@@ -165,16 +162,16 @@
         <table class="data-table">
           <thead>
             <tr>
-              <th>{{ $t('views.events.subject') }} ID</th>
-              <th>{{ $t('master_data.firstname') }}</th>
-              <th>{{ $t('master_data.lastname') }}</th>
-              <th>{{ $t('views.events.target_group') }}</th>
-              <th>{{ $t('actions.actions') }}</th>
+              <th><ColumnHeaderFilter :title="$t('views.events.subject') + ' ID'" v-model="subjectFilters.id" :placeholder="$t('common.search')" /></th>
+              <th><ColumnHeaderFilter :title="$t('master_data.firstname')" v-model="subjectFilters.firstname" :placeholder="$t('common.search')" /></th>
+              <th><ColumnHeaderFilter :title="$t('master_data.lastname')" v-model="subjectFilters.lastname" :placeholder="$t('common.search')" /></th>
+              <th><ColumnHeaderFilter :title="$t('views.events.target_group')" v-model="subjectFilters.group" :placeholder="$t('common.search')" /></th>
+              <th class="actions-column">{{ $t('actions.actions') }}</th>
             </tr>
           </thead>
           <tbody>
-            <tr v-for="sub in groupedSubjectAssignments" :key="sub.subject">
-              <td>{{ getEntityName(realSubjects, sub.subject, 'identifier') || getEntityName(realSubjects, sub.subject, 'subject_id') }}</td>
+            <tr v-for="sub in filteredSubjects" :key="sub.subject">
+              <td><strong>{{ getEntityName(realSubjects, sub.subject, 'identifier') || getEntityName(realSubjects, sub.subject, 'subject_id') }}</strong></td>
               <td>{{ getEntityName(realSubjects, sub.subject, 'firstname') || '-' }}</td>
               <td>{{ getEntityName(realSubjects, sub.subject, 'lastname') || '-' }}</td>
               <td>
@@ -182,14 +179,10 @@
                 <span v-else>{{ sub.groups.map(gId => getEntityName(eventGroups, gId)).join(', ') }}</span>
               </td>
               <td>
-                <TableActionButtons 
-                  @edit="openModal('subject', sub)" 
-                  @delete="deleteSubjectGroup(sub)" 
-                  v-if="hasPermission('admin') || hasPermission('add_subjects')" 
-                />
+                <TableActionButtons @edit="openModal('subject', sub)" @delete="deleteSubjectGroup(sub)" v-if="hasPermission('admin') || hasPermission('add_subjects')" />
               </td>
             </tr>
-            <tr v-if="!groupedSubjectAssignments.length"><td colspan="5" class="text-center">{{ $t('common.no_data') }}</td></tr>
+            <tr v-if="!filteredSubjects.length"><td colspan="5" class="text-center">{{ $t('common.no_data') }}</td></tr>
           </tbody>
         </table>
       </div>
@@ -202,22 +195,22 @@
         <table class="data-table">
           <thead>
             <tr>
-              <th>{{ $t('views.events.user') }}</th>
-              <th>{{ $t('views.events.role') }}</th>
-              <th>{{ $t('views.events.target_group') }}</th>
-              <th>{{ $t('actions.actions') }}</th>
+              <th><ColumnHeaderFilter :title="$t('views.events.user')" v-model="staffFilters.user" :placeholder="$t('common.search')" /></th>
+              <th><ColumnHeaderFilter :title="$t('views.events.role')" v-model="staffFilters.role" :placeholder="$t('common.search')" /></th>
+              <th><ColumnHeaderFilter :title="$t('views.events.target_group')" v-model="staffFilters.group" :placeholder="$t('common.search')" /></th>
+              <th class="actions-column">{{ $t('actions.actions') }}</th>
             </tr>
           </thead>
           <tbody>
-            <tr v-for="staff in staffAssignments" :key="staff.id">
-              <td>{{ getMockUserName(staff.user) }}</td>
+            <tr v-for="staff in filteredStaff" :key="staff.id">
+              <td><strong>{{ getMockUserName(staff.user) }}</strong></td>
               <td>{{ getEntityName(eventRoles, staff.role) }}</td>
               <td>{{ getEntityName(eventGroups, staff.target_group) || $t('views.events.global_all_groups') }}</td>
               <td>
                 <TableActionButtons @edit="openModal('staff', staff)" @delete="deleteEntity('event-management/staff-assignments', staff.id, loadStaff)" v-if="hasPermission('admin')" />
               </td>
             </tr>
-            <tr v-if="!staffAssignments.length"><td colspan="4" class="text-center">{{ $t('common.no_data') }}</td></tr>
+            <tr v-if="!filteredStaff.length"><td colspan="4" class="text-center">{{ $t('common.no_data') }}</td></tr>
           </tbody>
         </table>
       </div>
@@ -230,20 +223,20 @@
         <table class="data-table">
           <thead>
             <tr>
-              <th>{{ $t('common.name') }}</th>
-              <th>{{ $t('views.events.permissions') }}</th>
-              <th>{{ $t('actions.actions') }}</th>
+              <th><ColumnHeaderFilter :title="$t('common.name')" v-model="roleFilters.name" :placeholder="$t('common.search')" /></th>
+              <th><ColumnHeaderFilter :title="$t('views.events.permissions')" v-model="roleFilters.permissions" :placeholder="$t('common.search')" /></th>
+              <th class="actions-column">{{ $t('actions.actions') }}</th>
             </tr>
           </thead>
           <tbody>
-            <tr v-for="role in eventRoles" :key="role.id">
-              <td>{{ role.name }}</td>
+            <tr v-for="role in filteredRoles" :key="role.id">
+              <td><strong>{{ role.name }}</strong></td>
               <td>{{ role.permissions ? role.permissions.join(', ') : '-' }}</td>
               <td>
                 <TableActionButtons @edit="openModal('role', role)" @delete="deleteEntity('event-management/roles', role.id, loadRoles)" />
               </td>
             </tr>
-            <tr v-if="!eventRoles.length"><td colspan="3" class="text-center">{{ $t('common.no_data') }}</td></tr>
+            <tr v-if="!filteredRoles.length"><td colspan="3" class="text-center">{{ $t('common.no_data') }}</td></tr>
           </tbody>
         </table>
       </div>
@@ -326,6 +319,7 @@ import BaseTransferList from '@/components/ui/BaseTransferList.vue'
 import BaseModal from '@/components/ui/BaseModal.vue'
 import BaseSearchSelect from '@/components/ui/BaseSearchSelect.vue'
 import TableActionButtons from '@/components/table/TableActionButtons.vue'
+import ColumnHeaderFilter from '@/components/table/ColumnHeaderFilter.vue'
 import EventGroupPhaseAssignment from '@/components/domain/EventGroupPhaseAssignment.vue'
 import BaseInputError from '@/components/ui/BaseInputError.vue'
 import SubjectSearchSelect from '@/components/domain/SubjectSearchSelect.vue'
@@ -356,6 +350,11 @@ const pageGroupCategories = ref([])
 const categories = ref([])
 const locations = ref([])
 
+const groupFilters = ref({ name: '', description: '' })
+const subjectFilters = ref({ id: '', firstname: '', lastname: '', group: '' })
+const staffFilters = ref({ user: '', role: '', group: '' })
+const roleFilters = ref({ name: '', permissions: '' })
+
 const filterAvailablePG = ref(null)
 const filterSelectedPG = ref(null)
 
@@ -366,6 +365,45 @@ const breadcrumbItems = computed(() => [
   { label: t('nav.events'), route: '/events' },
   { label: eventData.value.name || t('common.loading') }
 ])
+
+const getEntityName = (list, id, key = 'name') => {
+  if (!id) return null
+  const item = list.find(i => i.id === id)
+  return item ? item[key] : id
+}
+const getMockUserName = (id) => {
+  const u = mockUsers.find(x => x.id === id)
+  return u ? u.name : id
+}
+
+const filteredGroups = computed(() => {
+  return eventGroups.value.filter(g => {
+    if (groupFilters.value.name && !g.name.toLowerCase().includes(groupFilters.value.name.toLowerCase())) return false
+    if (groupFilters.value.description && (!g.description || !g.description.toLowerCase().includes(groupFilters.value.description.toLowerCase()))) return false
+    return true
+  })
+})
+
+const filteredRoles = computed(() => {
+  return eventRoles.value.filter(r => {
+    if (roleFilters.value.name && !r.name.toLowerCase().includes(roleFilters.value.name.toLowerCase())) return false
+    const perms = r.permissions ? r.permissions.join(', ') : ''
+    if (roleFilters.value.permissions && !perms.toLowerCase().includes(roleFilters.value.permissions.toLowerCase())) return false
+    return true
+  })
+})
+
+const filteredStaff = computed(() => {
+  return staffAssignments.value.filter(s => {
+    const userName = getMockUserName(s.user) || ''
+    const roleName = getEntityName(eventRoles.value, s.role) || ''
+    const targetGroup = getEntityName(eventGroups.value, s.target_group) || t('views.events.global_all_groups')
+    if (staffFilters.value.user && !userName.toLowerCase().includes(staffFilters.value.user.toLowerCase())) return false
+    if (staffFilters.value.role && !roleName.toLowerCase().includes(staffFilters.value.role.toLowerCase())) return false
+    if (staffFilters.value.group && !targetGroup.toLowerCase().includes(staffFilters.value.group.toLowerCase())) return false
+    return true
+  })
+})
 
 const resolvedAssignedPageGroups = computed(() => {
   const assignedIds = assignedPageGroups.value.map(val => typeof val === 'object' ? val.id : val)
@@ -395,6 +433,21 @@ const groupedSubjectAssignments = computed(() => {
   return Array.from(map.values())
 })
 
+const filteredSubjects = computed(() => {
+  return groupedSubjectAssignments.value.filter(sub => {
+    const sId = getEntityName(realSubjects.value, sub.subject, 'identifier') || getEntityName(realSubjects.value, sub.subject, 'subject_id') || ''
+    const fn = getEntityName(realSubjects.value, sub.subject, 'firstname') || ''
+    const ln = getEntityName(realSubjects.value, sub.subject, 'lastname') || ''
+    const groupsStr = sub.groups.map(gId => getEntityName(eventGroups.value, gId)).join(', ') || t('views.events.no_group')
+    
+    if (subjectFilters.value.id && !sId.toLowerCase().includes(subjectFilters.value.id.toLowerCase())) return false
+    if (subjectFilters.value.firstname && !fn.toLowerCase().includes(subjectFilters.value.firstname.toLowerCase())) return false
+    if (subjectFilters.value.lastname && !ln.toLowerCase().includes(subjectFilters.value.lastname.toLowerCase())) return false
+    if (subjectFilters.value.group && !groupsStr.toLowerCase().includes(subjectFilters.value.group.toLowerCase())) return false
+    return true
+  })
+})
+
 const modals = reactive({ group: false, role: false, staff: false, subject: false, quickAssign: false, randomizer: false })
 const editingId = ref(null)
 
@@ -422,15 +475,6 @@ const validateTimeField = (val, key, errorMsg) => {
   return isValid
 }
 
-const getEntityName = (list, id, key = 'name') => {
-  if (!id) return null
-  const item = list.find(i => i.id === id)
-  return item ? item[key] : id
-}
-const getMockUserName = (id) => {
-  const u = mockUsers.find(x => x.id === id)
-  return u ? u.name : id
-}
 const extractDatePart = (isoString) => {
   if (!isoString) return ''
   const d = new Date(isoString)
@@ -458,20 +502,12 @@ const loadPageGroupsAndCategories = async () => {
     categories.value = evCatRes.data; locations.value = locRes.data
   } catch (err) {}
 }
-const loadGroups = async () => {
-  try { const res = await api.get(`event-management/groups/?event=${eventId}`); eventGroups.value = res.data } catch (err) {}
-}
-const loadRoles = async () => {
-  try { const res = await api.get(`event-management/roles/?event=${eventId}`); eventRoles.value = res.data } catch (err) {}
-}
-const loadStaff = async () => {
-  try { const res = await api.get(`event-management/staff-assignments/?event=${eventId}`); staffAssignments.value = res.data } catch (err) {}
-}
+const loadGroups = async () => { try { const res = await api.get(`event-management/groups/?event=${eventId}`); eventGroups.value = res.data } catch (err) {} }
+const loadRoles = async () => { try { const res = await api.get(`event-management/roles/?event=${eventId}`); eventRoles.value = res.data } catch (err) {} }
+const loadStaff = async () => { try { const res = await api.get(`event-management/staff-assignments/?event=${eventId}`); staffAssignments.value = res.data } catch (err) {} }
 const loadSubjects = async () => {
   try {
-    const [subRes, assignmentRes] = await Promise.all([
-      api.get('subjects/'), api.get(`event-management/subject-assignments/?event=${eventId}`)
-    ])
+    const [subRes, assignmentRes] = await Promise.all([ api.get('subjects/'), api.get(`event-management/subject-assignments/?event=${eventId}`) ])
     realSubjects.value = subRes.data; subjectAssignments.value = assignmentRes.data
   } catch (err) {}
 }
@@ -505,31 +541,20 @@ const savePageGroups = async () => {
   } catch (error) {}
 }
 
-const saveEventGroupPhase = async (updatedGroup) => {
-  try { await api.put(`event-management/groups/${updatedGroup.id}/`, updatedGroup); loadGroups() } 
-  catch (err) {}
-}
+const saveEventGroupPhase = async (updatedGroup) => { try { await api.put(`event-management/groups/${updatedGroup.id}/`, updatedGroup); loadGroups() } catch (err) {} }
 
 const openModal = (type, item = null) => {
   editingId.value = item ? (item.id || 'multi') : null 
-  
   if (type === 'subject') {
     if (item) {
       forms.subject.subject = item.subject
-      forms.subject.groups = subjectAssignments.value
-        .filter(a => a.subject === item.subject)
-        .map(a => a.group)
-        .filter(Boolean) 
-    } else {
-      forms.subject = JSON.parse(JSON.stringify(defaultForms.subject))
-    }
+      forms.subject.groups = subjectAssignments.value.filter(a => a.subject === item.subject).map(a => a.group).filter(Boolean) 
+    } else { forms.subject = JSON.parse(JSON.stringify(defaultForms.subject)) }
   } else {
     if (item) {
       forms[type] = { ...item }
       if (type === 'role' && !forms[type].permissions) forms[type].permissions = []
-    } else {
-      forms[type] = JSON.parse(JSON.stringify(defaultForms[type]))
-    }
+    } else { forms[type] = JSON.parse(JSON.stringify(defaultForms[type])) }
   }
   modals[type] = true
 }
@@ -540,23 +565,15 @@ const saveSubjectAssignments = async () => {
   try {
     const existing = subjectAssignments.value.filter(a => a.subject === forms.subject.subject)
     const selectedGroups = forms.subject.groups || []
-
-    if (existing.length > 0) {
-      await Promise.all(existing.map(a => api.delete(`event-management/subject-assignments/${a.id}/`)))
-    }
-
+    if (existing.length > 0) { await Promise.all(existing.map(a => api.delete(`event-management/subject-assignments/${a.id}/`))) }
     const postPromises = []
     if (selectedGroups.length === 0) {
       postPromises.push(api.post(`event-management/subject-assignments/`, { event: eventId, subject: forms.subject.subject, group: null }))
     } else {
-      for (const gId of selectedGroups) {
-        postPromises.push(api.post(`event-management/subject-assignments/`, { event: eventId, subject: forms.subject.subject, group: gId }))
-      }
+      for (const gId of selectedGroups) { postPromises.push(api.post(`event-management/subject-assignments/`, { event: eventId, subject: forms.subject.subject, group: gId })) }
     }
     await Promise.all(postPromises)
-
-    closeModal('subject')
-    loadSubjects()
+    closeModal('subject'); loadSubjects()
   } catch (error) {}
 }
 
@@ -564,35 +581,14 @@ const saveEntity = async (endpoint, payload, reloadFn, modalType) => {
   try {
     if (editingId.value) await api.put(`${endpoint}/${editingId.value}/`, payload)
     else await api.post(`${endpoint}/`, payload)
-    closeModal(modalType)
-    reloadFn()
+    closeModal(modalType); reloadFn()
   } catch (error) {}
 }
 
-const deleteEntity = (endpoint, id, reloadFn) => {
-  requireConfirmation(async () => {
-    try {
-      await api.delete(`${endpoint}/${id}/`)
-      reloadFn()
-    } catch (error) {}
-  })
-}
+const deleteEntity = (endpoint, id, reloadFn) => { requireConfirmation(async () => { try { await api.delete(`${endpoint}/${id}/`); reloadFn() } catch (error) {} }) }
+const deleteSubjectGroup = (sub) => { requireConfirmation(async () => { try { const promises = sub.assignmentIds.map(id => api.delete(`event-management/subject-assignments/${id}/`)); await Promise.all(promises); loadSubjects() } catch (error) {} }) }
 
-const deleteSubjectGroup = (sub) => {
-  requireConfirmation(async () => {
-    try {
-      const promises = sub.assignmentIds.map(id => api.delete(`event-management/subject-assignments/${id}/`))
-      await Promise.all(promises)
-      loadSubjects()
-    } catch (error) {}
-  })
-}
-
-onMounted(async () => {
-  await loadPageGroupsAndCategories()
-  await loadEventBaseData()
-  loadGroups(); loadRoles(); loadStaff(); loadSubjects()
-})
+onMounted(async () => { await loadPageGroupsAndCategories(); await loadEventBaseData(); loadGroups(); loadRoles(); loadStaff(); loadSubjects() })
 </script>
 
 <style scoped>
