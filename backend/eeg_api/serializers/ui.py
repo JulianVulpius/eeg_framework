@@ -97,10 +97,14 @@ class EventSerializer(serializers.ModelSerializer):
         many=True,
         required=False
     )
+    session_locations = serializers.SerializerMethodField()
 
     class Meta:
         model = Event
-        fields = ['id', 'name', 'category', 'description', 'location', 'event_start', 'event_end', 'page_groups']
+        fields = ['id', 'name', 'category', 'description', 'location', 'event_start', 'event_end', 'page_groups', 'session_locations']
+
+    def get_session_locations(self, obj):
+            return list(obj.sessions.exclude(location__isnull=True).values_list('location_id', flat=True).distinct())
 
     def create(self, validated_data):
         page_groups_data = validated_data.pop('page_groups', [])

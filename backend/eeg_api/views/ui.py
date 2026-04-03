@@ -24,7 +24,7 @@ class PageViewSet(viewsets.ModelViewSet):
 class PageGroupViewSet(viewsets.ModelViewSet):
     queryset = PageGroup.objects.all().order_by('id')
     serializer_class = PageGroupSerializer
-
+    
 class EventViewSet(viewsets.ModelViewSet):
-    queryset = Event.objects.all().order_by('-created_at')
+    queryset = Event.objects.prefetch_related('sessions').all().order_by('-created_at')
     serializer_class = EventSerializer

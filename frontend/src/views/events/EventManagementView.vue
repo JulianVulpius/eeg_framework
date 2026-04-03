@@ -11,22 +11,31 @@
         <thead>
           <tr>
             <th v-if="crud.showIdColumn.value" class="id-column">{{ $t('common.id') }}</th>
-            <th style="width: 15%;">
+            <th style="width: 12%;">
               <ColumnHeaderFilter :title="$t('common.name')" v-model="columnFilters.name" :placeholder="$t('common.search')" />
             </th>
-            <th style="width: 15%;">
+            <th style="width: 12%;">
               <ColumnHeaderDateFilter :title="$t('views.events.start')" v-model="columnFilters.event_start" />
             </th>
-            <th style="width: 15%;">
+            <th style="width: 12%;">
               <ColumnHeaderDateFilter :title="$t('views.events.end')" v-model="columnFilters.event_end" />
             </th>
-            <th style="width: 15%;">
+            <th style="width: 12%;">
               <ColumnHeaderFilter :title="$t('nav.locations')" v-model="columnFilters.location" :placeholder="$t('common.search')" />
             </th>
             <th style="width: 15%;">
+              <ColumnHeaderMultiFilter 
+                title="Session/Locations" 
+                v-model="columnFilters.session_locations" 
+                :options="locations" 
+                :placeholder="$t('common.search')"
+                :filterTitle="'Session Locations'"
+              />
+            </th>
+            <th style="width: 12%;">
               <ColumnHeaderFilter :title="$t('master_data.category')" v-model="columnFilters.category" :placeholder="$t('common.search')" />
             </th>
-            <th style="width: 15%;">
+            <th style="width: 12%;">
               <ColumnHeaderFilter :title="$t('common.creator')" v-model="columnFilters.creator" :placeholder="$t('common.search')" />
             </th>
             <th class="actions-column">{{ $t('actions.actions') }}</th>
@@ -34,7 +43,7 @@
         </thead>
         <tbody>
           <tr v-if="filteredItems.length === 0">
-            <td :colspan="crud.showIdColumn.value ? 8 : 7" class="empty-state">{{ $t('common.no_data') }}</td>
+            <td :colspan="crud.showIdColumn.value ? 9 : 8" class="empty-state">{{ $t('common.no_data') }}</td>
           </tr>
           <tr v-for="item in filteredItems" :key="item.id">
             <td v-if="crud.showIdColumn.value" class="id-column">{{ item.id }}</td>
@@ -42,6 +51,7 @@
             <td>{{ formatDisplayDate(item.event_start) }}</td>
             <td>{{ formatDisplayDate(item.event_end) }}</td>
             <td>{{ getLocationName(item.location) }}</td>
+            <td>{{ getSessionLocationsText(item) }}</td>
             <td><span class="badge category-badge">{{ getCategoryName(item.category) }}</span></td>
             <td>{{ item.creator || '-' }}</td>
             <TableActionButtons 
@@ -146,6 +156,7 @@ import CrudHeader from '@/components/ui/CrudHeader.vue'
 
 import ColumnHeaderFilter from '@/components/table/ColumnHeaderFilter.vue'
 import ColumnHeaderDateFilter from '@/components/table/ColumnHeaderDateFilter.vue'
+import ColumnHeaderMultiFilter from '@/components/table/ColumnHeaderMultiFilter.vue'
 import TableActionButtons from '@/components/table/TableActionButtons.vue'
 
 const { t } = useI18n()
@@ -159,7 +170,7 @@ const categories = ref([])
 const locations = ref([]) 
 
 const columnFilters = ref({
-  name: '', event_start: '', event_end: '', location: '', category: '', creator: ''
+  name: '', event_start: '', event_end: '', location: '', category: '', creator: '', session_locations: []
 })
 
 const timeErrors = reactive({
@@ -196,6 +207,11 @@ const getCategoryName = (id) => {
   return cat ? cat.name : id
 }
 
+const getSessionLocationsText = (item) => {
+  if (!item.session_locations || item.session_locations.length === 0) return '-'
+  return item.session_locations.map(id => getLocationName(id)).filter(name => name !== '-').join(', ')
+}
+
 const filteredItems = computed(() => {
   return items.value.filter(item => {
     if (columnFilters.value.name && !item.name.toLowerCase().includes(columnFilters.value.name.toLowerCase())) return false
@@ -212,6 +228,11 @@ const filteredItems = computed(() => {
     if (columnFilters.value.creator) {
       const creatorName = item.creator ? item.creator.toLowerCase() : ''
       if (!creatorName.includes(columnFilters.value.creator.toLowerCase())) return false
+    }
+    if (columnFilters.value.session_locations && columnFilters.value.session_locations.length > 0) {
+      const itemLocs = item.session_locations || []
+      const hasAll = columnFilters.value.session_locations.every(selectedId => itemLocs.includes(selectedId))
+      if (!hasAll) return false
     }
     return true
   })
@@ -344,3 +365,10 @@ const confirmAndDelete = (id) => {
 
 onMounted(loadData)
 </script>
+
+<style scoped>
+.table-container { overflow: visible !important; }
+.inline-flex { display: flex; align-items: center; gap: 8px; margin-top: 15px; margin-bottom: 15px; }
+.inline-flex input { margin: 0; width: auto; cursor: pointer; height: 18px; width: 18px; }
+.inline-flex label { margin: 0; font-weight: 600; cursor: pointer; color: var(--text-main); }
+</style>
