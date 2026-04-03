@@ -55,9 +55,7 @@
             </select>
           </div>
 
-          <button @click="toggleLanguage" class="lang-toggle-btn">
-            {{ locale === 'en' ? '🇩🇪 DE' : '🇬🇧 EN' }}
-          </button>
+          <LanguageSwitcher />
         </div>
       </header>
 
@@ -70,14 +68,13 @@
 
 <script setup>
 import { ref, reactive, onMounted, watch } from 'vue'
-import { useI18n } from 'vue-i18n'
 import { useRoute } from 'vue-router'
 import { menuStructure } from '@/config/menuConfig.js'
+import LanguageSwitcher from '@/components/ui/LanguageSwitcher.vue'
 
 import { useMockAuth } from '@/composables/useMockAuth'
 const { activeMockUser, mockUsers, setMockUser } = useMockAuth()
 
-const { locale } = useI18n()
 const route = useRoute()
 const isSidebarOpen = ref(true)
 
@@ -87,7 +84,6 @@ const openSections = reactive(initialSections)
 
 const toggleSidebar = () => { isSidebarOpen.value = !isSidebarOpen.value }
 const toggleSection = (sectionId) => { openSections[sectionId] = !openSections[sectionId] }
-const toggleLanguage = () => { locale.value = locale.value === 'en' ? 'de' : 'en' }
 
 const openActiveSection = () => {
   menuStructure.forEach(section => {
