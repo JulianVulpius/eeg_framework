@@ -68,6 +68,14 @@
               @completed="nextPage" 
               @go-back="prevPage"
             />
+
+            <StandardRecordingUpload 
+              v-else-if="comp.type === 'RECORDING_UPLOAD'" 
+              :parameters="comp.parameters" 
+              :sessionId="sessionId"
+              @completed="nextPage" 
+              @go-back="prevPage"
+            />
             
             <div v-else class="unknown-component card">
               ⚠️ {{ $t('views.runner.unknown_component') }}: {{ comp.type }}
@@ -95,6 +103,7 @@ import api from '@/services/api'
 
 import StandardTextBlock from '@/components/runner/StandardTextBlock.vue'
 import StandardMetadataForm from '@/components/runner/StandardMetadataForm.vue'
+import StandardRecordingUpload from '@/components/runner/StandardRecordingUpload.vue'
 
 const route = useRoute()
 const router = useRouter()
