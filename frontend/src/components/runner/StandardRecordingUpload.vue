@@ -1,41 +1,56 @@
 <template>
   <div class="recording-upload card">
-    <h2 style="margin-bottom: 20px;">📁 Messdaten hochladen</h2>
+    <h2 style="margin-bottom: 20px;">{{ $t('views.runner.upload_title') }}</h2>
     
     <form @submit.prevent="uploadFile">
       
       <div class="form-group" style="margin-bottom: 15px;">
-        <label>Art der Messung *</label>
+        <label>{{ $t('views.runner.upload_type') }} *</label>
         <select v-model="recordingType" class="form-control" required>
-           <option value="eeg">EEG Data</option>
-           <option value="hr">Heart Rate Data</option>
-           <option value="generic">Generic Recording</option>
+           <option value="eeg">{{ $t('views.runner.upload_type_eeg') }}</option>
+           <option value="hr">{{ $t('views.runner.upload_type_hr') }}</option>
+           <option value="generic">{{ $t('views.runner.upload_type_generic') }}</option>
         </select>
       </div>
 
       <div class="form-group" style="margin-bottom: 15px;">
-        <label>Datei auswählen *</label>
+        <label>{{ $t('views.runner.upload_file') }} *</label>
         <input type="file" @change="onFileChange" class="form-control" required />
+      </div>
+
+      <div class="form-group" style="margin-bottom: 15px;">
+        <label>{{ $t('views.runner.upload_custom_name') }}</label>
+        <input 
+          type="text" 
+          v-model="customFileName" 
+          class="form-control" 
+          :placeholder="$t('views.runner.upload_custom_name_placeholder')" 
+        />
       </div>
 
       <div class="form-row" style="display: flex; gap: 1rem; margin-bottom: 15px;">
         <div class="form-group" style="flex: 1;">
-          <label>Reihenfolge (Order)</label>
+          <label>{{ $t('views.runner.upload_order') }}</label>
           <input type="number" v-model="order" class="form-control" min="0" />
         </div>
       </div>
 
       <div class="form-group" style="margin-bottom: 25px;">
-        <label>Beschreibung / Notizen (Optional)</label>
-        <textarea v-model="description" rows="3" class="form-control" placeholder="Auffälligkeiten während der Messung..."></textarea>
+        <label>{{ $t('views.runner.upload_desc') }}</label>
+        <textarea 
+          v-model="description" 
+          rows="3" 
+          class="form-control" 
+          :placeholder="$t('views.runner.upload_desc_placeholder')">
+        </textarea>
       </div>
 
       <div class="form-actions" style="display: flex; gap: 15px; justify-content: flex-end;">
          <button type="button" class="btn-secondary" @click="$emit('go-back')">
-            Zurück
+            {{ $t('actions.back') }}
          </button>
          <button type="submit" class="btn-primary" :disabled="isUploading || !file">
-            {{ isUploading ? 'Wird hochgeladen...' : 'Hochladen & Weiter' }}
+            {{ isUploading ? $t('views.runner.upload_btn_uploading') : $t('views.runner.upload_btn_upload') }}
          </button>
       </div>
       
@@ -45,6 +60,7 @@
 
 <script setup>
 import { ref } from 'vue'
+import { useI18n } from 'vue-i18n'
 import api from '@/services/api'
 import { useToast } from '@/composables/useToast'
 
@@ -54,10 +70,12 @@ const props = defineProps({
 })
 
 const emit = defineEmits(['completed', 'go-back'])
+const { t } = useI18n()
 const { showToast } = useToast()
 
 const recordingType = ref('eeg')
 const file = ref(null)
+const customFileName = ref('')
 const order = ref(0)
 const description = ref('')
 const isUploading = ref(false)
@@ -71,7 +89,15 @@ const uploadFile = async () => {
   isUploading.value = true
   
   const formData = new FormData()
-  formData.append('file', file.value)
+  
+  let uploadFileName = file.value.name
+  if (customFileName.value.trim() !== '') {
+    const extension = uploadFileName.split('.').pop()
+    uploadFileName = `${customFileName.value.trim()}.${extension}`
+  }
+
+  formData.append('file', file.value, uploadFileName)
+  
   formData.append('session', props.sessionId) 
   formData.append('order', order.value)
   if (description.value) {
@@ -87,11 +113,11 @@ const uploadFile = async () => {
     await api.post(endpoint, formData, {
       headers: { 'Content-Type': 'multipart/form-data' }
     })
-    showToast('Erfolgreich hochgeladen!', 'success')
+    showToast(t('views.runner.upload_success'), 'success')
     emit('completed')
   } catch (error) {
     console.error(error)
-    showToast('Fehler beim Upload', 'error')
+    showToast(t('views.runner.upload_error'), 'error')
   } finally {
     isUploading.value = false
   }

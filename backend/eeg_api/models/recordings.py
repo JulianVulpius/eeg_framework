@@ -1,14 +1,19 @@
 from django.db import models
+from django.utils.text import get_valid_filename
 from .base import AuditBaseModel
 
 def eeg_directory_path(instance, filename):
-    return f'recordings/eeg/{filename}'
+    event_name = get_valid_filename(instance.session.event.name)
+    return f'recordings/eeg/{event_name}/{filename}'
 
 def hr_directory_path(instance, filename):
-    return f'recordings/heartrate/{filename}'
+    event_name = get_valid_filename(instance.session.event.name)
+    return f'recordings/heartrate/{event_name}/{filename}'
 
 def generic_directory_path(instance, filename):
-    return f'recordings/generic/{filename}'
+    event_name = get_valid_filename(instance.session.event.name)
+    return f'recordings/generic/{event_name}/{filename}'
+
 
 
 class EEGDataFile(AuditBaseModel):

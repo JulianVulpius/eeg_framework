@@ -198,7 +198,22 @@
       "unknown_component": "Unknown component type",
       "empty_page": "This page has no configured content.",
       "view_report": "View Recorded Data",
-      "empty_blueprint": "No tasks assigned for this audience in the selected phase."
+      "empty_blueprint": "No tasks assigned for this audience in the selected phase.",
+      "upload_title": "📁 Upload Measurements",
+      "upload_type": "Recording Type",
+      "upload_type_eeg": "EEG Data",
+      "upload_type_hr": "Heart Rate Data",
+      "upload_type_generic": "Generic Recording",
+      "upload_file": "Select File",
+      "upload_custom_name": "Custom Filename (optional)",
+      "upload_custom_name_placeholder": "E.g. Subject_1_Run_2 (without extension)",
+      "upload_order": "Order",
+      "upload_desc": "Description / Notes",
+      "upload_desc_placeholder": "Anomalies during the recording...",
+      "upload_btn_uploading": "Uploading...",
+      "upload_btn_upload": "Upload & Continue",
+      "upload_success": "Upload successful!",
+      "upload_error": "Error during upload"
     },
     "launcher": {
       "select_event": "1. Select Event / Study",

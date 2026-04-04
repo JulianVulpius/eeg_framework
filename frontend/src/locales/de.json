@@ -198,7 +198,22 @@
       "unknown_component": "Unbekannter Komponententyp",
       "empty_page": "Diese Seite hat keinen konfigurierten Inhalt.",
       "view_report": "Erfasste Daten ansehen",
-      "empty_blueprint": "Keine Aufgaben für diese Zielgruppe in der gewählten Phase."
+      "empty_blueprint": "Keine Aufgaben für diese Zielgruppe in der gewählten Phase.",
+      "upload_title": "📁 Messdaten hochladen",
+      "upload_type": "Art der Messung",
+      "upload_type_eeg": "EEG Daten",
+      "upload_type_hr": "Herzfrequenz (Heart Rate)",
+      "upload_type_generic": "Generische Aufzeichnung",
+      "upload_file": "Datei auswählen",
+      "upload_custom_name": "Eigener Dateiname (optional)",
+      "upload_custom_name_placeholder": "Z.B. Proband_1_Run_2 (ohne Dateiendung)",
+      "upload_order": "Reihenfolge (Order)",
+      "upload_desc": "Beschreibung / Notizen",
+      "upload_desc_placeholder": "Auffälligkeiten während der Messung...",
+      "upload_btn_uploading": "Wird hochgeladen...",
+      "upload_btn_upload": "Hochladen & Weiter",
+      "upload_success": "Erfolgreich hochgeladen!",
+      "upload_error": "Fehler beim Upload"
     },
     "launcher": {
       "select_event": "1. Event / Studie auswählen",
