@@ -127,9 +127,7 @@
                 </div>
                 <span v-else class="text-muted">{{ $t('views.events.no_phases_assigned') }}</span>
               </td>
-              <td>
-                <TableActionButtons @edit="openModal('group', grp)" @delete="deleteEntity('event-management/groups', grp.id, loadGroups)" v-if="hasPermission('admin')" />
-              </td>
+              <TableActionButtons @edit="openModal('group', grp)" @delete="deleteEntity('event-management/groups', grp.id, loadGroups)" v-if="hasPermission('admin')" />
             </tr>
             <tr v-if="!filteredGroups.length"><td colspan="4" class="text-center">{{ $t('common.no_data') }}</td></tr>
           </tbody>
@@ -178,9 +176,7 @@
                 <span v-if="sub.groups.length === 0" class="text-muted">{{ $t('views.events.no_group') }}</span>
                 <span v-else>{{ sub.groups.map(gId => getEntityName(eventGroups, gId)).join(', ') }}</span>
               </td>
-              <td>
-                <TableActionButtons @edit="openModal('subject', sub)" @delete="deleteSubjectGroup(sub)" v-if="hasPermission('admin') || hasPermission('add_subjects')" />
-              </td>
+              <TableActionButtons @edit="openModal('subject', sub)" @delete="deleteSubjectGroup(sub)" v-if="hasPermission('admin') || hasPermission('add_subjects')" />
             </tr>
             <tr v-if="!filteredSubjects.length"><td colspan="5" class="text-center">{{ $t('common.no_data') }}</td></tr>
           </tbody>
@@ -206,9 +202,7 @@
               <td><strong>{{ getMockUserName(staff.user) }}</strong></td>
               <td>{{ getEntityName(eventRoles, staff.role) }}</td>
               <td>{{ getEntityName(eventGroups, staff.target_group) || $t('views.events.global_all_groups') }}</td>
-              <td>
-                <TableActionButtons @edit="openModal('staff', staff)" @delete="deleteEntity('event-management/staff-assignments', staff.id, loadStaff)" v-if="hasPermission('admin')" />
-              </td>
+              <TableActionButtons @edit="openModal('staff', staff)" @delete="deleteEntity('event-management/staff-assignments', staff.id, loadStaff)" v-if="hasPermission('admin')" />
             </tr>
             <tr v-if="!filteredStaff.length"><td colspan="4" class="text-center">{{ $t('common.no_data') }}</td></tr>
           </tbody>
@@ -232,9 +226,7 @@
             <tr v-for="role in filteredRoles" :key="role.id">
               <td><strong>{{ role.name }}</strong></td>
               <td>{{ role.permissions ? role.permissions.join(', ') : '-' }}</td>
-              <td>
-                <TableActionButtons @edit="openModal('role', role)" @delete="deleteEntity('event-management/roles', role.id, loadRoles)" />
-              </td>
+              <TableActionButtons @edit="openModal('role', role)" @delete="deleteEntity('event-management/roles', role.id, loadRoles)" />
             </tr>
             <tr v-if="!filteredRoles.length"><td colspan="3" class="text-center">{{ $t('common.no_data') }}</td></tr>
           </tbody>

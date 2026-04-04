@@ -158,7 +158,11 @@
     "pages": {
       "assign_components": "Bausteine zuweisen",
       "available_components": "Verfügbare Bausteine",
-      "selected_components": "Seiteninhalt (Reihenfolge)"
+      "selected_components": "Seiteninhalt (Reihenfolge)",
+      "scope": "Scope",
+      "scope_all": "Alle",
+      "scope_subject": "Nur Proband (ePRO)",
+      "scope_admin": "Nur Versuchsleiter (Admin)"
     },
     "components": {
       "type": "Komponenten-Typ",
@@ -193,7 +197,8 @@
       "back_home": "Zurück zur Übersicht",
       "unknown_component": "Unbekannter Komponententyp",
       "empty_page": "Diese Seite hat keinen konfigurierten Inhalt.",
-      "view_report": "Erfasste Daten ansehen"
+      "view_report": "Erfasste Daten ansehen",
+      "empty_blueprint": "Keine Aufgaben für diese Zielgruppe in der gewählten Phase."
     },
     "launcher": {
       "select_event": "1. Event / Studie auswählen",
@@ -208,7 +213,11 @@
       "session_exists_desc": "Für diesen Probanden wurde in dieser Phase bereits eine Sitzung gestartet. Möchtest du die Sitzung fortsetzen oder alle bisherigen Eingaben löschen und neu beginnen?",
       "btn_resume": "Fortsetzen",
       "btn_reset": "Reset & Neu starten",
-      "select_location": "Standort auswählen"
+      "select_location": "Standort auswählen",
+      "select_scope": "Zielgruppe (Ausführungs-Scope)",
+      "scope_all": "Vollständig (Alle Seiten laden)",
+      "scope_subject": "Probanden-Ansicht (Nur Probanden-Seiten)",
+      "scope_admin": "Admin-Ansicht (Nur Versuchsleiter-Seiten)"
     },
     "events": {
       "start": "Startdatum",

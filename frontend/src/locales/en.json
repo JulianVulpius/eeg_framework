@@ -147,8 +147,7 @@
     "timestamp": "Timestamp",
     "location": "Location",
     "btn_combined": "Combined Report",
-    "btn_single": "Single Report",
-    "btn_pagegroup": "PageGroup Report"
+    "btn_single": "Single Report"
   },
     "page_groups": {
       "assign_pages": "Assign Pages",
@@ -158,7 +157,12 @@
     "pages": {
       "assign_components": "Assign Components",
       "available_components": "Available Components",
-      "selected_components": "Page Content (Order)"
+      "selected_components": "Page Content (Order)",
+      "btn_pagegroup": "PageGroup Report",
+      "scope": "Scope",
+      "scope_all": "All",
+      "scope_subject": "Subject Only (ePRO)",
+      "scope_admin": "Admin Only"
     },
     "components": {
       "type": "Component Type",
@@ -193,7 +197,8 @@
       "back_home": "Back to Overview",
       "unknown_component": "Unknown component type",
       "empty_page": "This page has no configured content.",
-      "view_report": "View Recorded Data"
+      "view_report": "View Recorded Data",
+      "empty_blueprint": "No tasks assigned for this audience in the selected phase."
     },
     "launcher": {
       "select_event": "1. Select Event / Study",
@@ -208,7 +213,11 @@
       "session_exists_desc": "A session for this subject in this phase has already been started. Would you like to resume the session or delete all previous inputs and start over?",
       "btn_resume": "Resume Session",
       "btn_reset": "Reset & Restart",
-      "select_location": "Select Location"
+      "select_location": "Select Location",
+      "select_scope": "Target Audience (Execution Scope)",
+      "scope_all": "Complete (Load all pages)",
+      "scope_subject": "Subject View (Subject pages only)",
+      "scope_admin": "Admin View (Admin pages only)"
     },
     "events": {
       "start": "Start Date",

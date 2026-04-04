@@ -81,6 +81,16 @@
             :leftFilterFn="filterAvailableLogic"
             :rightFilterFn="filterSelectedLogic"
           >
+            <template #list-item="{ item }">
+              <span>{{ item.originalName || item.name }}</span>
+              <span v-if="item.scope === 'ADMIN'" style="color: #e74c3c; margin-left: 6px; font-size: 0.73em;">
+                {{ getScopeLabel(item.scope) }} 
+              </span>
+              <span v-else-if="item.scope === 'SUBJECT'" style="color: #1A5276; margin-left: 6px;font-size: 0.73em;">
+                {{ getScopeLabel(item.scope) }} 
+              </span>
+            </template>
+
             <template #left-filters>
               <BaseSearchSelect v-model="filterAvailable" :options="pageCategories" :placeholder="$t('views.metadata.search_category')" :nullLabel="$t('views.metadata.filter_category_all')" />
             </template>
@@ -127,6 +137,12 @@ const pageCategories = ref([])
 const filterAvailable = ref(null)
 const filterSelected = ref(null)
 
+const scopeOptions = computed(() => [
+  { id: 'ALL', name: t('views.pages.scope_all') },
+  { id: 'SUBJECT', name: t('views.pages.scope_subject') },
+  { id: 'ADMIN', name: t('views.pages.scope_admin') }
+])
+
 const columnFilters = ref({
   name: '',
   category: '',
@@ -172,6 +188,11 @@ const getCategoryName = (id) => {
   return cat ? cat.name : '-'
 }
 
+const getScopeLabel = (val) => {
+  const scopeObj = scopeOptions.value.find(s => s.id === val)
+  return scopeObj ? scopeObj.name : val
+}
+
 const resetForm = () => {
   formData.value = { name: '', category: null, description: '', pages: [] }
   filterAvailable.value = null
@@ -199,8 +220,16 @@ const loadData = async () => {
     ])
     items.value = pgRes.data
     categories.value = catRes.data
-    availablePages.value = pageRes.data
     pageCategories.value = pageCatRes.data
+
+    availablePages.value = pageRes.data.map(page => {
+      const isSpecialScope = page.scope && page.scope !== 'ALL';
+      return {
+        ...page,
+        originalName: page.name,
+        name: isSpecialScope ? `${page.name} (${getScopeLabel(page.scope)})` : page.name
+      }
+    })
   } catch (error) {}
 }
 

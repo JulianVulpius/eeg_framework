@@ -57,6 +57,8 @@ class SessionViewSet(viewsets.ModelViewSet):
     def blueprint(self, request, pk=None):
         session = self.get_object()
         pg = session.page_group
+
+        scope = request.query_params.get('scope', 'ALL').upper()
         
         blueprint_data = {
             "session_id": session.id,
@@ -68,6 +70,15 @@ class SessionViewSet(viewsets.ModelViewSet):
         pgps = pg.pagegrouppage_set.all().order_by('order')
         for pgp in pgps:
             page = pgp.page
+            
+            page_scope = getattr(page, 'scope', 'ALL') or 'ALL'
+            
+            if scope == 'ADMIN' and page_scope != 'ADMIN':
+                continue
+            
+            if scope == 'SUBJECT' and page_scope == 'ADMIN':
+                continue
+
             page_data = {"id": page.id, "name": page.name, "components": []}
             
             pcs = page.pagecomponent_set.all().order_by('order')

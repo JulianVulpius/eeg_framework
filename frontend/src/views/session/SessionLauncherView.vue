@@ -29,6 +29,13 @@
         <h2>{{ $t('views.launcher.select_location') }} (Optional)</h2>
         <BaseSearchSelect v-model="selectedLocationId" :options="locations" :placeholder="$t('common.search')" :disabled="!selectedEventId" />
       </div>
+
+      <div class="card" :class="{ 'disabled-card': !selectedPageGroupId }">
+        <h2>{{ $t('views.launcher.select_scope') }}</h2>
+        <select v-model="selectedScope" class="form-control" :disabled="!selectedPageGroupId" style="width: 100%; padding: 10px; font-size: 1rem; border: 1px solid #dcdde1; border-radius: 4px; background-color: #fff;">
+          <option v-for="opt in scopeOptions" :key="opt.id" :value="opt.id">{{ opt.name }}</option>
+        </select>
+      </div>
     </div>
 
     <div class="action-footer">
@@ -117,6 +124,7 @@ const selectedEventId = ref(null)
 const selectedPageGroupId = ref(null)
 const selectedSubjectId = ref(null)
 const selectedLocationId = ref(null)
+const selectedScope = ref('ALL')
 
 const isSubjectModalOpen = ref(false)
 const isResumeModalOpen = ref(false)
@@ -131,6 +139,12 @@ const subjects = computed(() => rawSubjects.value.map(s => ({
   id: s.id, 
   name: `${s.identifier} ${s.first_name ? '(' + s.first_name + ' ' + s.last_name + ')' : ''}` 
 })))
+
+const scopeOptions = computed(() => [
+  { id: 'ALL', name: t('views.launcher.scope_all') },
+  { id: 'SUBJECT', name: t('views.launcher.scope_subject') },
+  { id: 'ADMIN', name: t('views.launcher.scope_admin') }
+])
 
 const availablePageGroups = computed(() => {
   if (!selectedEventId.value) return []
@@ -187,21 +201,21 @@ const startSession = async () => {
       existingSessionId.value = response.data.id
       isResumeModalOpen.value = true
     } else {
-      router.push({ path: '/sessions/runner', query: { sessionId: response.data.id } })
+      router.push({ path: '/sessions/runner', query: { sessionId: response.data.id, scope: selectedScope.value } })
     }
   } catch (error) {}
 }
 
 const resumeSession = () => {
   isResumeModalOpen.value = false
-  router.push({ path: '/sessions/runner', query: { sessionId: existingSessionId.value } })
+  router.push({ path: '/sessions/runner', query: { sessionId: existingSessionId.value, scope: selectedScope.value } })
 }
 
 const resetSession = async () => {
   try {
     await api.post(`sessions/${existingSessionId.value}/reset/`)
     isResumeModalOpen.value = false
-    router.push({ path: '/sessions/runner', query: { sessionId: existingSessionId.value } })
+    router.push({ path: '/sessions/runner', query: { sessionId: existingSessionId.value, scope: selectedScope.value } })
   } catch (error) {}
 }
 

@@ -103,9 +103,16 @@ class PageCategory(models.Model):
         return self.name
 
 class Page(AuditBaseModel):
+    class Scope(models.TextChoices):
+        ALL = 'ALL', 'All (Subject & Admin)'
+        SUBJECT = 'SUBJECT', 'Subject Only'
+        ADMIN = 'ADMIN', 'Admin Only'
+
     name = models.CharField(max_length=150)
     category = models.ForeignKey(PageCategory, on_delete=models.PROTECT, null=True, blank=True)
     description = models.TextField(blank=True, null=True)
+
+    scope = models.CharField(max_length=20, choices=Scope.choices, default=Scope.ALL)
     
     components = models.ManyToManyField(
         Component, 
@@ -117,7 +124,7 @@ class Page(AuditBaseModel):
         db_table = 'Page'
 
     def __str__(self):
-        return self.name
+        return f"{self.name} ({self.get_scope_display()})"
 
 class PageComponent(models.Model):
     page = models.ForeignKey(Page, on_delete=models.CASCADE)

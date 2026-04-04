@@ -4,9 +4,20 @@
       <label>{{ leftTitle }}</label>
       <slot name="left-filters"></slot>
       <input type="text" v-model="searchLeft" :placeholder="searchPlaceholder" class="shuffle-search" />
-      <select multiple v-model="selectedLeft" class="shuffle-list">
-        <option v-for="opt in leftOptions" :key="opt.id" :value="opt.id">{{ opt.name }}</option>
-      </select>
+      
+      <div class="shuffle-list custom-list">
+        <div 
+          v-for="opt in leftOptions" 
+          :key="opt.id" 
+          class="custom-option"
+          :class="{ selected: selectedLeft.includes(opt.id) }"
+          @click="toggleSelect(opt.id, 'left')"
+        >
+          <slot name="list-item" :item="opt">
+            {{ opt.name }}
+          </slot>
+        </div>
+      </div>
     </div>
 
     <div class="shuffle-controls">
@@ -21,9 +32,21 @@
       <slot name="right-filters"></slot>
       <input type="text" v-model="searchRight" :placeholder="searchPlaceholder" class="shuffle-search full-width" />
       <div class="list-with-controls">
-        <select multiple v-model="selectedRight" class="shuffle-list">
-          <option v-for="opt in rightOptions" :key="opt.id" :value="opt.id">{{ opt.name }}</option>
-        </select>
+        
+        <div class="shuffle-list custom-list">
+          <div 
+            v-for="opt in rightOptions" 
+            :key="opt.id" 
+            class="custom-option"
+            :class="{ selected: selectedRight.includes(opt.id) }"
+            @click="toggleSelect(opt.id, 'right')"
+          >
+            <slot name="list-item" :item="opt">
+              {{ opt.name }}
+            </slot>
+          </div>
+        </div>
+
         <div class="order-controls" v-if="enableOrdering">
           <button type="button" class="btn-order" @click="moveUp" :disabled="!selectedRight.length">↑</button>
           <button type="button" class="btn-order" @click="moveDown" :disabled="!selectedRight.length">↓</button>
@@ -71,6 +94,16 @@ const rightOptions = computed(() => {
   })
 })
 
+const toggleSelect = (id, side) => {
+  const targetArray = side === 'left' ? selectedLeft.value : selectedRight.value;
+  const index = targetArray.indexOf(id);
+  if (index > -1) {
+    targetArray.splice(index, 1);
+  } else {
+    targetArray.push(id);
+  }
+}
+
 const moveRight = () => {
   emit('update:modelValue', [...props.modelValue, ...selectedLeft.value])
   selectedLeft.value = []
@@ -113,3 +146,36 @@ const moveDown = () => {
   emit('update:modelValue', arr)
 }
 </script>
+
+<style scoped>
+.custom-list {
+  background: #fff;
+  border: 1px solid #dcdde1;
+  border-radius: 4px;
+  overflow-y: auto;
+  min-height: 200px;
+  max-height: 300px;
+}
+
+.custom-option {
+  padding: 8px 12px;
+  cursor: pointer;
+  user-select: none;
+  border-bottom: 1px solid #f1f2f6;
+  transition: background-color 0.1s;
+}
+
+.custom-option:last-child {
+  border-bottom: none;
+}
+
+.custom-option:hover {
+  background: #f8f9fa;
+}
+
+.custom-option.selected {
+  background: #e8f4f8;
+  color: #2c3e50;
+  font-weight: 500;
+}
+</style>

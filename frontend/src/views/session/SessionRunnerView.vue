@@ -7,7 +7,7 @@
         <span class="separator">/</span>
         <span class="group-name">{{ blueprint?.page_group_name || '...' }}</span>
       </div>
-      <div v-if="blueprint" class="progress">
+      <div v-if="blueprint && !isEmptyBlueprint" class="progress">
         {{ $t('views.runner.page') }} {{ currentPageIndex + 1 }} / {{ blueprint.pages.length }}
       </div>
     </div>
@@ -18,7 +18,17 @@
 
     <template v-else-if="blueprint">
       
-      <div v-show="isFinished" class="finished-state card">
+      <div v-if="isEmptyBlueprint" class="finished-state card">
+        <h2>⚠️ {{ $t('views.runner.empty_blueprint') }}</h2>
+        
+        <div style="margin-top: 30px; display: flex; justify-content: center; align-items: center;">
+          <router-link to="/sessions/launcher" class="btn-secondary" style="text-decoration: none;">
+            &larr; {{ $t('actions.back') }}
+          </router-link>
+        </div>
+      </div>
+
+      <div v-else-if="isFinished" class="finished-state card">
         <h2>🎉 {{ $t('views.runner.finished_title') }}</h2>
         <p>{{ $t('views.runner.finished_desc') }}</p>
         
@@ -36,7 +46,7 @@
         </div>
       </div>
 
-      <div v-show="!isFinished" class="page-container">
+      <div v-else class="page-container">
         <div 
           v-for="(page, index) in blueprint.pages" 
           :key="page.id" 
@@ -80,26 +90,32 @@
 
 <script setup>
 import { ref, computed, onMounted } from 'vue'
-import { useRoute } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 import api from '@/services/api'
 
 import StandardTextBlock from '@/components/runner/StandardTextBlock.vue'
 import StandardMetadataForm from '@/components/runner/StandardMetadataForm.vue'
 
 const route = useRoute()
+const router = useRouter()
 
 const sessionId = route.query.sessionId
+const scope = route.query.scope || 'ALL'
 
 const blueprint = ref(null)
 const isLoading = ref(true)
 const isFinished = ref(false)
+const isEmptyBlueprint = ref(false)
 const currentPageIndex = ref(0)
 
 const loadBlueprint = async () => {
   try {
-    const response = await api.get(`sessions/${sessionId}/blueprint/`)
+    const response = await api.get(`sessions/${sessionId}/blueprint/?scope=${scope}`)
     blueprint.value = response.data
-    if (blueprint.value.pages.length === 0) isFinished.value = true
+    
+    if (blueprint.value.pages.length === 0) {
+      isEmptyBlueprint.value = true
+    }
   } catch (error) { 
     console.error(error) 
   } finally { 

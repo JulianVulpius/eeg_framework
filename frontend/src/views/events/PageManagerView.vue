@@ -10,10 +10,13 @@
             <th style="width: 20%;">
               <ColumnHeaderFilter :title="$t('common.name')" v-model="columnFilters.name" :placeholder="$t('common.search')" />
             </th>
-            <th style="width: 20%;">
+            <th style="width: 15%;">
               <ColumnHeaderFilter :title="$t('master_data.category')" v-model="columnFilters.category" :placeholder="$t('common.search')" />
             </th>
-            <th style="width: 25%;">
+            <th style="width: 15%;">
+              <ColumnHeaderFilter :title="$t('views.pages.scope')" v-model="columnFilters.scope" :placeholder="$t('common.search')" />
+            </th>
+            <th style="width: 20%;">
               <ColumnHeaderFilter :title="$t('common.description')" v-model="columnFilters.description" :placeholder="$t('common.search')" />
             </th>
             <th style="width: 15%;">
@@ -24,12 +27,13 @@
         </thead>
         <tbody>
           <tr v-if="filteredItems.length === 0">
-            <td :colspan="crud.showIdColumn.value ? 6 : 5" class="empty-state">{{ $t('common.no_data') }}</td>
+            <td :colspan="crud.showIdColumn.value ? 7 : 6" class="empty-state">{{ $t('common.no_data') }}</td>
           </tr>
           <tr v-for="item in filteredItems" :key="item.id">
             <td v-if="crud.showIdColumn.value" class="id-column">{{ item.id }}</td>
             <td><strong>{{ item.name }}</strong></td>
             <td><span class="badge category-badge">{{ getCategoryName(item.category) }}</span></td>
+            <td><span class="badge secondary-badge">{{ getScopeLabel(item.scope) }}</span></td>
             <td>{{ item.description || '-' }}</td>
             <td>{{ item.created_by_name || item.created_by || '-' }}</td>
             <TableActionButtons @edit="crud.openEditDialog(item.id, () => populateForm(item))" @delete="confirmAndDelete(item.id)" />
@@ -41,7 +45,7 @@
     <BaseModal :isOpen="crud.isDialogOpen.value" :title="crud.isEditing.value ? $t('modal.edit_record') : $t('modal.add_record')" @close="crud.closeDialog" customClass="large-modal">
       <form @submit.prevent="saveRecord">
         <div class="form-row" style="display: flex; gap: 1rem; margin-bottom: 1rem;">
-          <div class="form-group" style="flex: 1;">
+          <div class="form-group" style="flex: 2;">
             <label>{{ $t('common.name') }} *</label>
             <input type="text" v-model="formData.name" class="form-control" :class="{ 'input-invalid': crud.fieldErrors.value.name }" />
             <BaseInputError :message="crud.fieldErrors.value.name" />
@@ -49,6 +53,13 @@
           <div class="form-group" style="flex: 1;">
             <label>{{ $t('master_data.category') }}</label>
             <BaseSearchSelect v-model="formData.category" :options="categories" :nullLabel="$t('master_data.none')" />
+          </div>
+          <div class="form-group" style="flex: 1;">
+            <label>{{ $t('views.pages.scope') }} *</label>
+            <select v-model="formData.scope" class="form-control" :class="{ 'input-invalid': crud.fieldErrors.value.scope }">
+              <option v-for="opt in scopeOptions" :key="opt.id" :value="opt.id">{{ opt.name }}</option>
+            </select>
+            <BaseInputError :message="crud.fieldErrors.value.scope" />
           </div>
         </div>
 
@@ -114,9 +125,16 @@ const componentCategories = ref([])
 const filterAvailable = ref(null)
 const filterSelected = ref(null)
 
+const scopeOptions = computed(() => [
+  { id: 'ALL', name: t('views.pages.scope_all') },
+  { id: 'SUBJECT', name: t('views.pages.scope_subject') },
+  { id: 'ADMIN', name: t('views.pages.scope_admin') }
+])
+
 const columnFilters = ref({
   name: '',
   category: '',
+  scope: '', 
   description: '',
   creator: ''
 })
@@ -131,6 +149,11 @@ const filterSelectedLogic = (opt) => {
   return opt.category === filterSelected.value
 }
 
+const getScopeLabel = (val) => {
+  const scopeObj = scopeOptions.value.find(s => s.id === val)
+  return scopeObj ? scopeObj.name : val
+}
+
 const filteredItems = computed(() => {
   return items.value.filter(item => {
     if (columnFilters.value.name && !item.name.toLowerCase().includes(columnFilters.value.name.toLowerCase())) return false
@@ -138,6 +161,11 @@ const filteredItems = computed(() => {
     if (columnFilters.value.category) {
       const cName = getCategoryName(item.category).toLowerCase()
       if (!cName.includes(columnFilters.value.category.toLowerCase())) return false
+    }
+
+    if (columnFilters.value.scope) {
+      const sLabel = getScopeLabel(item.scope).toLowerCase()
+      if (!sLabel.includes(columnFilters.value.scope.toLowerCase())) return false
     }
 
     if (columnFilters.value.creator) {
@@ -151,7 +179,7 @@ const filteredItems = computed(() => {
   })
 })
 
-const formData = ref({ name: '', category: null, description: '', components: [] })
+const formData = ref({ name: '', category: null, scope: 'ALL', description: '', components: [] })
 
 const getCategoryName = (id) => {
   const cat = categories.value.find(c => c.id === id)
@@ -159,13 +187,19 @@ const getCategoryName = (id) => {
 }
 
 const resetForm = () => { 
-  formData.value = { name: '', category: null, description: '', components: [] } 
+  formData.value = { name: '', category: null, scope: 'ALL', description: '', components: [] } 
   filterAvailable.value = null
   filterSelected.value = null
 }
 
 const populateForm = (item) => { 
-  formData.value = { name: item.name, category: item.category, description: item.description || '', components: item.components || [] } 
+  formData.value = { 
+    name: item.name, 
+    category: item.category, 
+    scope: item.scope || 'ALL', 
+    description: item.description || '', 
+    components: item.components || [] 
+  } 
   filterAvailable.value = null
   filterSelected.value = null 
 }

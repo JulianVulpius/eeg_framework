@@ -38,7 +38,7 @@ class PageSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Page
-        fields = ['id', 'name', 'category', 'description', 'components']
+        fields = ['id', 'name', 'category', 'description', 'scope', 'components']
 
     def create(self, validated_data):
         components_data = validated_data.pop('components', [])
@@ -57,6 +57,7 @@ class PageSerializer(serializers.ModelSerializer):
         instance.name = validated_data.get('name', instance.name)
         instance.category = validated_data.get('category', instance.category)
         instance.description = validated_data.get('description', instance.description)
+        instance.scope = validated_data.get('scope', instance.scope)
         instance.save()
         return instance
 
