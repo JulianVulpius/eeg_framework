@@ -128,7 +128,7 @@ const uploadFile = async () => {
     formData.append('category', selectedGenericCategory.value)
   }
   
-  let endpoint = recordingType.value === 'eeg' ? 'recordings/eeg/' : (recordingType.value === 'hr' ? 'recordings/heartrate/' : 'recordings/generic/')
+  let endpoint = recordingType.value === 'eeg' ? 'recordings/eeg/' : (recordingType.value === 'hr' ? 'recordings/heart-rate/' : 'recordings/generic/')
 
   try {
     await api.post(endpoint, formData, { headers: { 'Content-Type': 'multipart/form-data' } })

@@ -175,7 +175,8 @@
       "text_content": "Text Content",
       "text_auto_hint": "Use the editor to format your text. Malicious scripts are automatically blocked during display (XSS protection).",
       "select_type_prompt": "Please select a component type above to configure its settings.",
-      "no_config_needed": "No further configuration is required for this component type."
+      "no_config_needed": "No further configuration is required for this component type.",
+      "show_component_title": "Show component name as title"
     },
     "report": {
       "title": "Session Report",

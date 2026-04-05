@@ -1,5 +1,6 @@
 import os
 from django.db import models
+from django.apps import apps
 from django.utils.text import get_valid_filename
 from .base import AuditBaseModel
 
@@ -13,20 +14,33 @@ def hr_directory_path(instance, filename):
 
 def generic_directory_path(instance, filename):
     event_name = get_valid_filename(instance.session.event.name)
-    
     if instance.category:
         cat_name = get_valid_filename(instance.category.name)
     else:
-        cat_name = "undefined"
+        cat_name = "Uncategorized"
     return f'recordings/custom/{cat_name}/{event_name}/{filename}'
 
-def cleanup_old_upload(model_class, session, order):
-    """Sucht nach alten Dateien für denselben Slot und löscht die physische Datei."""
-    old_entry = model_class.objects.filter(session=session, order=order).first()
-    if old_entry and old_entry.file:
-        if os.path.isfile(old_entry.file.path):
-            os.remove(old_entry.file.path)
-        old_entry.delete()
+def cleanup_old_upload(session, order, current_instance):
+    """Sucht nach alten Dateien für denselben Slot über ALLE 3 Tabellen hinweg und löscht sie."""
+    
+    EEGDataFile = apps.get_model('eeg_api', 'EEGDataFile')
+    HeartRateDataFile = apps.get_model('eeg_api', 'HeartRateDataFile')
+    GenericRecording = apps.get_model('eeg_api', 'GenericRecording')
+    
+    for model_class in [EEGDataFile, HeartRateDataFile, GenericRecording]:
+        old_entries = model_class.objects.filter(session=session, order=order)
+        
+        for old_entry in old_entries:
+            if old_entry.pk == current_instance.pk and type(old_entry) == type(current_instance):
+                continue
+            
+            if old_entry.file and os.path.isfile(old_entry.file.path):
+                try:
+                    os.remove(old_entry.file.path)
+                except OSError:
+                    pass
+            
+            old_entry.delete()
 
 class EEGDataFile(AuditBaseModel):
     session = models.ForeignKey('eeg_api.Session', on_delete=models.CASCADE, related_name='eeg_recordings')
@@ -37,7 +51,7 @@ class EEGDataFile(AuditBaseModel):
     description = models.TextField(blank=True, null=True)
 
     def save(self, *args, **kwargs):
-        cleanup_old_upload(EEGDataFile, self.session, self.order)
+        cleanup_old_upload(self.session, self.order, self)
         super().save(*args, **kwargs)
 
     class Meta:
@@ -57,7 +71,7 @@ class HeartRateDataFile(AuditBaseModel):
     description = models.TextField(blank=True, null=True)
 
     def save(self, *args, **kwargs):
-        cleanup_old_upload(HeartRateDataFile, self.session, self.order)
+        cleanup_old_upload(self.session, self.order, self)
         super().save(*args, **kwargs)
 
     class Meta:
@@ -94,9 +108,8 @@ class GenericRecording(AuditBaseModel):
         related_name='generic_recordings'
     )
 
-
     def save(self, *args, **kwargs):
-        cleanup_old_upload(GenericRecording, self.session, self.order)
+        cleanup_old_upload(self.session, self.order, self)
         super().save(*args, **kwargs)
 
     class Meta:

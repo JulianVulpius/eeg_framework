@@ -77,6 +77,18 @@
               @update:modelValue="updateMetadataParameter"
             />
             <small class="hint-text">{{ $t('views.components.metadata_auto_hint') }}</small>
+
+            <div style="margin-top: 15px; padding-top: 10px; border-top: 1px solid #eee;">
+              <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; color: #2c3e50; font-weight: 500;">
+                <input 
+                  type="checkbox" 
+                  v-model="showMetadataTitle" 
+                  @change="updateMetadataParameter(selectedMetadataGroupId)" 
+                  style="width: 18px; height: 18px;"
+                />
+                {{ $t('views.components.show_component_title') }}
+              </label>
+            </div>
           </div>
 
           <div v-else-if="isTextBlockSelected" class="dynamic-config-box">
@@ -156,6 +168,7 @@ const columnFilters = ref({
 const selectedMetadataGroupId = ref(null)
 const textContent = ref('')
 const uploadOrder = ref(1) 
+const showMetadataTitle = ref(true)
 
 const getTypeName = (id) => { const t = types.value.find(x => x.id === id); return t ? t.name : id }
 const getCategoryName = (id) => { const c = categories.value.find(x => x.id === id); return c ? c.name : '-' }
@@ -215,7 +228,10 @@ watch(() => formData.value.component_type, () => {
 })
 
 const updateMetadataParameter = (groupId) => {
-  formData.value.parameter = groupId ? JSON.stringify({ metadata_group_id: groupId }) : '{}'
+  formData.value.parameter = groupId ? JSON.stringify({ 
+    metadata_group_id: groupId,
+    show_title: showMetadataTitle.value 
+  }) : '{}'
 }
 
 const updateTextParameter = () => {
@@ -231,6 +247,7 @@ const resetForm = () => {
   selectedMetadataGroupId.value = null
   textContent.value = ''
   uploadOrder.value = 1 
+  showMetadataTitle.value = true 
 }
 
 const populateForm = (item) => {
@@ -240,6 +257,7 @@ const populateForm = (item) => {
   selectedMetadataGroupId.value = null
   textContent.value = ''
   uploadOrder.value = 1
+  showMetadataTitle.value = true
   
   try {
     const parsed = JSON.parse(paramStr)
@@ -249,9 +267,14 @@ const populateForm = (item) => {
     if (parsed && parsed.text) {
       textContent.value = parsed.text
     }
-
     if (parsed && parsed.order !== undefined) {
       uploadOrder.value = parsed.order
+    }
+
+    if (parsed && parsed.show_title !== undefined) {
+      showMetadataTitle.value = parsed.show_title
+    } else {
+      showMetadataTitle.value = true
     }
   } catch(e) { console.error("Could not parse parameters on edit.") }
 }
@@ -299,31 +322,9 @@ onMounted(loadData)
 </script>
 
 <style scoped>
-.dynamic-config-box {
-  background: #fdfdfd; 
-  padding: 15px 20px; 
-  border-radius: 6px; 
-  border: 1px solid #e0e0e0;
-  box-shadow: inset 0 2px 4px rgba(0,0,0,0.02);
-}
-
-.empty-config-box {
-  padding: 30px 20px; 
-  text-align: center; 
-  background: #f8f9fa; 
-  border: 2px dashed #dcdde1; 
-  border-radius: 6px; 
-  color: #7f8c8d;
-  font-style: italic;
-}
-
-.hint-text {
-  color: #95a5a6; 
-  display: block; 
-  margin-top: 8px;
-  font-size: 0.85rem;
-}
-
+.dynamic-config-box { background: #fdfdfd; padding: 15px 20px; border-radius: 6px; border: 1px solid #e0e0e0; box-shadow: inset 0 2px 4px rgba(0,0,0,0.02); }
+.empty-config-box { padding: 30px 20px; text-align: center; background: #f8f9fa; border: 2px dashed #dcdde1; border-radius: 6px; color: #7f8c8d; font-style: italic; }
+.hint-text { color: #95a5a6; display: block; margin-top: 8px; font-size: 0.85rem; }
 :deep(.ql-toolbar) { border-top-left-radius: 4px; border-top-right-radius: 4px; background: #fdfdfd; }
 :deep(.ql-container) { border-bottom-left-radius: 4px; border-bottom-right-radius: 4px; font-size: 1rem; }
 </style>

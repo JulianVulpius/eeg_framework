@@ -1,6 +1,7 @@
 <template>
   <div class="metadata-form-card">
-    <h2 v-if="groupData">{{ groupData.name }}</h2>
+    <h2 v-if="groupData && showTitle">{{ groupData.name }}</h2>
+    
     <p v-if="groupData" class="group-desc">{{ groupData.description }}</p>
 
     <div v-if="isLoading" class="loading">{{ $t('common.loading') }}</div>
@@ -29,7 +30,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, computed } from 'vue'
 import api from '@/services/api'
 
 const props = defineProps({
@@ -43,6 +44,13 @@ const isSaving = ref(false)
 const groupData = ref(null)
 const activeDefinitions = ref([])
 const formValues = ref({})
+
+const showTitle = computed(() => {
+  if (props.parameters && props.parameters.show_title !== undefined) {
+    return props.parameters.show_title
+  }
+  return true 
+})
 
 const loadFormDefinition = async () => {
   try {
