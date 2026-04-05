@@ -43,7 +43,8 @@
     "location_categories": "Standort",
     "trigger_group_categories": "Trigger-Gruppe",
     "playlist_categories": "Playlist",
-    "manufacturer_categories": "Hersteller"
+    "manufacturer_categories": "Hersteller",
+    "generic_recording_categories": "Generic Recording"
   },
   "breadcrumb": {
     "history_single_report": "Einzelbericht",
@@ -81,7 +82,8 @@
     "no": "Nein",
     "must_include": "Muss beinhalten",
     "creator": "Ersteller",
-    "select": "Auswählen..."
+    "select": "Auswählen...",
+    "error": "Fehler"
   },
   "actions": {
     "add_new": "+ Neu hinzufügen",
@@ -213,7 +215,12 @@
       "upload_btn_uploading": "Wird hochgeladen...",
       "upload_btn_upload": "Hochladen & Weiter",
       "upload_success": "Erfolgreich hochgeladen!",
-      "upload_error": "Fehler beim Upload"
+      "upload_error": "Fehler beim Upload",
+      "upload_order_fixed": "Messungs-Nummer (Slot)",
+      "upload_overwrite_warning": "Hinweis: Eine vorhandene Datei für diesen Slot wird ersetzt.",
+      "upload_generic_category": "Dateikategorie",
+      "upload_generic_category_placeholder": "Kategorie suchen/auswählen...",
+      "upload_error_no_category": "Bitte wähle eine Kategorie für das generische File aus!"
     },
     "launcher": {
       "select_event": "1. Event / Studie auswählen",

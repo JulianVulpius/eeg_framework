@@ -1,3 +1,4 @@
+import os
 from django.db import models
 from django.utils.text import get_valid_filename
 from .base import AuditBaseModel
@@ -12,18 +13,32 @@ def hr_directory_path(instance, filename):
 
 def generic_directory_path(instance, filename):
     event_name = get_valid_filename(instance.session.event.name)
-    return f'recordings/generic/{event_name}/{filename}'
+    
+    if instance.category:
+        cat_name = get_valid_filename(instance.category.name)
+    else:
+        cat_name = "undefined"
+    return f'recordings/custom/{cat_name}/{event_name}/{filename}'
 
-
+def cleanup_old_upload(model_class, session, order):
+    """Sucht nach alten Dateien für denselben Slot und löscht die physische Datei."""
+    old_entry = model_class.objects.filter(session=session, order=order).first()
+    if old_entry and old_entry.file:
+        if os.path.isfile(old_entry.file.path):
+            os.remove(old_entry.file.path)
+        old_entry.delete()
 
 class EEGDataFile(AuditBaseModel):
     session = models.ForeignKey('eeg_api.Session', on_delete=models.CASCADE, related_name='eeg_recordings')
     device_instance = models.ForeignKey('eeg_api.DeviceInstance', on_delete=models.PROTECT, null=True, blank=True)
     trigger_group = models.ForeignKey('eeg_api.TriggerGroup', on_delete=models.PROTECT, null=True, blank=True)
     file = models.FileField(upload_to=eeg_directory_path)
+    order = models.PositiveIntegerField(default=1)
+    description = models.TextField(blank=True, null=True)
 
-    order = models.PositiveIntegerField(default=0, help_text="Reihenfolge bei mehreren Dateien")
-    description = models.TextField(blank=True, null=True, help_text="Optionale Notizen des Admins")
+    def save(self, *args, **kwargs):
+        cleanup_old_upload(EEGDataFile, self.session, self.order)
+        super().save(*args, **kwargs)
 
     class Meta:
         db_table = 'EEGDataFile'
@@ -38,9 +53,12 @@ class HeartRateDataFile(AuditBaseModel):
     device_model = models.ForeignKey('eeg_api.DeviceModel', on_delete=models.PROTECT, null=True, blank=True)
     trigger_group = models.ForeignKey('eeg_api.TriggerGroup', on_delete=models.PROTECT, null=True, blank=True)
     file = models.FileField(upload_to=hr_directory_path)
+    order = models.PositiveIntegerField(default=1)
+    description = models.TextField(blank=True, null=True)
 
-    order = models.PositiveIntegerField(default=0, help_text="Reihenfolge bei mehreren Dateien")
-    description = models.TextField(blank=True, null=True, help_text="Optionale Notizen des Admins")
+    def save(self, *args, **kwargs):
+        cleanup_old_upload(HeartRateDataFile, self.session, self.order)
+        super().save(*args, **kwargs)
 
     class Meta:
         db_table = 'HeartRateDataFile'
@@ -63,8 +81,10 @@ class GenericRecordingCategory(models.Model):
 
 class GenericRecording(AuditBaseModel):
     session = models.ForeignKey('eeg_api.Session', on_delete=models.CASCADE, related_name='generic_recordings')
-    category = models.ForeignKey(GenericRecordingCategory, on_delete=models.PROTECT, null=True, blank=True)
     file = models.FileField(upload_to=generic_directory_path)
+    category = models.ForeignKey(GenericRecordingCategory, on_delete=models.PROTECT, null=True, blank=True)
+    order = models.PositiveIntegerField(default=1)
+    description = models.TextField(blank=True, null=True)
 
     trigger_group = models.ForeignKey(
         'TriggerGroup', 
@@ -74,13 +94,15 @@ class GenericRecording(AuditBaseModel):
         related_name='generic_recordings'
     )
 
-    order = models.PositiveIntegerField(default=0, help_text="Reihenfolge bei mehreren Dateien")
-    description = models.TextField(blank=True, null=True, help_text="Optionale Notizen des Admins")
+
+    def save(self, *args, **kwargs):
+        cleanup_old_upload(GenericRecording, self.session, self.order)
+        super().save(*args, **kwargs)
 
     class Meta:
         db_table = 'GenericRecording'
         ordering = ['order']
-
+        
     def __str__(self):
         cat_name = self.category.name if self.category else "Uncategorized"
         return f"{cat_name} - Session {self.session_id} (Pos: {self.order})"

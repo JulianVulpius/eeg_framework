@@ -70,9 +70,7 @@ export const menuStructure = [
       { labelKey: 'nav.location_categories', route: '/categories/location' },
       { labelKey: 'nav.device_model_categories', route: '/categories/device-model' },
       { labelKey: 'nav.manufacturer_categories', route: '/categories/manufacturer' },
-      { labelKey: 'nav.custom_script_categories', route: '/categories/custom-script' },
-      { labelKey: 'nav.data_process_categories', route: '/categories/data-process' },
-      { labelKey: 'nav.data_display_categories', route: '/categories/data-display' }
+      { labelKey: 'nav.generic_recording_categories', route: '/categories/generic-recording' }
     ]
   }
 ];

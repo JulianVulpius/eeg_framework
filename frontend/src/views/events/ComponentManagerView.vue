@@ -93,6 +93,18 @@
             <small class="hint-text">{{ $t('views.components.text_auto_hint') }}</small>
           </div>
 
+          <div v-else-if="isRecordingUploadSelected" class="dynamic-config-box">
+            <label style="color: #e67e22; font-weight: bold; margin-bottom: 10px; display: block;">Messungs-Nummer (Upload Order) *</label>
+            <input 
+              type="number" 
+              v-model="uploadOrder" 
+              class="form-control" 
+              min="1"
+              @input="updateUploadOrderParameter"
+            />
+            <small class="hint-text">Definiert den festen Slot (Order) für diese Aufzeichnung in der Session (z.B. 1 = Baseline, 2 = Task).</small>
+          </div>
+
           <div v-else class="empty-config-box">
             {{ formData.component_type ? $t('views.components.no_config_needed') : $t('views.components.select_type_prompt') }}
           </div>
@@ -108,7 +120,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted, computed } from 'vue'
+import { ref, onMounted, computed, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import api from '@/services/api'
 import { useCrud } from '@/composables/useCrud'
@@ -143,6 +155,7 @@ const columnFilters = ref({
 
 const selectedMetadataGroupId = ref(null)
 const textContent = ref('')
+const uploadOrder = ref(1) 
 
 const getTypeName = (id) => { const t = types.value.find(x => x.id === id); return t ? t.name : id }
 const getCategoryName = (id) => { const c = categories.value.find(x => x.id === id); return c ? c.name : '-' }
@@ -188,6 +201,19 @@ const isTextBlockSelected = computed(() => {
   return selectedType && selectedType.identifier === 'TEXT_BLOCK'
 })
 
+const isRecordingUploadSelected = computed(() => {
+  if (!formData.value.component_type) return false
+  const selectedType = types.value.find(t => t.id === formData.value.component_type)
+  return selectedType && selectedType.identifier === 'RECORDING_UPLOAD'
+})
+
+watch(() => formData.value.component_type, () => {
+  if (isMetadataFormSelected.value) updateMetadataParameter(selectedMetadataGroupId.value)
+  else if (isTextBlockSelected.value) updateTextParameter()
+  else if (isRecordingUploadSelected.value) updateUploadOrderParameter()
+  else formData.value.parameter = '{}'
+})
+
 const updateMetadataParameter = (groupId) => {
   formData.value.parameter = groupId ? JSON.stringify({ metadata_group_id: groupId }) : '{}'
 }
@@ -196,10 +222,15 @@ const updateTextParameter = () => {
   formData.value.parameter = JSON.stringify({ text: textContent.value })
 }
 
+const updateUploadOrderParameter = () => {
+  formData.value.parameter = JSON.stringify({ order: uploadOrder.value || 1 })
+}
+
 const resetForm = () => { 
   formData.value = { name: '', category: null, component_type: null, description: '', parameter: '{}' }
   selectedMetadataGroupId.value = null
   textContent.value = ''
+  uploadOrder.value = 1 
 }
 
 const populateForm = (item) => {
@@ -208,6 +239,7 @@ const populateForm = (item) => {
   
   selectedMetadataGroupId.value = null
   textContent.value = ''
+  uploadOrder.value = 1
   
   try {
     const parsed = JSON.parse(paramStr)
@@ -216,6 +248,10 @@ const populateForm = (item) => {
     }
     if (parsed && parsed.text) {
       textContent.value = parsed.text
+    }
+
+    if (parsed && parsed.order !== undefined) {
+      uploadOrder.value = parsed.order
     }
   } catch(e) { console.error("Could not parse parameters on edit.") }
 }

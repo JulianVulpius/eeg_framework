@@ -43,7 +43,8 @@
     "location_categories": "Location",
     "trigger_group_categories": "Trigger Group",
     "playlist_categories": "Playlist",
-    "manufacturer_categories": "Manufacturer"
+    "manufacturer_categories": "Manufacturer",
+    "generic_recording_categories": "Generic Recording"
   },
     "breadcrumb": {
     "history_single_report": "Single Report",
@@ -81,7 +82,8 @@
     "no": "No",
     "must_include": "Must Include",
     "creator": "Creator",
-    "select": "Select..."
+    "select": "Select...",
+    "error": "Error"
   },
   "actions": {
     "add_new": "+ Add New",
@@ -213,7 +215,12 @@
       "upload_btn_uploading": "Uploading...",
       "upload_btn_upload": "Upload & Continue",
       "upload_success": "Upload successful!",
-      "upload_error": "Error during upload"
+      "upload_error": "Error during upload",
+      "upload_order_fixed": "Measurement Number (Slot)",
+      "upload_overwrite_warning": "Note: An existing file for this slot will be replaced.",
+      "upload_generic_category": "File Category",
+      "upload_generic_category_placeholder": "Search/select category...",
+      "upload_error_no_category": "Please select a category for the generic file!"
     },
     "launcher": {
       "select_event": "1. Select Event / Study",
