@@ -83,7 +83,9 @@
     "must_include": "Must Include",
     "creator": "Creator",
     "select": "Select...",
-    "error": "Error"
+    "error": "Error",
+    "error_loading": "There was a problem loading the data.",
+    "error_saving": "Error saving data."
   },
   "actions": {
     "add_new": "+ Add New",
@@ -221,7 +223,11 @@
       "upload_overwrite_warning": "Note: An existing file for this slot will be replaced.",
       "upload_generic_category": "File Category",
       "upload_generic_category_placeholder": "Search/select category...",
-      "upload_error_no_category": "Please select a category for the generic file!"
+      "upload_error_no_category": "Please select a category for the generic file!",
+      "finish": "Finish",
+      "upload_skip_title": "No file selected",
+      "upload_skip_message": "You haven't selected a new file. Do you want to continue without uploading? Any existing file for this slot will be kept safe.",
+      "upload_skip_confirm": "Continue anyway"
     },
     "launcher": {
       "select_event": "1. Select Event / Study",

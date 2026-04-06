@@ -83,7 +83,9 @@
     "must_include": "Muss beinhalten",
     "creator": "Ersteller",
     "select": "Auswählen...",
-    "error": "Fehler"
+    "error": "Fehler",
+    "error_loading": "Es gab ein Problem beim Laden der Daten.",
+    "error_saving": "Fehler beim Speichern der Daten."
   },
   "actions": {
     "add_new": "+ Neu hinzufügen",
@@ -221,7 +223,11 @@
       "upload_overwrite_warning": "Hinweis: Eine vorhandene Datei für diesen Slot wird ersetzt.",
       "upload_generic_category": "Dateikategorie",
       "upload_generic_category_placeholder": "Kategorie suchen/auswählen...",
-      "upload_error_no_category": "Bitte wähle eine Kategorie für das generische File aus!"
+      "upload_error_no_category": "Bitte wähle eine Kategorie für das generische File aus!",
+      "finish": "Abschließen",
+      "upload_skip_title": "Keine Datei ausgewählt",
+      "upload_skip_message": "Du hast keine neue Datei ausgewählt. Möchtest du ohne Upload fortfahren? Eine eventuell bereits bestehende Datei für diesen Slot bleibt dabei erhalten.",
+      "upload_skip_confirm": "Trotzdem fortfahren"
     },
     "launcher": {
       "select_event": "1. Event / Studie auswählen",

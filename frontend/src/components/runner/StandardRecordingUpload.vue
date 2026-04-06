@@ -5,8 +5,7 @@
       ⚠️ {{ $t('views.runner.upload_overwrite_warning') }}
     </p>
     
-    <form ref="formRef" @submit.prevent>
-      
+    <form @submit.prevent>
       <div class="form-row" style="display: flex; gap: 1rem; margin-bottom: 15px;">
         <div class="form-group" style="flex: 2;">
           <label>{{ $t('views.runner.upload_type') }} *</label>
@@ -30,11 +29,16 @@
           :options="genericCategories" 
           :placeholder="$t('views.runner.upload_generic_category_placeholder')" 
         />
+        <BaseInputError :message="fieldErrors.category" />
       </div>
 
       <div class="form-group" style="margin-bottom: 15px;">
-        <label>{{ $t('views.runner.upload_file') }} *</label>
-        <input type="file" @change="onFileChange" class="form-control" required />
+        <label>{{ $t('views.runner.upload_file') }}</label>
+        <input 
+          type="file" 
+          @change="onFileChange" 
+          class="form-control" 
+        />
       </div>
 
       <div class="form-group" style="margin-bottom: 15px;">
@@ -46,8 +50,18 @@
         <label>{{ $t('views.runner.upload_desc') }}</label>
         <textarea v-model="description" rows="3" class="form-control" :placeholder="$t('views.runner.upload_desc_placeholder')"></textarea>
       </div>
+    </form>
 
-      </form>
+    <WarningModal
+      :isOpen="isSkipModalOpen"
+      :title="$t('views.runner.upload_skip_title')"
+      :message="$t('views.runner.upload_skip_message')"
+      :confirmText="$t('views.runner.upload_skip_confirm')"
+      :hideCancel="false"
+      @confirm="onConfirmSkip"
+      @cancel="onCancelSkip"
+      @close="isSkipModalOpen = false"
+    />
   </div>
 </template>
 
@@ -55,8 +69,11 @@
 import { ref, computed, onMounted } from 'vue'
 import { useI18n } from 'vue-i18n'
 import api from '@/services/api'
-import { useToast } from '@/composables/useToast'
+
 import BaseSearchSelect from '@/components/ui/BaseSearchSelect.vue'
+import BaseInputError from '@/components/ui/BaseInputError.vue'
+import WarningModal from '@/components/ui/WarningModal.vue'
+import { useGlobalModal } from '@/composables/useGlobalModal'
 
 const props = defineProps({
   parameters: Object,
@@ -64,7 +81,7 @@ const props = defineProps({
 })
 
 const { t } = useI18n()
-const { showToast } = useToast()
+const { showWarning } = useGlobalModal()
 
 const fixedOrder = computed(() => props.parameters?.order || 1)
 
@@ -75,72 +92,81 @@ const genericCategories = ref([])
 const file = ref(null)
 const customFileName = ref('')
 const description = ref('')
-const isUploading = ref(false)
 
-const formRef = ref(null)
+const fieldErrors = ref({ category: '' })
+
+const isSkipModalOpen = ref(false)
+let resolveSubmitPromise = null
+let rejectSubmitPromise = null
 
 onMounted(async () => {
   try {
     const res = await api.get('category/generic-recording/') 
     genericCategories.value = res.data
   } catch (error) {
-    console.error("Konnte Generic Kategorien nicht laden:", error)
+    showWarning(t('common.error_loading') || 'Error', t('common.error'))
   }
 })
 
 const onTypeChange = () => {
-  if (recordingType.value !== 'generic') {
-    selectedGenericCategory.value = null
-  }
+  if (recordingType.value !== 'generic') selectedGenericCategory.value = null
+  fieldErrors.value.category = ''
 }
 
-const onFileChange = (e) => { file.value = e.target.files[0] || null }
+const onFileChange = (e) => { 
+  file.value = e.target.files[0] || null 
+}
 
-const submit = async () => {
-  if (!formRef.value.reportValidity()) {
-    throw new Error("Validation failed")
-  }
+const onConfirmSkip = () => {
+  isSkipModalOpen.value = false
+  if (resolveSubmitPromise) resolveSubmitPromise()
+}
 
-  if (!file.value) {
-    showToast(t('errors.required_field') || "File required", 'error')
-    throw new Error("No file selected")
-  }
+const onCancelSkip = () => {
+  isSkipModalOpen.value = false
+  if (rejectSubmitPromise) rejectSubmitPromise(new Error("Upload aborted by user"))
+}
 
-  if (recordingType.value === 'generic' && !selectedGenericCategory.value) {
-    showToast(t('views.runner.upload_error_no_category'), 'error')
-    throw new Error("No generic category selected")
-  }
+const submit = () => {
+  return new Promise(async (resolve, reject) => {
+    fieldErrors.value = { category: '' }
 
-  isUploading.value = true
-  
-  const formData = new FormData()
-  let uploadFileName = file.value.name
-  
-  if (customFileName.value.trim() !== '') {
-    const extension = uploadFileName.split('.').pop()
-    uploadFileName = `${customFileName.value.trim()}.${extension}`
-  }
+    if (recordingType.value === 'generic' && !selectedGenericCategory.value) {
+      fieldErrors.value.category = t('views.runner.upload_error_no_category') || t('errors.required_field')
+      return reject(new Error("Inline validation failed"))
+    }
 
-  formData.append('file', file.value, uploadFileName)
-  formData.append('session', props.sessionId) 
-  formData.append('order', fixedOrder.value)
-  if (description.value) formData.append('description', description.value)
-  
-  if (recordingType.value === 'generic') {
-    formData.append('category', selectedGenericCategory.value)
-  }
-  
-  let endpoint = recordingType.value === 'eeg' ? 'recordings/eeg/' : (recordingType.value === 'hr' ? 'recordings/heart-rate/' : 'recordings/generic/')
+    if (!file.value) {
+      resolveSubmitPromise = resolve
+      rejectSubmitPromise = reject
+      isSkipModalOpen.value = true
+      return 
+    }
 
-  try {
-    await api.post(endpoint, formData, { headers: { 'Content-Type': 'multipart/form-data' } })
-    showToast(t('views.runner.upload_success'), 'success')
-  } catch (error) {
-    showToast(t('views.runner.upload_error'), 'error')
-    throw error
-  } finally { 
-    isUploading.value = false 
-  }
+    const formData = new FormData()
+    let uploadFileName = file.value.name
+    
+    if (customFileName.value.trim() !== '') {
+      const extension = uploadFileName.split('.').pop()
+      uploadFileName = `${customFileName.value.trim()}.${extension}`
+    }
+
+    formData.append('file', file.value, uploadFileName)
+    formData.append('session', props.sessionId) 
+    formData.append('order', fixedOrder.value)
+    if (description.value) formData.append('description', description.value)
+    if (recordingType.value === 'generic') formData.append('category', selectedGenericCategory.value)
+    
+    let endpoint = recordingType.value === 'eeg' ? 'recordings/eeg/' : (recordingType.value === 'hr' ? 'recordings/heart-rate/' : 'recordings/generic/')
+
+    try {
+      await api.post(endpoint, formData, { headers: { 'Content-Type': 'multipart/form-data' } })
+      resolve()
+    } catch (error) {
+      showWarning(t('views.runner.upload_error') || t('common.error_saving'), t('common.error'))
+      reject(error)
+    }
+  })
 }
 
 defineExpose({ submit })

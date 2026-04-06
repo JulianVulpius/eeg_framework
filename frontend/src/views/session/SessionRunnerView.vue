@@ -137,7 +137,6 @@ const isLoading = ref(true)
 const isFinished = ref(false)
 const isEmptyBlueprint = ref(false)
 const currentPageIndex = ref(0)
-
 const isProcessingNext = ref(false)
 const componentRefs = ref({})
 
