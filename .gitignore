@@ -5,6 +5,9 @@ Thumbs.db
 # Environment variables & secrets
 .env
 
+# User uploaded media
+media/
+
 # Node.js (Frontend)
 node_modules/
 dist/
