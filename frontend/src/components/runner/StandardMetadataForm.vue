@@ -6,7 +6,7 @@
 
     <div v-if="isLoading" class="loading">{{ $t('common.loading') }}</div>
 
-    <form v-else @submit.prevent="submitForm">
+    <form v-else ref="formRef" @submit.prevent>
       <div v-for="def in activeDefinitions" :key="def.id" class="form-group">
         <label>{{ def.name }}</label>
         
@@ -19,13 +19,7 @@
         <textarea v-else-if="def.expected_data_type === 'JSON'" v-model="formValues[def.id]" rows="3" class="form-control"></textarea>
       </div>
 
-      <div class="action-footer">
-        <button type="button" class="btn-secondary" @click="$emit('go-back')" style="margin-right: 15px;">{{ $t('actions.back') }}</button>
-        <button type="submit" class="btn-primary" :disabled="isSaving">
-          {{ isSaving ? $t('common.saving') : $t('actions.continue') }}
-        </button>
-      </div>
-    </form>
+      </form>
   </div>
 </template>
 
@@ -37,13 +31,14 @@ const props = defineProps({
   parameters: { type: Object, required: true },
   sessionId: { type: [String, Number], required: true }
 })
-const emit = defineEmits(['completed', 'go-back'])
 
 const isLoading = ref(true)
 const isSaving = ref(false)
 const groupData = ref(null)
 const activeDefinitions = ref([])
 const formValues = ref({})
+
+const formRef = ref(null)
 
 const showTitle = computed(() => {
   if (props.parameters && props.parameters.show_title !== undefined) {
@@ -94,7 +89,11 @@ const loadFormDefinition = async () => {
   }
 }
 
-const submitForm = async () => {
+const submit = async () => {
+  if (!formRef.value.reportValidity()) {
+    throw new Error("Validation failed")
+  }
+
   isSaving.value = true
   try {
     const valuesArray = Object.keys(formValues.value).map(defId => {
@@ -112,13 +111,16 @@ const submitForm = async () => {
       group_id: props.parameters.metadata_group_id,
       values: valuesArray
     })
-    emit('completed')
+    
   } catch (error) {
     console.error(error)
+    throw error
   } finally {
     isSaving.value = false
   }
 }
+
+defineExpose({ submit })
 
 onMounted(loadFormDefinition)
 </script>
@@ -127,6 +129,5 @@ onMounted(loadFormDefinition)
 .metadata-form-card { background: white; padding: 30px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); }
 .group-desc { color: #7f8c8d; margin-bottom: 20px; }
 .checkbox-label { display: flex; align-items: center; gap: 10px; font-weight: normal; cursor: pointer; }
-.action-footer { display: flex; justify-content: flex-end; margin-top: 20px; }
 .loading { text-align: center; color: #7f8c8d; padding: 20px; }
 </style>

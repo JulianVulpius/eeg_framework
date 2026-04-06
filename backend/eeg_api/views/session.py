@@ -64,6 +64,7 @@ class SessionViewSet(viewsets.ModelViewSet):
             "session_id": session.id,
             "event_name": session.event.name,
             "page_group_name": pg.name,
+            "event_logo": session.event.logo.file.url if session.event.logo and session.event.logo.file else None,
             "pages": []
         }
         

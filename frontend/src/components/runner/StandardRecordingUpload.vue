@@ -5,7 +5,7 @@
       ⚠️ {{ $t('views.runner.upload_overwrite_warning') }}
     </p>
     
-    <form @submit.prevent="uploadFile">
+    <form ref="formRef" @submit.prevent>
       
       <div class="form-row" style="display: flex; gap: 1rem; margin-bottom: 15px;">
         <div class="form-group" style="flex: 2;">
@@ -47,13 +47,7 @@
         <textarea v-model="description" rows="3" class="form-control" :placeholder="$t('views.runner.upload_desc_placeholder')"></textarea>
       </div>
 
-      <div class="form-actions" style="display: flex; gap: 15px; justify-content: flex-end;">
-         <button type="button" class="btn-secondary" @click="$emit('go-back')">{{ $t('actions.back') }}</button>
-         <button type="submit" class="btn-primary" :disabled="isUploading || !file">
-            {{ isUploading ? $t('views.runner.upload_btn_uploading') : $t('views.runner.upload_btn_upload') }}
-         </button>
-      </div>
-    </form>
+      </form>
   </div>
 </template>
 
@@ -69,7 +63,6 @@ const props = defineProps({
   sessionId: [String, Number]
 })
 
-const emit = defineEmits(['completed', 'go-back'])
 const { t } = useI18n()
 const { showToast } = useToast()
 
@@ -83,6 +76,8 @@ const file = ref(null)
 const customFileName = ref('')
 const description = ref('')
 const isUploading = ref(false)
+
+const formRef = ref(null)
 
 onMounted(async () => {
   try {
@@ -101,12 +96,19 @@ const onTypeChange = () => {
 
 const onFileChange = (e) => { file.value = e.target.files[0] || null }
 
-const uploadFile = async () => {
-  if (!file.value) return
+const submit = async () => {
+  if (!formRef.value.reportValidity()) {
+    throw new Error("Validation failed")
+  }
+
+  if (!file.value) {
+    showToast(t('errors.required_field') || "File required", 'error')
+    throw new Error("No file selected")
+  }
 
   if (recordingType.value === 'generic' && !selectedGenericCategory.value) {
     showToast(t('views.runner.upload_error_no_category'), 'error')
-    return
+    throw new Error("No generic category selected")
   }
 
   isUploading.value = true
@@ -133,9 +135,13 @@ const uploadFile = async () => {
   try {
     await api.post(endpoint, formData, { headers: { 'Content-Type': 'multipart/form-data' } })
     showToast(t('views.runner.upload_success'), 'success')
-    emit('completed')
   } catch (error) {
     showToast(t('views.runner.upload_error'), 'error')
-  } finally { isUploading.value = false }
+    throw error
+  } finally { 
+    isUploading.value = false 
+  }
 }
+
+defineExpose({ submit })
 </script>
