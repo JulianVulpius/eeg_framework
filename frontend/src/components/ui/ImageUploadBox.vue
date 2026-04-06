@@ -1,11 +1,9 @@
 <template>
   <div class="image-box-container">
-    
     <div class="upload-controls">
       <input type="file" accept="image/*" @change="onFileChange" ref="fileInput" style="display: none;" />
       
       <div v-if="selectedFile" class="pending-upload">
-        
         <div class="mini-preview" v-if="localPreviewUrl">
           <img :src="localPreviewUrl" alt="Local Preview" />
         </div>
@@ -35,6 +33,9 @@ import { useI18n } from 'vue-i18n'
 import api from '@/services/api'
 import { useGlobalModal } from '@/composables/useGlobalModal'
 
+const props = defineProps({
+  eventName: { type: String, default: 'general' }
+})
 const emit = defineEmits(['success'])
 const { t } = useI18n()
 const { showWarning } = useGlobalModal()
@@ -66,79 +67,39 @@ const upload = async () => {
   formData.append('file', selectedFile.value)
   formData.append('media_type', 'IMAGE')
   formData.append('original_filename', selectedFile.value.name)
+  formData.append('event_name', props.eventName)
 
   try {
-    const res = await api.post('media/assets/', formData, {
-      headers: { 'Content-Type': 'multipart/form-data' }
-    })
-    
+    const res = await api.post('media/assets/', formData, { headers: { 'Content-Type': 'multipart/form-data' } })
     emit('success', res.data.id) 
     
     selectedFile.value = null
     localPreviewUrl.value = null
     if (fileInput.value) fileInput.value.value = ''
-    
   } catch (error) {
     showWarning(t('common.error_saving'), t('common.error'))
-  } finally {
-    isUploading.value = false
-  }
+  } finally { isUploading.value = false }
 }
 </script>
 
 <style scoped>
 .image-box-container {
-  width: 250px;
-  height: 200px;
+  width: 100%;
+  height: 100%;
+  min-height: 220px;
   border-radius: 8px;
-  overflow: hidden;
   border: 1px dashed #bdc3c7;
   background: #fdfdfd;
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 10px;
+  padding: 15px;
 }
-.upload-controls {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  width: 100%;
-}
-.pending-upload {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-  align-items: center;
-  width: 100%;
-}
-.mini-preview {
-  width: 100px;
-  height: 80px;
-  background: #eee;
-  border-radius: 4px;
-  overflow: hidden;
-}
-.mini-preview img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-}
-.file-name {
-  font-size: 0.8rem;
-  color: #2c3e50;
-  max-width: 200px;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-.btn-group {
-  display: flex;
-  gap: 8px;
-}
-.btn-sm {
-  padding: 5px 10px;
-  font-size: 0.85rem;
-}
+.upload-controls { display: flex; flex-direction: column; align-items: center; justify-content: center; width: 100%; }
+.pending-upload { display: flex; flex-direction: column; gap: 10px; align-items: center; width: 100%; }
+.mini-preview { width: 120px; height: 100px; background: #eee; border-radius: 4px; overflow: hidden; }
+.mini-preview img { width: 100%; height: 100%; object-fit: cover; }
+.file-name { font-size: 0.8rem; color: #2c3e50; max-width: 200px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.btn-group { display: flex; gap: 8px; }
+.btn-sm { padding: 5px 10px; font-size: 0.85rem; }
 </style>

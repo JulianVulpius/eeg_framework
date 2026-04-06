@@ -315,7 +315,10 @@
       "upload_media": "Upload Media",
       "unsupported_media": "Unsupported format. Please select an image, audio, or video.",
       "select_media_category": "Category (Optional)",
-      "replace_image": "Upload new image (replaces the current one)"
+      "replace_image": "Upload new image (replaces the current one)",
+      "open_image": "Open image in new tab",
+      "open_video": "Open video in new tab",
+      "open_file": "Open / download file in new tab"
     },
     "triggers": {
       "available": "Available",

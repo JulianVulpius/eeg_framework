@@ -89,9 +89,9 @@
 
       <div v-if="activeTab === 'media'" class="panel">
         <div class="panel-header">
-          <h3>{{ $t('views.events.tab_media') || 'Logo & Poster' }}</h3>
+          <h3>{{ $t('views.events.tab_media')}}</h3>
         </div>
-        <p style="margin-bottom: 30px; color: #7f8c8d;">{{ $t('views.events.media_desc') || 'Verwalte hier das Branding.' }}</p>
+        <p style="margin-bottom: 30px; color: #7f8c8d;">{{ $t('views.events.media_desc')}}</p>
         
         <div class="media-management-grid">
           
@@ -99,18 +99,26 @@
             <h4 style="color: #2c3e50; border-bottom: 1px solid #eee; padding-bottom: 5px; margin-bottom: 15px;">
               {{ $t('views.events.tab_logo') }}
             </h4>
-            <div class="slot-content" style="display: flex; gap: 30px; align-items: flex-start; flex-wrap: wrap;">
-              <ImagePreview 
-                v-if="eventData.logo" 
-                :assetId="eventData.logo" 
-                @deleted="savePartialEvent({ logo: null })" 
-              />
-              <div class="upload-section">
+            <div class="slot-content" style="display: flex; gap: 30px; align-items: stretch; flex-wrap: wrap;">
+              
+              <div class="upload-section" style="flex: 1; min-width: 200px; display: flex; flex-direction: column;">
                 <p style="font-size: 0.85rem; color: #7f8c8d; margin-bottom: 10px; font-style: italic;">
-                  {{ eventData.logo ? ($t('views.events.replace_image') || 'Ersetzen') : $t('actions.select_image') }}
+                  {{ eventData.logo ? ($t('views.events.replace_image')) : $t('actions.select_image') }}
                 </p>
-                <ImageUploadBox @success="(newId) => handleMediaReplace('logo', newId)" />
+                <ImageUploadBox :eventName="eventData.name" @success="(newId) => handleMediaReplace('logo', newId)" />
               </div>
+
+              <div class="preview-section" style="flex: 1; min-width: 200px; display: flex; flex-direction: column;" v-if="eventData.logo">
+                <p style="font-size: 0.85rem; color: #7f8c8d; margin-bottom: 10px; font-style: italic;">
+                   {{ $t('views.events.tab_logo') }}
+                </p>
+                <ImagePreview 
+                  :assetId="eventData.logo" 
+                  :mediaCategories="mediaCategories"
+                  @deleted="savePartialEvent({ logo: null })" 
+                />
+              </div>
+
             </div>
           </div>
 
@@ -118,18 +126,26 @@
             <h4 style="color: #2c3e50; border-bottom: 1px solid #eee; padding-bottom: 5px; margin-bottom: 15px;">
               {{ $t('views.events.tab_poster') }}
             </h4>
-            <div class="slot-content" style="display: flex; gap: 30px; align-items: flex-start; flex-wrap: wrap;">
-              <ImagePreview 
-                v-if="eventData.poster" 
-                :assetId="eventData.poster" 
-                @deleted="savePartialEvent({ poster: null })" 
-              />
-              <div class="upload-section">
+            <div class="slot-content" style="display: flex; gap: 30px; align-items: stretch; flex-wrap: wrap;">
+              
+              <div class="upload-section" style="flex: 1; min-width: 200px; display: flex; flex-direction: column;">
                 <p style="font-size: 0.85rem; color: #7f8c8d; margin-bottom: 10px; font-style: italic;">
-                  {{ eventData.poster ? ($t('views.events.replace_image') || 'Ersetzen') : $t('actions.select_image') }}
+                  {{ eventData.poster ? ($t('views.events.replace_image')) : $t('actions.select_image') }}
                 </p>
-                <ImageUploadBox @success="(newId) => handleMediaReplace('poster', newId)" />
+                <ImageUploadBox :eventName="eventData.name" @success="(newId) => handleMediaReplace('poster', newId)" />
               </div>
+
+              <div class="preview-section" style="flex: 1; min-width: 200px; display: flex; flex-direction: column;" v-if="eventData.poster">
+                <p style="font-size: 0.85rem; color: #7f8c8d; margin-bottom: 10px; font-style: italic;">
+                   {{ $t('views.events.tab_poster') }}
+                </p>
+                <ImagePreview 
+                  :assetId="eventData.poster" 
+                  :mediaCategories="mediaCategories"
+                  @deleted="savePartialEvent({ poster: null })" 
+                />
+              </div>
+
             </div>
           </div>
 
@@ -138,11 +154,11 @@
 
       <div v-if="activeTab === 'gallery'" class="panel">
         <div class="panel-header">
-          <h3>{{ $t('views.events.tab_gallery') || 'Media Gallery' }}</h3>
+          <h3>{{ $t('views.events.tab_gallery')}}</h3>
         </div>
-        <p style="margin-bottom: 25px; color: #7f8c8d;">{{ $t('views.events.gallery_desc') || 'Lade hier Bilder, Videos und Audios hoch.' }}</p>
+        <p style="margin-bottom: 25px; color: #7f8c8d;">{{ $t('views.events.gallery_desc')}}</p>
         
-        <EventMediaGallery :eventId="eventId" />
+        <EventMediaGallery :eventId="eventId" :eventName="eventData.name" />
       </div>
 
       <div v-if="activeTab === 'page_groups'" class="panel">
@@ -366,7 +382,7 @@
 
 <script setup>
 import { ref, onMounted, computed, reactive } from 'vue'
-import { useRouter, useRoute } from 'vue-router'
+import { useRoute } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import api from '@/services/api'
 import { useMockAuth } from '@/composables/useMockAuth'
@@ -386,8 +402,6 @@ import SubjectSearchSelect from '@/components/domain/SubjectSearchSelect.vue'
 import SearchableCheckboxGroup from '@/components/ui/SearchableCheckboxGroup.vue'
 import EventGroupQuickAssignModal from '@/components/domain/EventGroupQuickAssignModal.vue'
 import EventGroupRandomizerModal from '@/components/domain/EventGroupRandomizerModal.vue'
-
-// Import Bild & Galerie Komponenten
 import ImagePreview from '@/components/ui/ImagePreview.vue'
 import ImageUploadBox from '@/components/ui/ImageUploadBox.vue'
 import EventMediaGallery from '@/components/domain/EventMediaGallery.vue'
@@ -557,15 +571,18 @@ const loadEventBaseData = async () => {
     assignedPageGroups.value = res.data.page_groups || []
   } catch (err) {}
 }
+const mediaCategories = ref([])
 
 const loadPageGroupsAndCategories = async () => {
   try {
-    const [pgRes, catRes, evCatRes, locRes] = await Promise.all([
+    const [pgRes, catRes, evCatRes, locRes, mediaCatRes] = await Promise.all([
       api.get('page-groups/'), api.get('category/page-group/'),
-      api.get('category/event/'), api.get('locations/')
+      api.get('category/event/'), api.get('locations/'),
+      api.get('category/media-asset/')
     ])
     availablePageGroups.value = pgRes.data; pageGroupCategories.value = catRes.data
     categories.value = evCatRes.data; locations.value = locRes.data
+    mediaCategories.value = mediaCatRes.data
   } catch (err) {}
 }
 

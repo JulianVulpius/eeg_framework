@@ -2,7 +2,7 @@
   <div class="event-media-gallery">
     
     <div class="gallery-toolbar">
-      <input type="file" @change="onFileSelected" ref="fileInput" style="display: none;" accept="image/*,video/*,audio/*" />
+      <input type="file" @change="onFileSelected" ref="fileInput" style="display: none;" accept="image/*,video/*,audio/*,.pdf,.doc,.docx,.xls,.xlsx,.csv,.txt" />
       <button class="btn-primary" @click="$refs.fileInput.click()" :disabled="isUploading">
         {{ isUploading ? $t('common.uploading') + '...' : '+ ' + ($t('views.events.upload_media')) }}
       </button>
@@ -13,11 +13,23 @@
     <div v-else class="gallery-grid">
       <div v-for="item in galleryItems" :key="item.id" class="gallery-item card">
         
-        <div class="media-preview">
-          <img v-if="item.media_asset_details?.media_type === 'IMAGE'" :src="getAbsoluteUrl(item.media_asset_details.file)" alt="Media" />
-          <div v-else-if="item.media_asset_details?.media_type === 'VIDEO'" class="media-icon">🎬</div>
-          <div v-else-if="item.media_asset_details?.media_type === 'AUDIO'" class="media-icon">🎵</div>
-          <div v-else class="media-icon">📄</div>
+        <div 
+          class="media-preview" 
+          :class="{ 'clickable': item.media_asset_details?.media_type !== 'AUDIO' }"
+          @click="item.media_asset_details?.media_type !== 'AUDIO' ? handleMediaClick(item) : null"
+        >
+          <img v-if="item.media_asset_details?.media_type === 'IMAGE'" :src="getAbsoluteUrl(item.media_asset_details.file)" alt="Media" :title="$t('views.events.open_image')" />
+          
+          <div v-else-if="item.media_asset_details?.media_type === 'VIDEO'" class="media-icon" :title="$t('views.events.open_video')">🎬</div>
+          
+          <audio 
+            v-else-if="item.media_asset_details?.media_type === 'AUDIO'" 
+            controls 
+            :src="getAbsoluteUrl(item.media_asset_details.file)" 
+            class="inline-audio-player"
+          ></audio>
+          
+          <div v-else class="media-icon" :title="$t('views.events.open_file')">📄</div>
         </div>
 
         <div class="media-info">
@@ -36,7 +48,7 @@
             </select>
           </div>
 
-          <button class="delete-btn" @click="deleteItem(item.media_asset_details?.id)">🗑️</button>
+          <button class="delete-btn" @click="deleteItem(item.media_asset_details?.id)" :title="$t('actions.delete')">🗑️</button>
         </div>
 
       </div>
@@ -55,7 +67,8 @@ import api from '@/services/api'
 import { useGlobalModal } from '@/composables/useGlobalModal'
 
 const props = defineProps({
-  eventId: { type: [String, Number], required: true }
+  eventId: { type: [String, Number], required: true },
+  eventName: { type: String, default: 'general' }
 })
 
 const { t } = useI18n()
@@ -94,7 +107,7 @@ const getMediaType = (fileType) => {
   if (fileType.startsWith('image/')) return 'IMAGE'
   if (fileType.startsWith('video/')) return 'VIDEO'
   if (fileType.startsWith('audio/')) return 'AUDIO'
-  return null
+  return 'DOCUMENT' 
 }
 
 const updateCategory = async (assetId, categoryId) => {
@@ -118,7 +131,7 @@ const onFileSelected = async (e) => {
 
   const mediaType = getMediaType(file.type)
   if (!mediaType) {
-    showWarning(t('views.events.unsupported_media'))
+    showWarning(t('views.events.unsupported_media') || 'Unsupported media type')
     fileInput.value.value = null
     return
   }
@@ -129,6 +142,7 @@ const onFileSelected = async (e) => {
     formData.append('file', file)
     formData.append('media_type', mediaType)
     formData.append('original_filename', file.name)
+    formData.append('event_name', props.eventName)
 
     const mediaRes = await api.post('media/assets/', formData, {
       headers: { 'Content-Type': 'multipart/form-data' }
@@ -162,6 +176,14 @@ const deleteItem = (mediaAssetId) => {
   })
 }
 
+const handleMediaClick = (item) => {
+  const details = item.media_asset_details
+  if (!details) return
+
+  const url = getAbsoluteUrl(details.file)
+  window.open(url, '_blank')
+}
+
 onMounted(loadGalleryAndCategories)
 </script>
 
@@ -169,9 +191,15 @@ onMounted(loadGalleryAndCategories)
 .gallery-toolbar { margin-bottom: 20px; display: flex; justify-content: flex-end; align-items: center; gap: 20px; }
 .gallery-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 20px; }
 .gallery-item { display: flex; flex-direction: column; overflow: hidden; padding: 0; border: 1px solid #e0e0e0; }
-.media-preview { height: 160px; background: #f1f2f6; display: flex; justify-content: center; align-items: center; border-bottom: 1px solid #e0e0e0; }
+
+.media-preview { height: 160px; background: #f1f2f6; display: flex; justify-content: center; align-items: center; border-bottom: 1px solid #e0e0e0; position: relative; }
 .media-preview img { width: 100%; height: 100%; object-fit: cover; }
-.media-icon { font-size: 3rem; }
+.media-icon { font-size: 3rem; user-select: none; }
+
+.media-preview.clickable { cursor: pointer; transition: opacity 0.2s, background-color 0.2s; }
+.media-preview.clickable:hover { opacity: 0.85; background-color: #e5e7eb; }
+
+.inline-audio-player { width: 90%; max-width: 200px; outline: none; }
 
 .media-info { display: flex; justify-content: space-between; align-items: flex-start; padding: 12px 15px; background: white; gap: 10px; }
 .info-text { display: flex; flex-direction: column; overflow: hidden; gap: 8px; }

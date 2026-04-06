@@ -1,9 +1,12 @@
 import os
 from django.db import models
+from django.utils.text import get_valid_filename # Mein Event = Mein_Event
 from .base import AuditBaseModel
 
 def media_directory_path(instance, filename):
-    return f'assets/{instance.media_type.lower()}/{filename}'
+    event_name = getattr(instance, 'event_name_for_path', 'general')
+    safe_event_name = get_valid_filename(event_name)
+    return f'assets/{instance.media_type.lower()}/{safe_event_name}/{filename}'
 
 class MediaAssetCategory(models.Model):
     name = models.CharField(max_length=255, unique=True)
@@ -19,7 +22,6 @@ class MediaAsset(AuditBaseModel):
     TYPE_CHOICES = (
         ('IMAGE', 'Image'),
         ('DOCUMENT', 'Document'),
-        ('ICON', 'Icon'),
         ('VIDEO', 'Video'),
         ('AUDIO', 'Audio'),
     )

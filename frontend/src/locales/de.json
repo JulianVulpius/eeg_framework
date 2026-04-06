@@ -315,7 +315,10 @@
       "upload_media": "Medium hochladen",
       "unsupported_media": "Nicht unterstütztes Format. Bitte Bild, Audio oder Video wählen.",
       "select_media_category": "Kategorie (Optional)",
-      "replace_image": "Neues Bild hochladen (ersetzt das aktuelle)"
+      "replace_image": "Neues Bild hochladen (ersetzt das aktuelle)",
+      "open_image": "Bild im neuen Tab öffnen",
+      "open_video": "Video im neuen Tab öffnen",
+      "open_file": "Datei im neuen Tab öffnen / herunterladen"
       
     },
     "triggers": {
