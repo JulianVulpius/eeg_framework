@@ -44,7 +44,8 @@
     "trigger_group_categories": "Trigger Group",
     "playlist_categories": "Playlist",
     "manufacturer_categories": "Manufacturer",
-    "generic_recording_categories": "Generic Recording"
+    "generic_recording_categories": "Generic Recording",
+    "media_asset_categories": "Media"
   },
     "breadcrumb": {
     "history_single_report": "Single Report",
