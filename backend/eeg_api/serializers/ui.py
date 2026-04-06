@@ -1,10 +1,12 @@
 import json
 from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
+from eeg_api.serializers.media import MediaAssetSerializer
 from eeg_api.models.ui import (
     ComponentType, Event, PageGroup, EventPageGroup, 
-    Component, Page, PageComponent, PageGroupPage, Location
+    Component, Page, PageComponent, PageGroupPage, Location, EventGallery
 )
+from eeg_api.serializers.media import MediaAssetSerializer
 
 class ComponentTypeSerializer(serializers.ModelSerializer):
     class Meta:
@@ -102,7 +104,7 @@ class EventSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Event
-        fields = ['id', 'name', 'category', 'description', 'location', 'event_start', 'event_end', 'page_groups', 'session_locations']
+        fields = ['id', 'name', 'category', 'description', 'location', 'event_start', 'event_end', 'page_groups', 'session_locations', 'logo', 'poster']
 
     def get_session_locations(self, obj):
             return list(obj.sessions.exclude(location__isnull=True).values_list('location_id', flat=True).distinct())
@@ -127,5 +129,15 @@ class EventSerializer(serializers.ModelSerializer):
         instance.location = validated_data.get('location', instance.location) 
         instance.event_start = validated_data.get('event_start', instance.event_start)
         instance.event_end = validated_data.get('event_end', instance.event_end)
+        instance.logo = validated_data.get('logo', instance.logo)
+        instance.poster = validated_data.get('poster', instance.poster)
+        
         instance.save()
         return instance
+
+class EventGallerySerializer(serializers.ModelSerializer):
+    media_asset_details = MediaAssetSerializer(source='media', read_only=True)
+    
+    class Meta:
+        model = EventGallery
+        fields = ['id', 'event', 'media', 'media_asset_details', 'display_order']

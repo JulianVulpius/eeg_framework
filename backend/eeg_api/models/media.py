@@ -3,7 +3,7 @@ from django.db import models
 from .base import AuditBaseModel
 
 def media_directory_path(instance, filename):
-    return f'assets/{instance.media_type.lower()}s/{filename}'
+    return f'assets/{instance.media_type.lower()}/{filename}'
 
 class MediaAssetCategory(models.Model):
     name = models.CharField(max_length=255, unique=True)
@@ -40,3 +40,11 @@ class MediaAsset(AuditBaseModel):
         if self.file and not self.original_filename:
             self.original_filename = os.path.basename(self.file.name)
         super().save(*args, **kwargs)
+
+    def delete(self, *args, **kwargs):
+        if self.file and os.path.isfile(self.file.path):
+            try:
+                os.remove(self.file.path)
+            except OSError:
+                pass
+        super().delete(*args, **kwargs)

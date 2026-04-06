@@ -18,7 +18,7 @@ from .views.metadata import (
 )
 from .views.ui import (
     ComponentTypeViewSet, LocationViewSet, ComponentViewSet, 
-    PageViewSet, PageGroupViewSet, EventViewSet
+    PageViewSet, PageGroupViewSet, EventViewSet, EventGalleryViewSet
 )
 from .views.subject import SubjectProfileViewSet
 from .views.script import (
@@ -75,6 +75,7 @@ router.register(r'components', ComponentViewSet, basename='components')
 router.register(r'pages', PageViewSet, basename='pages')
 router.register(r'page-groups', PageGroupViewSet, basename='page-groups')
 router.register(r'events', EventViewSet, basename='events')
+router.register(r'event-gallery', EventGalleryViewSet, basename='event-gallery')
 
 # subject route
 router.register(r'subjects', SubjectProfileViewSet, basename='subjects')

@@ -13,6 +13,15 @@
       <button :class="['tab-btn', { active: activeTab === 'general' }]" @click="activeTab = 'general'">
         {{ $t('views.events.tab_general') }}
       </button>
+      
+      <button :class="['tab-btn', { active: activeTab === 'media' }]" @click="activeTab = 'media'">
+        {{ $t('views.events.tab_media') || 'Logo & Poster' }}
+      </button>
+
+      <button :class="['tab-btn', { active: activeTab === 'gallery' }]" @click="activeTab = 'gallery'">
+        {{ $t('views.events.tab_gallery') || 'Media Gallery' }}
+      </button>
+
       <button :class="['tab-btn', { active: activeTab === 'page_groups' }]" @click="activeTab = 'page_groups'">
         {{ $t('nav.page_groups') }}
       </button>
@@ -34,6 +43,7 @@
     </div>
 
     <div class="tab-content">
+      
       <div v-if="activeTab === 'general'" class="panel">
         <div class="panel-header">
           <h3>{{ $t('views.events.tab_general') }}</h3>
@@ -75,6 +85,64 @@
           <label>{{ $t('common.description') }}</label>
           <textarea v-model="eventData.description" class="form-control" rows="4"></textarea>
         </div>
+      </div>
+
+      <div v-if="activeTab === 'media'" class="panel">
+        <div class="panel-header">
+          <h3>{{ $t('views.events.tab_media') || 'Logo & Poster' }}</h3>
+        </div>
+        <p style="margin-bottom: 30px; color: #7f8c8d;">{{ $t('views.events.media_desc') || 'Verwalte hier das Branding.' }}</p>
+        
+        <div class="media-management-grid">
+          
+          <div class="media-slot">
+            <h4 style="color: #2c3e50; border-bottom: 1px solid #eee; padding-bottom: 5px; margin-bottom: 15px;">
+              {{ $t('views.events.tab_logo') }}
+            </h4>
+            <div class="slot-content" style="display: flex; gap: 30px; align-items: flex-start; flex-wrap: wrap;">
+              <ImagePreview 
+                v-if="eventData.logo" 
+                :assetId="eventData.logo" 
+                @deleted="savePartialEvent({ logo: null })" 
+              />
+              <div class="upload-section">
+                <p style="font-size: 0.85rem; color: #7f8c8d; margin-bottom: 10px; font-style: italic;">
+                  {{ eventData.logo ? ($t('views.events.replace_image') || 'Ersetzen') : $t('actions.select_image') }}
+                </p>
+                <ImageUploadBox @success="(newId) => handleMediaReplace('logo', newId)" />
+              </div>
+            </div>
+          </div>
+
+          <div class="media-slot">
+            <h4 style="color: #2c3e50; border-bottom: 1px solid #eee; padding-bottom: 5px; margin-bottom: 15px;">
+              {{ $t('views.events.tab_poster') }}
+            </h4>
+            <div class="slot-content" style="display: flex; gap: 30px; align-items: flex-start; flex-wrap: wrap;">
+              <ImagePreview 
+                v-if="eventData.poster" 
+                :assetId="eventData.poster" 
+                @deleted="savePartialEvent({ poster: null })" 
+              />
+              <div class="upload-section">
+                <p style="font-size: 0.85rem; color: #7f8c8d; margin-bottom: 10px; font-style: italic;">
+                  {{ eventData.poster ? ($t('views.events.replace_image') || 'Ersetzen') : $t('actions.select_image') }}
+                </p>
+                <ImageUploadBox @success="(newId) => handleMediaReplace('poster', newId)" />
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <div v-if="activeTab === 'gallery'" class="panel">
+        <div class="panel-header">
+          <h3>{{ $t('views.events.tab_gallery') || 'Media Gallery' }}</h3>
+        </div>
+        <p style="margin-bottom: 25px; color: #7f8c8d;">{{ $t('views.events.gallery_desc') || 'Lade hier Bilder, Videos und Audios hoch.' }}</p>
+        
+        <EventMediaGallery :eventId="eventId" />
       </div>
 
       <div v-if="activeTab === 'page_groups'" class="panel">
@@ -319,11 +387,16 @@ import SearchableCheckboxGroup from '@/components/ui/SearchableCheckboxGroup.vue
 import EventGroupQuickAssignModal from '@/components/domain/EventGroupQuickAssignModal.vue'
 import EventGroupRandomizerModal from '@/components/domain/EventGroupRandomizerModal.vue'
 
+// Import Bild & Galerie Komponenten
+import ImagePreview from '@/components/ui/ImagePreview.vue'
+import ImageUploadBox from '@/components/ui/ImageUploadBox.vue'
+import EventMediaGallery from '@/components/domain/EventMediaGallery.vue'
+
 const route = useRoute()
 const { t } = useI18n()
 const { hasPermission, mockUsers } = useMockAuth()
 const crudHelper = useCrud() 
-const { requireConfirmation } = useGlobalModal()
+const { requireConfirmation, showWarning } = useGlobalModal()
 const { initializeTime, validateTime, parseApiTime, buildApiPayload } = useTimeInput()
 
 const eventId = route.params.id
@@ -484,6 +557,7 @@ const loadEventBaseData = async () => {
     assignedPageGroups.value = res.data.page_groups || []
   } catch (err) {}
 }
+
 const loadPageGroupsAndCategories = async () => {
   try {
     const [pgRes, catRes, evCatRes, locRes] = await Promise.all([
@@ -494,6 +568,7 @@ const loadPageGroupsAndCategories = async () => {
     categories.value = evCatRes.data; locations.value = locRes.data
   } catch (err) {}
 }
+
 const loadGroups = async () => { try { const res = await api.get(`event-management/groups/?event=${eventId}`); eventGroups.value = res.data } catch (err) {} }
 const loadRoles = async () => { try { const res = await api.get(`event-management/roles/?event=${eventId}`); eventRoles.value = res.data } catch (err) {} }
 const loadStaff = async () => { try { const res = await api.get(`event-management/staff-assignments/?event=${eventId}`); staffAssignments.value = res.data } catch (err) {} }
@@ -523,6 +598,31 @@ const saveGeneral = async () => {
     delete payload.event_start_date; delete payload.event_start_time; delete payload.event_end_date; delete payload.event_end_time
     await api.put(`events/${eventId}/`, payload)
   } catch (error) { crudHelper.handleFormError(error, t) }
+}
+
+const savePartialEvent = async (payload) => {
+  try {
+    await api.patch(`events/${eventId}/`, payload)
+    await loadEventBaseData() 
+  } catch (error) {
+    showWarning(t('common.error_saving'), t('common.error'))
+  }
+}
+
+const handleMediaReplace = async (field, newAssetId) => {
+  try {
+    const oldAssetId = eventData.value[field]
+    await api.patch(`events/${eventId}/`, { [field]: newAssetId })
+
+    if (oldAssetId && oldAssetId !== newAssetId) {
+      try {
+        await api.delete(`media/assets/${oldAssetId}/`)
+      } catch (e) { console.warn("old image couldnt be deleted", e) }
+    }
+    await loadEventBaseData() 
+  } catch (error) {
+    showWarning(t('common.error_saving'), t('common.error'))
+  }
 }
 
 const savePageGroups = async () => {
@@ -595,4 +695,7 @@ onMounted(async () => { await loadPageGroupsAndCategories(); await loadEventBase
 .panel-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 1px solid #eee; padding-bottom: 10px; }
 .panel-header h3 { margin: 0; color: #2c3e50; }
 .modal-actions { display: flex; justify-content: flex-end; gap: 10px; margin-top: 25px; padding-top: 15px; border-top: 1px solid #eee; }
+.media-management-grid { display: flex; flex-direction: column; gap: 40px; }
+.media-slot h4 { color: #2c3e50; border-bottom: 1px solid #eee; padding-bottom: 5px; margin-bottom: 15px; }
+.slot-content { display: flex; gap: 30px; align-items: flex-start; flex-wrap: wrap; }
 </style>
