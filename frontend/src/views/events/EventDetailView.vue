@@ -99,16 +99,15 @@
             <h4 style="color: #2c3e50; border-bottom: 1px solid #eee; padding-bottom: 5px; margin-bottom: 15px;">
               {{ $t('views.events.tab_logo') }}
             </h4>
-            <div class="slot-content" style="display: flex; gap: 30px; align-items: stretch; flex-wrap: wrap;">
-              
-              <div class="upload-section" style="flex: 1; min-width: 200px; display: flex; flex-direction: column;">
+            <div class="slot-content">
+              <div class="upload-section">
                 <p style="font-size: 0.85rem; color: #7f8c8d; margin-bottom: 10px; font-style: italic;">
                   {{ eventData.logo ? ($t('views.events.replace_image')) : $t('actions.select_image') }}
                 </p>
                 <ImageUploadBox :eventName="eventData.name" @success="(newId) => handleMediaReplace('logo', newId)" />
               </div>
 
-              <div class="preview-section" style="flex: 1; min-width: 200px; display: flex; flex-direction: column;" v-if="eventData.logo">
+              <div class="preview-section" v-if="eventData.logo">
                 <p style="font-size: 0.85rem; color: #7f8c8d; margin-bottom: 10px; font-style: italic;">
                    {{ $t('views.events.tab_logo') }}
                 </p>
@@ -118,7 +117,6 @@
                   @deleted="savePartialEvent({ logo: null })" 
                 />
               </div>
-
             </div>
           </div>
 
@@ -126,16 +124,15 @@
             <h4 style="color: #2c3e50; border-bottom: 1px solid #eee; padding-bottom: 5px; margin-bottom: 15px;">
               {{ $t('views.events.tab_poster') }}
             </h4>
-            <div class="slot-content" style="display: flex; gap: 30px; align-items: stretch; flex-wrap: wrap;">
-              
-              <div class="upload-section" style="flex: 1; min-width: 200px; display: flex; flex-direction: column;">
+            <div class="slot-content">
+              <div class="upload-section">
                 <p style="font-size: 0.85rem; color: #7f8c8d; margin-bottom: 10px; font-style: italic;">
                   {{ eventData.poster ? ($t('views.events.replace_image')) : $t('actions.select_image') }}
                 </p>
                 <ImageUploadBox :eventName="eventData.name" @success="(newId) => handleMediaReplace('poster', newId)" />
               </div>
 
-              <div class="preview-section" style="flex: 1; min-width: 200px; display: flex; flex-direction: column;" v-if="eventData.poster">
+              <div class="preview-section" v-if="eventData.poster">
                 <p style="font-size: 0.85rem; color: #7f8c8d; margin-bottom: 10px; font-style: italic;">
                    {{ $t('views.events.tab_poster') }}
                 </p>
@@ -145,7 +142,6 @@
                   @deleted="savePartialEvent({ poster: null })" 
                 />
               </div>
-
             </div>
           </div>
 
@@ -712,7 +708,33 @@ onMounted(async () => { await loadPageGroupsAndCategories(); await loadEventBase
 .panel-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 1px solid #eee; padding-bottom: 10px; }
 .panel-header h3 { margin: 0; color: #2c3e50; }
 .modal-actions { display: flex; justify-content: flex-end; gap: 10px; margin-top: 25px; padding-top: 15px; border-top: 1px solid #eee; }
-.media-management-grid { display: flex; flex-direction: row; gap: 40px; flex-wrap: wrap; width: 100%; }
-.media-slot { flex: 1; min-width: 300px; }
-.media-slot h4 { color: #2c3e50; border-bottom: 1px solid #eee; padding-bottom: 5px; margin-bottom: 15px; }
+
+.media-management-grid { 
+  display: grid; 
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); 
+  gap: 40px; 
+  width: 100%; 
+}
+.media-slot { 
+  min-width: 0; 
+}
+.media-slot h4 { 
+  color: #2c3e50; 
+  border-bottom: 1px solid #eee; 
+  padding-bottom: 5px; 
+  margin-bottom: 15px; 
+}
+.slot-content { 
+  display: flex; 
+  gap: 20px; 
+  align-items: stretch; 
+  flex-wrap: wrap; 
+  min-width: 0;
+}
+.upload-section, .preview-section {
+  flex: 1 1 200px;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
 </style>

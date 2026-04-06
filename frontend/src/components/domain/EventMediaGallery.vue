@@ -15,21 +15,20 @@
         
         <div 
           class="media-preview" 
-          :class="{ 'clickable': item.media_asset_details?.media_type !== 'AUDIO' }"
-          @click="item.media_asset_details?.media_type !== 'AUDIO' ? handleMediaClick(item) : null"
+          :class="{ 'clickable': item.media_asset_details?.media_type !== 'AUDIO' && item.media_asset_details?.file_exists }"
+          @click="item.media_asset_details?.media_type !== 'AUDIO' && item.media_asset_details?.file_exists ? handleMediaClick(item) : null"
         >
-          <img v-if="item.media_asset_details?.media_type === 'IMAGE'" :src="getAbsoluteUrl(item.media_asset_details.file)" alt="Media" :title="$t('views.events.open_image')" />
-          
-          <div v-else-if="item.media_asset_details?.media_type === 'VIDEO'" class="media-icon" :title="$t('views.events.open_video')">🎬</div>
-          
-          <audio 
-            v-else-if="item.media_asset_details?.media_type === 'AUDIO'" 
-            controls 
-            :src="getAbsoluteUrl(item.media_asset_details.file)" 
-            class="inline-audio-player"
-          ></audio>
-          
-          <div v-else class="media-icon" :title="$t('views.events.open_file')">📄</div>
+          <div v-if="!item.media_asset_details?.file_exists" class="error-state-box" :title="$t('common.file_not_found')">
+            <span class="error-icon">⚠️</span>
+            <span class="error-text">{{ $t('common.file_not_found') }}</span>
+          </div>
+
+          <template v-else>
+            <img v-if="item.media_asset_details?.media_type === 'IMAGE'" :src="getAbsoluteUrl(item.media_asset_details.file)" alt="Media" :title="$t('views.events.open_image')" />
+            <div v-else-if="item.media_asset_details?.media_type === 'VIDEO'" class="media-icon" :title="$t('views.events.open_video')">🎬</div>
+            <audio v-else-if="item.media_asset_details?.media_type === 'AUDIO'" controls :src="getAbsoluteUrl(item.media_asset_details.file)" class="inline-audio-player"></audio>
+            <div v-else class="media-icon" :title="$t('views.events.open_file')">📄</div>
+          </template>
         </div>
 
         <div class="media-info">
@@ -223,4 +222,8 @@ onMounted(loadGalleryAndCategories)
 .delete-btn { background: transparent; border: none; cursor: pointer; font-size: 1.2rem; padding: 5px; opacity: 0.6; transition: opacity 0.2s; margin-top: -4px;}
 .delete-btn:hover { opacity: 1; color: #e74c3c; }
 .empty-gallery { grid-column: 1 / -1; text-align: center; padding: 40px; color: #7f8c8d; font-style: italic; background: #f8f9fa; border-radius: 8px; border: 2px dashed #dcdde1; }
+
+.error-state-box { display: flex; flex-direction: column; align-items: center; justify-content: center; background: #ffeaa7; width: 100%; height: 100%; color: #d63031; text-align: center; padding: 10px; border-bottom: 1px solid #dcdde1; }
+.error-state-box .error-icon { font-size: 2.5rem; margin-bottom: 5px; }
+.error-state-box .error-text { font-size: 0.8rem; font-weight: bold; line-height: 1.2; }
 </style>

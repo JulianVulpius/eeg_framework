@@ -88,7 +88,8 @@
     "error_loading": "Es gab ein Problem beim Laden der Daten.",
     "error_saving": "Fehler beim Speichern der Daten.",
     "no_image": "Kein Bild vorhanden",
-    "uploading": "Wird hochgeladen..."
+    "uploading": "Wird hochgeladen...",
+    "file_not_found": "Datei existiert nicht mehr"
   },
   "actions": {
     "add_new": "+ Neu hinzufügen",
