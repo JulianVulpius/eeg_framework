@@ -1,18 +1,10 @@
 <template>
   <div class="event-media-gallery">
+    
     <div class="gallery-toolbar">
-      <div class="category-select" style="min-width: 250px;">
-        <BaseSearchSelect 
-          v-model="selectedCategory" 
-          :options="mediaCategories" 
-          :placeholder="$t('views.events.select_media_category')" 
-          :nullLabel="$t('master_data.none')" 
-        />
-      </div>
-
       <input type="file" @change="onFileSelected" ref="fileInput" style="display: none;" accept="image/*,video/*,audio/*" />
       <button class="btn-primary" @click="$refs.fileInput.click()" :disabled="isUploading">
-        {{ isUploading ? $t('common.uploading') + '...' : '+ ' + $t('views.events.upload_media') }}
+        {{ isUploading ? $t('common.uploading') + '...' : '+ ' + ($t('views.events.upload_media')) }}
       </button>
     </div>
 
@@ -20,6 +12,7 @@
 
     <div v-else class="gallery-grid">
       <div v-for="item in galleryItems" :key="item.id" class="gallery-item card">
+        
         <div class="media-preview">
           <img v-if="item.media_asset_details?.media_type === 'IMAGE'" :src="getAbsoluteUrl(item.media_asset_details.file)" alt="Media" />
           <div v-else-if="item.media_asset_details?.media_type === 'VIDEO'" class="media-icon">🎬</div>
@@ -28,17 +21,29 @@
         </div>
 
         <div class="media-info">
-          <div class="info-text">
+          <div class="info-text" style="width: 100%;">
             <span class="file-name" :title="item.media_asset_details?.original_filename">
               {{ item.media_asset_details?.original_filename || 'Unknown' }}
             </span>
-            <span v-if="item.media_asset_details?.category" class="category-badge">Cat-ID: {{ item.media_asset_details.category }}</span>
+            
+            <select 
+              class="category-inline-select" 
+              :value="item.media_asset_details?.category || ''" 
+              @change="updateCategory(item.media_asset_details?.id, $event.target.value)"
+            >
+              <option value="">{{ $t('views.events.select_media_category')}}</option>
+              <option v-for="cat in mediaCategories" :key="cat.id" :value="cat.id">{{ cat.name }}</option>
+            </select>
           </div>
+
           <button class="delete-btn" @click="deleteItem(item.media_asset_details?.id)">🗑️</button>
         </div>
+
       </div>
       
-      <div v-if="galleryItems.length === 0" class="empty-gallery">{{ $t('common.no_data') }}</div>
+      <div v-if="galleryItems.length === 0" class="empty-gallery">
+        {{ $t('common.no_data') }}
+      </div>
     </div>
   </div>
 </template>
@@ -48,9 +53,11 @@ import { ref, onMounted } from 'vue'
 import { useI18n } from 'vue-i18n'
 import api from '@/services/api'
 import { useGlobalModal } from '@/composables/useGlobalModal'
-import BaseSearchSelect from '@/components/ui/BaseSearchSelect.vue' 
 
-const props = defineProps({ eventId: { type: [String, Number], required: true } })
+const props = defineProps({
+  eventId: { type: [String, Number], required: true }
+})
+
 const { t } = useI18n()
 const { showWarning, requireConfirmation } = useGlobalModal()
 
@@ -60,7 +67,6 @@ const isLoading = ref(true)
 
 const galleryItems = ref([])
 const mediaCategories = ref([]) 
-const selectedCategory = ref(null) 
 
 const getAbsoluteUrl = (path) => {
   if (!path) return ''
@@ -75,11 +81,13 @@ const loadGalleryAndCategories = async () => {
       api.get(`event-gallery/?event=${props.eventId}`),
       api.get(`category/media-asset/`)
     ])
-    galleryItems.value = galleryRes.data
+    galleryItems.value = galleryRes.data.reverse()
     mediaCategories.value = catRes.data
   } catch (error) {
     console.error(error)
-  } finally { isLoading.value = false }
+  } finally {
+    isLoading.value = false
+  }
 }
 
 const getMediaType = (fileType) => {
@@ -89,13 +97,28 @@ const getMediaType = (fileType) => {
   return null
 }
 
+const updateCategory = async (assetId, categoryId) => {
+  if (!assetId) return
+  try {
+    const payload = { category: categoryId ? parseInt(categoryId) : null }
+    await api.patch(`media/assets/${assetId}/`, payload)
+    
+    const item = galleryItems.value.find(i => i.media_asset_details?.id === assetId)
+    if (item && item.media_asset_details) {
+      item.media_asset_details.category = categoryId ? parseInt(categoryId) : null
+    }
+  } catch(e) {
+    showWarning(t('common.error_saving'), t('common.error'))
+  }
+}
+
 const onFileSelected = async (e) => {
   const file = e.target.files[0]
   if (!file) return
 
   const mediaType = getMediaType(file.type)
   if (!mediaType) {
-    showWarning(t('views.events.unsupported_media') || 'Unsupported media type', t('common.error'))
+    showWarning(t('views.events.unsupported_media'))
     fileInput.value.value = null
     return
   }
@@ -106,17 +129,16 @@ const onFileSelected = async (e) => {
     formData.append('file', file)
     formData.append('media_type', mediaType)
     formData.append('original_filename', file.name)
-    if (selectedCategory.value) formData.append('category', selectedCategory.value)
 
     const mediaRes = await api.post('media/assets/', formData, {
       headers: { 'Content-Type': 'multipart/form-data' }
     })
+    
     const newAssetId = mediaRes.data.id
 
     await api.post('event-gallery/', {
       event: props.eventId,
-      media: newAssetId,
-      display_order: galleryItems.value.length + 1
+      media: newAssetId
     })
 
     await loadGalleryAndCategories()
@@ -144,17 +166,33 @@ onMounted(loadGalleryAndCategories)
 </script>
 
 <style scoped>
-.gallery-toolbar { margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center; gap: 20px; }
+.gallery-toolbar { margin-bottom: 20px; display: flex; justify-content: flex-end; align-items: center; gap: 20px; }
 .gallery-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 20px; }
 .gallery-item { display: flex; flex-direction: column; overflow: hidden; padding: 0; border: 1px solid #e0e0e0; }
 .media-preview { height: 160px; background: #f1f2f6; display: flex; justify-content: center; align-items: center; border-bottom: 1px solid #e0e0e0; }
 .media-preview img { width: 100%; height: 100%; object-fit: cover; }
 .media-icon { font-size: 3rem; }
-.media-info { display: flex; justify-content: space-between; align-items: center; padding: 12px 15px; background: white; }
-.info-text { display: flex; flex-direction: column; overflow: hidden; }
+
+.media-info { display: flex; justify-content: space-between; align-items: flex-start; padding: 12px 15px; background: white; gap: 10px; }
+.info-text { display: flex; flex-direction: column; overflow: hidden; gap: 8px; }
 .file-name { font-size: 0.9rem; font-weight: 600; color: #2c3e50; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 140px; }
-.category-badge { font-size: 0.75rem; color: #7f8c8d; margin-top: 4px; }
-.delete-btn { background: transparent; border: none; cursor: pointer; font-size: 1.2rem; padding: 5px; opacity: 0.6; transition: opacity 0.2s; }
+
+.category-inline-select {
+  padding: 4px 6px;
+  border: 1px solid #bdc3c7;
+  border-radius: 4px;
+  font-size: 0.75rem;
+  color: #34495e;
+  width: 100%;
+  background-color: #f9f9f9;
+  cursor: pointer;
+}
+.category-inline-select:focus {
+  outline: none;
+  border-color: #3498db;
+}
+
+.delete-btn { background: transparent; border: none; cursor: pointer; font-size: 1.2rem; padding: 5px; opacity: 0.6; transition: opacity 0.2s; margin-top: -4px;}
 .delete-btn:hover { opacity: 1; color: #e74c3c; }
 .empty-gallery { grid-column: 1 / -1; text-align: center; padding: 40px; color: #7f8c8d; font-style: italic; background: #f8f9fa; border-radius: 8px; border: 2px dashed #dcdde1; }
 </style>

@@ -695,7 +695,7 @@ onMounted(async () => { await loadPageGroupsAndCategories(); await loadEventBase
 .panel-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 1px solid #eee; padding-bottom: 10px; }
 .panel-header h3 { margin: 0; color: #2c3e50; }
 .modal-actions { display: flex; justify-content: flex-end; gap: 10px; margin-top: 25px; padding-top: 15px; border-top: 1px solid #eee; }
-.media-management-grid { display: flex; flex-direction: column; gap: 40px; }
+.media-management-grid { display: flex; flex-direction: row; gap: 40px; flex-wrap: wrap; width: 100%; }
+.media-slot { flex: 1; min-width: 300px; }
 .media-slot h4 { color: #2c3e50; border-bottom: 1px solid #eee; padding-bottom: 5px; margin-bottom: 15px; }
-.slot-content { display: flex; gap: 30px; align-items: flex-start; flex-wrap: wrap; }
 </style>

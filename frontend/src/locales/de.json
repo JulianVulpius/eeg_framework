@@ -85,7 +85,9 @@
     "select": "Auswählen...",
     "error": "Fehler",
     "error_loading": "Es gab ein Problem beim Laden der Daten.",
-    "error_saving": "Fehler beim Speichern der Daten."
+    "error_saving": "Fehler beim Speichern der Daten.",
+    "no_image": "Kein Bild vorhanden",
+    "uploading": "Wird hochgeladen..."
   },
   "actions": {
     "add_new": "+ Neu hinzufügen",
@@ -99,7 +101,10 @@
     "back": "Zurück",
     "select": "Bitte Wählen",
     "move_selected": "Ausgewählte verschieben",
-    "move_all": "Alle verschieben"
+    "move_all": "Alle verschieben",
+    "select_image": "Bild auswählen",
+    "delete_image": "Bild löschen",
+    "remove_image": "Bild entfernen"
   },
   "errors": {
     "save_failed": "Fehler beim Speichern des Datensatzes.",
@@ -296,7 +301,20 @@
       "randomize_btn": "Verteilen",
       "randomize_success": "Probanden wurden erfolgreich verteilt.",
       "randomize": "Randomisieren",
-      "quick_assign": "Schnellzuweisung"
+      "quick_assign": "Schnellzuweisung",
+      "tab_media": "Logo & Poster",
+      "tab_gallery": "Media Gallery",
+      "tab_logo": "Logo",
+      "tab_poster": "Poster",
+      "media_desc": "Verwalte hier das Branding für das Event.",
+      "logo_desc": "Dieses Logo wird im Session-Runner und in den Reports angezeigt.",
+      "poster_desc": "Dieses Poster wird als Vorschaubild für das Event genutzt.",
+      "gallery_title": "Event Media Gallery",
+      "gallery_desc": "Lade hier Bilder, Videos und Audios hoch, die zu diesem Event gehören.",
+      "upload_media": "Medium hochladen",
+      "unsupported_media": "Nicht unterstütztes Format. Bitte Bild, Audio oder Video wählen.",
+      "select_media_category": "Kategorie (Optional)",
+      "replace_image": "Neues Bild hochladen (ersetzt das aktuelle)"
       
     },
     "triggers": {

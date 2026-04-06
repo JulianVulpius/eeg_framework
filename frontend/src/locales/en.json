@@ -85,7 +85,9 @@
     "select": "Select...",
     "error": "Error",
     "error_loading": "There was a problem loading the data.",
-    "error_saving": "Error saving data."
+    "error_saving": "Error saving data.",
+    "no_image": "No image available",
+    "uploading": "Uploading..."
   },
   "actions": {
     "add_new": "+ Add New",
@@ -99,7 +101,10 @@
     "back": "Back",
     "select": "Please Select",
     "move_selected": "Move selected",
-    "move_all": "Move all"
+    "move_all": "Move all",
+    "select_image": "Select image",
+    "delete_image": "Delete image",
+    "remove_image": "Remove image"
   },
   "errors": {
     "save_failed": "Error saving record.",
@@ -296,7 +301,20 @@
       "randomize_btn": "Randomize",
       "randomize_success": "Subjects successfully distributed.",
       "randomize": "Randomize",
-      "quick_assign": "Quick Assign"
+      "quick_assign": "Quick Assign",
+      "tab_media": "Logo & Poster",
+      "tab_gallery": "Media Gallery",
+      "tab_logo": "Logo",
+      "tab_poster": "Poster",
+      "media_desc": "Manage the branding for this event here.",
+      "logo_desc": "This logo will be displayed in the Session Runner and reports.",
+      "poster_desc": "This poster is used as a preview image for the event.",
+      "gallery_title": "Event Media Gallery",
+      "gallery_desc": "Upload images, videos, and audios that belong to this event here.",
+      "upload_media": "Upload Media",
+      "unsupported_media": "Unsupported format. Please select an image, audio, or video.",
+      "select_media_category": "Category (Optional)",
+      "replace_image": "Upload new image (replaces the current one)"
     },
     "triggers": {
       "available": "Available",
