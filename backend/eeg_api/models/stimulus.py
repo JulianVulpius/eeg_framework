@@ -14,7 +14,6 @@ class StimulusCategory(models.Model):
     def __str__(self):
         return self.name
 
-
 class Stimulus(AuditBaseModel):
     TYPE_CHOICES = (
         ('AUDIO', 'Audio'),
@@ -27,6 +26,8 @@ class Stimulus(AuditBaseModel):
     
     file = models.FileField(upload_to=stimulus_directory_path, blank=True, null=True)
     duration = models.IntegerField(blank=True, null=True)
+    
+    description = models.TextField(blank=True, null=True)
 
     class Meta:
         db_table = 'Stimulus'
@@ -44,31 +45,32 @@ class PlaylistCategory(models.Model):
     def __str__(self):
         return self.name
 
-class StimulusPlaylist(AuditBaseModel):
+class Playlist(AuditBaseModel):
     name = models.CharField(max_length=150)
     category = models.ForeignKey(PlaylistCategory, on_delete=models.PROTECT, null=True, blank=True)
     
+    description = models.TextField(blank=True, null=True)
+    
     stimuli = models.ManyToManyField(
         Stimulus, 
-        through='StimulusPlaylistStimulus',
+        through='PlaylistStimulus',
         related_name='playlists'
     )
 
     class Meta:
-        db_table = 'StimulusPlaylist'
+        db_table = 'Playlist'
 
     def __str__(self):
         return self.name
 
-
-class StimulusPlaylistStimulus(models.Model):
-    playlist = models.ForeignKey(StimulusPlaylist, on_delete=models.CASCADE)
+class PlaylistStimulus(models.Model):
+    playlist = models.ForeignKey(Playlist, on_delete=models.CASCADE)
     stimulus = models.ForeignKey(Stimulus, on_delete=models.CASCADE)
     
     order = models.PositiveIntegerField(help_text="Order of the stimulus in the playlist")
 
     class Meta:
-        db_table = 'StimulusPlaylist_Stimulus'
+        db_table = 'Playlist_Stimulus'
         ordering = ['order']
         unique_together = ('playlist', 'order')
 

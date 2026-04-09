@@ -1,6 +1,5 @@
 from django.db import models
 from .base import AuditBaseModel
-from .script import DataProcess, DataDisplay
 
 class LocationCategory(models.Model):
     name = models.CharField(max_length=100, unique=True)
@@ -62,35 +61,6 @@ class Component(AuditBaseModel):
 
     def __str__(self):
         return f"{self.name} [{self.component_type.identifier}]"
-
-class ComponentDataProcess(models.Model):
-    component = models.ForeignKey(Component, on_delete=models.CASCADE)
-    data_process = models.ForeignKey(DataProcess, on_delete=models.CASCADE)
-    
-    order = models.PositiveIntegerField()
-
-    class Meta:
-        db_table = 'DataProcess_Component'
-        ordering = ['order']
-        unique_together = ('component', 'order')
-
-    def __str__(self):
-        return f"{self.component.name} - Process: {self.data_process.name} (Pos: {self.order})"
-
-
-class ComponentDataDisplay(models.Model):
-    component = models.ForeignKey(Component, on_delete=models.CASCADE)
-    data_display = models.ForeignKey(DataDisplay, on_delete=models.CASCADE)
-    
-    order = models.PositiveIntegerField()
-
-    class Meta:
-        db_table = 'DataDisplay_Component'
-        ordering = ['order']
-        unique_together = ('component', 'order')
-
-    def __str__(self):
-        return f"{self.component.name} - Display: {self.data_display.name} (Pos: {self.order})"
 
 class PageCategory(models.Model):
     name = models.CharField(max_length=100, unique=True)

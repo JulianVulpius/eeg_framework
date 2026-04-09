@@ -3,10 +3,9 @@ from rest_framework import viewsets
 from rest_framework.serializers import ModelSerializer
 from eeg_api.models import (
     MetaDataCategory, StimulusCategory, ComponentCategory,
-    CustomScriptCategory, DataProcessCategory, DataDisplayCategory,
     MetaDataGroupCategory, DeviceModelCategory, PageCategory, PageGroupCategory, 
     EventCategory, TriggerGroupCategory, LocationCategory, PlaylistCategory, ManufacturerCategory, 
-    GenericRecordingCategory, MediaAssetCategory
+    GenericRecordingCategory, MediaAssetCategory, SubjectProfileInfoCategory
 )
 
 # maps the vue frontend url slugs to django models
@@ -14,9 +13,6 @@ CATEGORY_MODEL_MAP = {
     'metadata': MetaDataCategory,
     'stimulus': StimulusCategory,
     'component': ComponentCategory,
-    'custom-script': CustomScriptCategory,
-    'data-process': DataProcessCategory,
-    'data-display': DataDisplayCategory,
     'metadata-group': MetaDataGroupCategory,
     'device-model': DeviceModelCategory,
     'page': PageCategory,
@@ -28,6 +24,7 @@ CATEGORY_MODEL_MAP = {
     'manufacturer': ManufacturerCategory,
     'generic-recording': GenericRecordingCategory,
     'media-asset': MediaAssetCategory,
+    'subject-profile-info': SubjectProfileInfoCategory,
 }
 
 # single api endpoint for all category tables

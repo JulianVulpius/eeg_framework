@@ -117,22 +117,15 @@ class EventSerializer(serializers.ModelSerializer):
         return event
 
     def update(self, instance, validated_data):
-        if 'page_groups' in validated_data:
-            page_groups_data = validated_data.pop('page_groups')
+        page_groups_data = validated_data.pop('page_groups', None)
+
+        instance = super().update(instance, validated_data)
+
+        if page_groups_data is not None:
             EventPageGroup.objects.filter(event=instance).delete()
             for page_group in page_groups_data:
                 EventPageGroup.objects.create(event=instance, page_group=page_group)
 
-        instance.name = validated_data.get('name', instance.name)
-        instance.category = validated_data.get('category', instance.category)
-        instance.description = validated_data.get('description', instance.description)
-        instance.location = validated_data.get('location', instance.location) 
-        instance.event_start = validated_data.get('event_start', instance.event_start)
-        instance.event_end = validated_data.get('event_end', instance.event_end)
-        instance.logo = validated_data.get('logo', instance.logo)
-        instance.poster = validated_data.get('poster', instance.poster)
-        
-        instance.save()
         return instance
 
 class EventGallerySerializer(serializers.ModelSerializer):

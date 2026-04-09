@@ -1,12 +1,12 @@
 from rest_framework import serializers
-from eeg_api.models.stimulus import Stimulus, StimulusPlaylist, StimulusPlaylistStimulus
+from eeg_api.models.stimulus import Stimulus, Playlist, PlaylistStimulus
 
 class StimulusSerializer(serializers.ModelSerializer):
     class Meta:
         model = Stimulus
         fields = '__all__'
 
-class StimulusPlaylistSerializer(serializers.ModelSerializer):
+class PlaylistSerializer(serializers.ModelSerializer):
     stimuli = serializers.PrimaryKeyRelatedField(
         queryset=Stimulus.objects.all(),
         many=True,
@@ -14,14 +14,14 @@ class StimulusPlaylistSerializer(serializers.ModelSerializer):
     )
 
     class Meta:
-        model = StimulusPlaylist
-        fields = ['id', 'name', 'category', 'stimuli']
+        model = Playlist
+        fields = ['id', 'name', 'category', 'description', 'stimuli']
 
     def create(self, validated_data):
         stimuli_data = validated_data.pop('stimuli', [])
-        playlist = StimulusPlaylist.objects.create(**validated_data)
+        playlist = Playlist.objects.create(**validated_data)
         for index, stimulus in enumerate(stimuli_data):
-            StimulusPlaylistStimulus.objects.create(
+            PlaylistStimulus.objects.create(
                 playlist=playlist,
                 stimulus=stimulus,
                 order=index + 1
@@ -29,17 +29,16 @@ class StimulusPlaylistSerializer(serializers.ModelSerializer):
         return playlist
 
     def update(self, instance, validated_data):
-        if 'stimuli' in validated_data:
-            stimuli_data = validated_data.pop('stimuli')
-            StimulusPlaylistStimulus.objects.filter(playlist=instance).delete()
+        stimuli_data = validated_data.pop('stimuli', None)
+        instance = super().update(instance, validated_data)
+
+        if stimuli_data is not None:
+            PlaylistStimulus.objects.filter(playlist=instance).delete()
             for index, stimulus in enumerate(stimuli_data):
-                StimulusPlaylistStimulus.objects.create(
+                PlaylistStimulus.objects.create(
                     playlist=instance,
                     stimulus=stimulus,
                     order=index + 1
                 )
         
-        instance.name = validated_data.get('name', instance.name)
-        instance.category = validated_data.get('category', instance.category)
-        instance.save()
         return instance

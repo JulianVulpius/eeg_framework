@@ -11,7 +11,7 @@ from .views.trigger import (
     TriggerDefinitionViewSet, TriggerGroupViewSet, 
     TriggerPairViewSet, TriggerHotkeyMappingViewSet
 )
-from .views.stimulus import StimulusViewSet, StimulusPlaylistViewSet
+from .views.stimulus import StimulusViewSet, PlaylistViewSet 
 from .views.metadata import (
     ContentTypeViewSet, EntityMetaDataRegistryViewSet, 
     MetaDataDefinitionViewSet, MetaDataGroupViewSet
@@ -20,15 +20,12 @@ from .views.ui import (
     ComponentTypeViewSet, LocationViewSet, ComponentViewSet, 
     PageViewSet, PageGroupViewSet, EventViewSet, EventGalleryViewSet
 )
-from .views.subject import SubjectProfileViewSet
-from .views.script import (
-    CustomScriptLanguageViewSet, CustomScriptViewSet, 
-    DataProcessViewSet, DataDisplayViewSet
+from .views.subject import (
+    SubjectProfileViewSet, SubjectProfileInfoViewSet
 )
 from .views.recordings import (
     EEGDataFileViewSet, HeartRateDataFileViewSet, GenericRecordingViewSet
 )
-from .views.medical import MedicalHistoryViewSet, SubjectMedicalHistoryViewSet
 from .views.media import MediaAssetViewSet
 from .views.event_management import (
     EventRoleViewSet, EventGroupViewSet, 
@@ -60,7 +57,7 @@ router.register(r'triggers/hotkeys', TriggerHotkeyMappingViewSet, basename='trig
 
 # stimulus routes
 router.register(r'stimuli', StimulusViewSet, basename='stimuli')
-router.register(r'playlists', StimulusPlaylistViewSet, basename='playlists')
+router.register(r'playlists', PlaylistViewSet, basename='playlists')
 
 # metadata routes
 router.register(r'content-types', ContentTypeViewSet, basename='content-types')
@@ -77,23 +74,14 @@ router.register(r'page-groups', PageGroupViewSet, basename='page-groups')
 router.register(r'events', EventViewSet, basename='events')
 router.register(r'event-gallery', EventGalleryViewSet, basename='event-gallery')
 
-# subject route
+# subject routes
 router.register(r'subjects', SubjectProfileViewSet, basename='subjects')
-
-# script routes
-router.register(r'scripts/languages', CustomScriptLanguageViewSet, basename='script-languages')
-router.register(r'scripts/custom', CustomScriptViewSet, basename='custom-scripts')
-router.register(r'scripts/data-processes', DataProcessViewSet, basename='data-processes')
-router.register(r'scripts/data-displays', DataDisplayViewSet, basename='data-displays')
+router.register(r'subject-profile-infos', SubjectProfileInfoViewSet, basename='subject-profile-infos')
 
 # recordings routes
 router.register(r'recordings/eeg', EEGDataFileViewSet, basename='recordings-eeg')
 router.register(r'recordings/heart-rate', HeartRateDataFileViewSet, basename='recordings-hr')
 router.register(r'recordings/generic', GenericRecordingViewSet, basename='recordings-generic')
-
-# medical routes
-router.register(r'medical/history', MedicalHistoryViewSet, basename='medical-history')
-router.register(r'medical/subject-history', SubjectMedicalHistoryViewSet, basename='subject-medical-history')
 
 # media route
 router.register(r'media/assets', MediaAssetViewSet, basename='media-assets')
