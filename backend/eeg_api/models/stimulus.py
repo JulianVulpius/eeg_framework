@@ -19,6 +19,7 @@ class Stimulus(AuditBaseModel):
         ('AUDIO', 'Audio'),
         ('IMAGE', 'Image'),
         ('VIDEO', 'Video'),
+        ('CUSTOM', 'Custom'),
     )
     name = models.CharField(max_length=255, unique=True)
     category = models.ForeignKey(StimulusCategory, on_delete=models.PROTECT, null=True, blank=True)

@@ -337,13 +337,22 @@
       "hotkey_info": "ℹ️ Hinweis: Als Hotkeys sind nur einzelne Kleinbuchstaben (a-z) und Zahlen (0-9) erlaubt."
     },
     "stimulus": {
-      "source": "Quelle (Datei/URL)",
+      "type": "Typ",
+      "type_audio": "Audio",
+      "type_video": "Video",
+      "type_image": "Bild",
+      "type_custom": "Benutzerdefiniert",
+      "file": "Datei / Quelle",
       "duration": "Dauer",
       "order": "Reihenfolge",
-      "source_placeholder": "z.B. song1.mp3",
-      "source_help": "ℹ️ Lege die Datei im Ordner <strong>/stimuli</strong> im Root-Verzeichnis ab.",
       "duration_placeholder": "00:00:00",
-      "duration_info": "Info: 00 = Sekunden, 00:00 = MM:SS, 00:00:00 = HH:MM:SS"
+      "duration_info": "Info: 00 = Sekunden, 00:00 = MM:SS, 00:00:00 = HH:MM:SS",
+      "select_file": "Datei auswählen",
+      "replace_file": "Datei ersetzen",
+      "no_file": "Noch keine Datei hochgeladen",
+      "delete_warning_title": "Warnung: Stimulus in Verwendung",
+      "delete_warning_desc": "Dieser Stimulus wird aktuell in folgenden Playlisten verwendet. Wenn du ihn löschst, wird er automatisch aus diesen entfernt:",
+      "delete_warning_confirm": "Möchtest du diesen Stimulus wirklich unwiderruflich löschen?"
     },
     "session_control": {
       "title": "Unicorn Play & Sync",

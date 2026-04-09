@@ -336,13 +336,22 @@
       "hotkey_info": "ℹ️ Note: Only single lowercase letters (a-z) and numbers (0-9) are allowed for hotkeys."
     },
     "stimulus": {
-      "source": "Source (File/URL)",
+      "type": "Type",
+      "type_audio": "Audio",
+      "type_video": "Video",
+      "type_image": "Image",
+      "type_custom": "Custom",
+      "file": "File / Source",
       "duration": "Duration",
       "order": "Order",
-      "source_placeholder": "e.g. song1.mp3",
-      "source_help": "ℹ️ Place the file in the <strong>/stimuli</strong> folder in the root directory.",
       "duration_placeholder": "00:00:00",
-      "duration_info": "Info: 00 = seconds, 00:00 = MM:SS, 00:00:00 = HH:MM:SS"
+      "duration_info": "Info: 00 = seconds, 00:00 = MM:SS, 00:00:00 = HH:MM:SS",
+      "select_file": "Select File",
+      "replace_file": "Replace File",
+      "no_file": "No file uploaded yet",
+      "delete_warning_title": "Warning: Stimulus in use",
+      "delete_warning_desc": "This item is currently used in the following playlists. If you delete it, it will be automatically removed from them:",
+      "delete_warning_confirm": "Do you really want to permanently delete this item?"
     },
     "session_control": {
       "title": "Unicorn Play & Sync",
