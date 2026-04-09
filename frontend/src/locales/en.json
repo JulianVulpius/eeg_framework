@@ -45,7 +45,8 @@
     "playlist_categories": "Playlist",
     "manufacturer_categories": "Manufacturer",
     "generic_recording_categories": "Generic Recording",
-    "media_asset_categories": "Media"
+    "media_asset_categories": "Media",
+    "subject_profile_info_categories": "Subject Profile Info"
   },
     "breadcrumb": {
     "history_single_report": "Single Report",
