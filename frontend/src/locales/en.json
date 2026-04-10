@@ -160,7 +160,8 @@
     "timestamp": "Timestamp",
     "location": "Location",
     "btn_combined": "Combined Report",
-    "btn_single": "Single Report"
+    "btn_single": "Single Report",
+    "btn_pagegroup": "Page Group Report"
   },
     "page_groups": {
       "assign_pages": "Assign Pages",
@@ -202,7 +203,14 @@
       "answer": "Answer / Value",
       "pagegroup_title": "Page Group Session Report",
       "location": "Location",
-      "page_group":"Phase / Page Group"
+      "page_group":"Phase / Page Group",
+      "files_title": "Uploaded Files",
+      "file_type": "Type",
+      "file_category": "Category",
+      "file_order": "Order",
+      "file_name": "Name",
+      "file_desc": "Description",
+      "file_link": "File"
     },
     "runner": {
       "page": "Page",

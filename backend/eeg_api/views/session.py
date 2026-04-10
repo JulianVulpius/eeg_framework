@@ -154,8 +154,13 @@ class SessionViewSet(viewsets.ModelViewSet):
 
     @action(detail=True, methods=['get'])
     def report(self, request, pk=None):
+        import os
+        from django.contrib.contenttypes.models import ContentType
+        from eeg_api.models.metadata import MetaDataGroupInstance
+        from eeg_api.models.recordings import EEGDataFile, HeartRateDataFile, GenericRecording
+        
         session = self.get_object()
-        session_ct = ContentType.objects.get_for_model(Session)
+        session_ct = ContentType.objects.get_for_model(session)
         
         instances = MetaDataGroupInstance.objects.filter(
             content_type=session_ct, 
@@ -176,12 +181,53 @@ class SessionViewSet(viewsets.ModelViewSet):
                     "type": val.definition.expected_data_type
                 })
             report_data.append(group_data)
+
+        files_list = []
+
+        def get_filename(file_field):
+            if file_field and file_field.name:
+                return os.path.basename(file_field.name)
+            return "Unbenannt"
+
+        for eeg in EEGDataFile.objects.filter(session=session):
+            files_list.append({
+                "type": "EEG",
+                "category": "",  
+                "order": eeg.order,
+                "name": get_filename(eeg.file),
+                "description": eeg.description,
+                "url": eeg.file.url if eeg.file else None
+            })
+
+        for hr in HeartRateDataFile.objects.filter(session=session):
+            files_list.append({
+                "type": "Heart Rate",
+                "category": "", 
+                "order": hr.order,
+                "name": get_filename(hr.file),
+                "description": hr.description,
+                "url": hr.file.url if hr.file else None
+            })
+
+        for gen in GenericRecording.objects.filter(session=session).select_related('category'):
+            files_list.append({
+                "type": "Generic",
+                "category": gen.category.name if gen.category else "",
+                "order": gen.order,
+                "name": get_filename(gen.file),
+                "description": gen.description,
+                "url": gen.file.url if gen.file else None
+            })
+
+        sorted_files = sorted(files_list, key=lambda x: x['order'] if x['order'] is not None else 999)
             
         return Response({
             "session_id": session.id,
-            "event_name": session.event.name,
-            "page_group_name": session.page_group.name,
-            "subject_identifier": session.subject.identifier,
+            "event_name": session.event.name if session.event else None,
+            "page_group_name": session.page_group.name if session.page_group else None,
+            "subject_identifier": session.subject.identifier if session.subject else None,
             "start_time": session.start_datetime,
-            "metadata_groups": report_data
+            "location_name": session.location.name if session.location else None,
+            "metadata_groups": report_data,
+            "uploaded_files": sorted_files
         })

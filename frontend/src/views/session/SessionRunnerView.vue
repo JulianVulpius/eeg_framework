@@ -2,10 +2,17 @@
   <div class="session-runner">
     
     <div class="runner-header">
-      <div class="header-left" style="display: flex; align-items: center; gap: 15px;">
-        <div v-if="blueprint?.event_logo" class="logo-wrapper" style="height: 40px; border-right: 2px solid #ecf0f1; padding-right: 15px;">
-          <img :src="blueprint.event_logo" alt="Event Logo" style="height: 100%; object-fit: contain;" />
+      <div class="header-left">
+        
+        <div v-if="blueprint?.event_logo && !logoError" class="logo-wrapper">
+          <img 
+            :src="getAbsoluteUrl(blueprint.event_logo)" 
+            alt="" 
+            @error="logoError = true" 
+            class="event-logo-img"
+          />
         </div>
+        
         <div class="breadcrumb">
           <span class="event-name">{{ blueprint?.event_name || '...' }}</span>
           <span class="separator">/</span>
@@ -18,81 +25,83 @@
       </div>
     </div>
 
-    <div v-if="isLoading" class="loading-state">
-      {{ $t('common.loading') }}
-    </div>
-
-    <template v-else-if="blueprint">
-      
-      <div v-if="isEmptyBlueprint" class="finished-state card">
-        <h2>⚠️ {{ $t('views.runner.empty_blueprint') }}</h2>
-        <div style="margin-top: 30px; display: flex; justify-content: center; align-items: center;">
-          <router-link to="/sessions/launcher" class="btn-secondary" style="text-decoration: none;">
-            &larr; {{ $t('actions.back') }}
-          </router-link>
-        </div>
+    <div class="runner-content">
+      <div v-if="isLoading" class="loading-state">
+        {{ $t('common.loading') }}
       </div>
 
-      <div v-else-if="isFinished" class="finished-state card">
-        <h2>🎉 {{ $t('views.runner.finished_title') }}</h2>
-        <p>{{ $t('views.runner.finished_desc') }}</p>
+      <template v-else-if="blueprint">
         
-        <div style="margin-top: 30px; display: flex; gap: 15px; justify-content: center; align-items: center;">
-          <button class="btn-secondary" @click="goBackFromFinished" style="margin-right: auto;">
-            &larr; {{ $t('actions.back') }}
-          </button>
+        <div v-if="isEmptyBlueprint" class="finished-state card">
+          <h2>⚠️ {{ $t('views.runner.empty_blueprint') }}</h2>
+          <div style="margin-top: 30px; display: flex; justify-content: center; align-items: center;">
+            <router-link to="/sessions/launcher" class="btn-secondary" style="text-decoration: none;">
+              &larr; {{ $t('actions.back') }}
+            </router-link>
+          </div>
+        </div>
 
-          <router-link :to="{ path: '/sessions/reports/single', query: { sessionId: sessionId } }" class="btn-primary" style="text-decoration: none;">
-            📊 {{ $t('views.runner.view_report') }}
-          </router-link>
+        <div v-else-if="isFinished" class="finished-state card">
+          <h2>🎉 {{ $t('views.runner.finished_title') }}</h2>
+          <p>{{ $t('views.runner.finished_desc') }}</p>
           
-          <router-link to="/sessions/history" class="btn-secondary" style="text-decoration: none;">
-            {{ $t('views.runner.back_home') }}
-          </router-link>
+          <div style="margin-top: 30px; display: flex; gap: 15px; justify-content: center; align-items: center;">
+            <button class="btn-secondary" @click="goBackFromFinished" style="margin-right: auto;">
+              &larr; {{ $t('actions.back') }}
+            </button>
+
+            <router-link :to="{ path: '/sessions/reports/single', query: { sessionId: sessionId } }" class="btn-primary" style="text-decoration: none;">
+              📊 {{ $t('views.runner.view_report') }}
+            </router-link>
+            
+            <router-link to="/sessions/history" class="btn-secondary" style="text-decoration: none;">
+              {{ $t('views.runner.back_home') }}
+            </router-link>
+          </div>
         </div>
-      </div>
 
-      <div v-else class="page-container">
-        <div 
-          v-for="(page, index) in blueprint.pages" 
-          :key="page.id" 
-          v-show="index === currentPageIndex"
-        >
-          <div v-for="comp in page.components" :key="comp.id" class="component-wrapper">
-            
-            <StandardTextBlock 
-              v-if="comp.type === 'TEXT_BLOCK'" 
-              :ref="el => setComponentRef(el, comp.id)"
-              :parameters="comp.parameters" 
-            />
-            
-            <StandardMetadataForm 
-              v-else-if="comp.type === 'METADATA_FORM'" 
-              :ref="el => setComponentRef(el, comp.id)"
-              :parameters="comp.parameters" 
-              :sessionId="sessionId"
-            />
+        <div v-else class="page-container-inner">
+          <div 
+            v-for="(page, index) in blueprint.pages" 
+            :key="page.id" 
+            v-show="index === currentPageIndex"
+          >
+            <div v-for="comp in page.components" :key="comp.id" class="component-wrapper">
+              
+              <StandardTextBlock 
+                v-if="comp.type === 'TEXT_BLOCK'" 
+                :ref="el => setComponentRef(el, comp.id)"
+                :parameters="comp.parameters" 
+              />
+              
+              <StandardMetadataForm 
+                v-else-if="comp.type === 'METADATA_FORM'" 
+                :ref="el => setComponentRef(el, comp.id)"
+                :parameters="comp.parameters" 
+                :sessionId="sessionId"
+              />
 
-            <StandardRecordingUpload 
-              v-else-if="comp.type === 'RECORDING_UPLOAD'" 
-              :ref="el => setComponentRef(el, comp.id)"
-              :parameters="comp.parameters" 
-              :sessionId="sessionId"
-            />
-            
-            <div v-else class="unknown-component card">
-              ⚠️ {{ $t('views.runner.unknown_component') }}: {{ comp.type }}
+              <StandardRecordingUpload 
+                v-else-if="comp.type === 'RECORDING_UPLOAD'" 
+                :ref="el => setComponentRef(el, comp.id)"
+                :parameters="comp.parameters" 
+                :sessionId="sessionId"
+              />
+              
+              <div v-else class="unknown-component card">
+                ⚠️ {{ $t('views.runner.unknown_component') }}: {{ comp.type }}
+              </div>
+              
             </div>
-            
-          </div>
 
-          <div v-if="page.components.length === 0" class="empty-page card">
-            <p>{{ $t('views.runner.empty_page') }}</p>
+            <div v-if="page.components.length === 0" class="empty-page card">
+              <p>{{ $t('views.runner.empty_page') }}</p>
+            </div>
           </div>
         </div>
-      </div>
 
-    </template>
+      </template>
+    </div>
 
     <div class="unified-bottom-bar" v-if="blueprint && !isEmptyBlueprint && !isFinished">
       <div class="bar-content">
@@ -140,14 +149,25 @@ const currentPageIndex = ref(0)
 const isProcessingNext = ref(false)
 const componentRefs = ref({})
 
+const logoError = ref(false)
+
 const setComponentRef = (el, compId) => {
   if (el) componentRefs.value[compId] = el
+}
+
+const getAbsoluteUrl = (path) => {
+  if (!path) return ''
+  if (path.startsWith('http')) return path
+  const baseUrl = (import.meta.env.VITE_API_URL || 'http://localhost:8000/api/').replace(/\/api\/?$/, '')
+  return baseUrl + path
 }
 
 const loadBlueprint = async () => {
   try {
     const response = await api.get(`sessions/${sessionId}/blueprint/?scope=${scope}`)
     blueprint.value = response.data
+    
+    logoError.value = false
     
     if (blueprint.value.pages.length === 0) {
       isEmptyBlueprint.value = true
@@ -217,24 +237,64 @@ onMounted(loadBlueprint)
 </script>
 
 <style scoped>
-.session-runner { padding-bottom: 80px; }
+.session-runner { 
+  padding-bottom: 80px; 
+  position: relative;
+  min-height: 100%;
+}
 
-.runner-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; padding-bottom: 15px; border-bottom: 2px solid #e0e0e0; }
+.runner-header { 
+  display: flex; 
+  justify-content: space-between; 
+  align-items: center; 
+  margin-bottom: 20px;
+  padding-bottom: 15px; 
+  border-bottom: 2px solid #e0e0e0; 
+  
+  position: sticky; 
+  background-color: var(--bg-color, #f4f6f8); 
+  z-index: 50; 
+}
 
-.breadcrumb { font-size: 1.2rem; color: #2c3e50; }
+.header-left {
+  display: flex; 
+  align-items: center; 
+  gap: 15px;
+}
+
+/* =========================================
+   LOGO GRÖßE HIER ANPASSEN
+   ========================================= */
+.logo-wrapper {
+  height: 90px; 
+  border-right: 2px solid #ecf0f1; 
+  padding-right: 15px;
+}
+
+.event-logo-img {
+  height: 100%; 
+  max-width: 350px;
+  object-fit: contain;
+}
+/* ========================================= */
+
+.breadcrumb { font-size: 1.2rem; color: #2c3e50; display: flex; align-items: center;}
 .event-name { font-weight: bold; }
 .separator { margin: 0 10px; color: #bdc3c7; }
 .group-name { color: #7f8c8d; }
 .progress { font-weight: bold; color: #3498db; background: #e8f4f8; padding: 5px 12px; border-radius: 20px; font-size: 0.9rem; }
+
+.runner-content { position: relative; z-index: 10; }
 .component-wrapper { margin-bottom: 20px; }
 .finished-state { text-align: center; padding: 60px 20px; }
 .empty-page, .unknown-component { text-align: center; color: #7f8c8d; }
 
 .unified-bottom-bar {
-  position: fixed;
+  position: absolute; 
   bottom: 0;
-  left: var(--sidebar-width, 250px);
-  right: 0;
+  left: -30px; 
+  right: -30px; 
+  
   background-color: white;
   border-top: 1px solid #dcdde1;
   box-shadow: 0 -4px 10px rgba(0,0,0,0.05);
@@ -254,9 +314,5 @@ onMounted(loadBlueprint)
   min-width: 150px;
   font-size: 1.1rem;
   padding: 12px 24px;
-}
-
-@media (max-width: 768px) {
-  .unified-bottom-bar { left: 0; }
 }
 </style>

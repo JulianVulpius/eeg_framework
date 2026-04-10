@@ -202,7 +202,14 @@
       "answer": "Antwort / Wert",
       "pagegroup_title": "Seiten-Gruppe Sitzungsbericht",
       "location": "Standort",
-      "page_group":"Phase / Seiten-Gruppe"
+      "page_group":"Phase / Seiten-Gruppe",
+      "files_title": "Hochgeladene Dateien",
+      "file_type": "Typ",
+      "file_category": "Kategorie",
+      "file_order": "Reihenfolge",
+      "file_name": "Dateiname",
+      "file_desc": "Beschreibung",
+      "file_link": "Datei"
     },
     "runner": {
       "page": "Seite",
