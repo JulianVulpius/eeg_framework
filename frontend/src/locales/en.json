@@ -90,7 +90,8 @@
     "error_saving": "Error saving data.",
     "no_image": "No image available",
     "uploading": "Uploading...",
-    "file_not_found": "File no longer exists"
+    "file_not_found": "File no longer exists",
+    "all": "All"
   },
   "actions": {
     "add_new": "+ Add New",
@@ -320,7 +321,11 @@
       "replace_image": "Upload new image (replaces the current one)",
       "open_image": "Open image in new tab",
       "open_video": "Open video in new tab",
-      "open_file": "Open / download file in new tab"
+      "open_file": "Open / download file in new tab",
+      "media_type": "Media Type",
+      "type_document": "Document / PDF",
+      "export_visible": "Export All",
+      "export_visible_desc": "Downloads all currently filtered files"
     },
     "triggers": {
       "available": "Available",

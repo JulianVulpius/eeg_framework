@@ -11,14 +11,17 @@
         <thead>
           <tr>
             <th v-if="crud.showIdColumn.value" class="id-column">{{ $t('common.id') }}</th>
-            <th style="width: 25%;">
+            <th style="width: 20%;">
               <ColumnHeaderFilter :title="$t('common.name')" v-model="columnFilters.name" :placeholder="$t('common.search')" />
+            </th>
+            <th style="width: 15%;">
+              <ColumnHeaderFilter :title="$t('master_data.category')" v-model="columnFilters.category" :placeholder="$t('common.search')" />
             </th>
             <th style="width: 25%;">
               <ColumnHeaderFilter :title="$t('common.description')" v-model="columnFilters.description" :placeholder="$t('common.search')" />
             </th>
             <th style="width: 15%;">Triggers & Hotkeys</th>
-            <th style="width: 20%;">
+            <th style="width: 15%;">
               <ColumnHeaderFilter :title="$t('common.creator')" v-model="columnFilters.creator" :placeholder="$t('common.search')" />
             </th>
             <th class="actions-column">{{ $t('actions.actions') }}</th>
@@ -26,11 +29,12 @@
         </thead>
         <tbody>
           <tr v-if="filteredItems.length === 0">
-            <td :colspan="crud.showIdColumn.value ? 6 : 5" class="empty-state">{{ $t('common.no_data') }}</td>
+            <td :colspan="crud.showIdColumn.value ? 7 : 6" class="empty-state">{{ $t('common.no_data') }}</td>
           </tr>
           <tr v-for="item in filteredItems" :key="item.id">
             <td v-if="crud.showIdColumn.value" class="id-column">{{ item.id }}</td>
             <td><strong>{{ item.name }}</strong></td>
+            <td><span class="badge category-badge">{{ getCategoryName(item.category) }}</span></td>
             <td>{{ item.description }}</td>
             <td>{{ item.triggers ? item.triggers.length : 0 }} Assigned</td>
             <td>{{ item.creator || '-' }}</td>
@@ -51,6 +55,19 @@
           <label>{{ $t('common.name') }} *</label>
           <input type="text" v-model="formData.name" class="form-control" :class="{ 'input-invalid': crud.fieldErrors.value.name }" />
           <BaseInputError :message="crud.fieldErrors.value.name" />
+        </div>
+        
+        <BaseSearchSelect 
+          v-model="formData.category"
+          :options="categories"
+          :label="$t('master_data.category')"
+          :nullLabel="$t('master_data.none')"
+          :error="crud.fieldErrors.value.category"
+        />
+
+        <div class="form-group" style="margin-bottom: 15px;">
+          <label>{{ $t('common.description') }}</label>
+          <textarea v-model="formData.description" class="form-control" rows="2"></textarea>
         </div>
         
         <div class="form-group">
@@ -96,6 +113,7 @@ import BaseModal from '@/components/ui/BaseModal.vue'
 import BaseInputError from '@/components/ui/BaseInputError.vue'
 import WarningModal from '@/components/ui/WarningModal.vue'
 import CrudHeader from '@/components/ui/CrudHeader.vue'
+import BaseSearchSelect from '@/components/ui/BaseSearchSelect.vue'
 
 import ColumnHeaderFilter from '@/components/table/ColumnHeaderFilter.vue'
 import TableActionButtons from '@/components/table/TableActionButtons.vue'
@@ -104,17 +122,29 @@ import TriggerShuffle from '@/components/domain/TriggerShuffle.vue'
 
 const { t } = useI18n()
 const items = ref([])
+const categories = ref([])
 const allTriggerDefs = ref([])
 const allTriggerPairs = ref([])
 const allHotkeys = ref([])
 const crud = useCrud()
 const { requireConfirmation, showWarning } = useGlobalModal()
 
-const columnFilters = ref({ name: '', description: '', creator: '' })
+const columnFilters = ref({ name: '', category: '', description: '', creator: '' })
+
+const getCategoryName = (id) => {
+  const cat = categories.value.find(c => c.id === id)
+  return cat ? cat.name : '-'
+}
 
 const filteredItems = computed(() => {
   return items.value.filter(item => {
     if (columnFilters.value.name && !item.name.toLowerCase().includes(columnFilters.value.name.toLowerCase())) return false
+    
+    if (columnFilters.value.category) {
+      const cName = getCategoryName(item.category).toLowerCase()
+      if (!cName.includes(columnFilters.value.category.toLowerCase())) return false
+    }
+
     if (columnFilters.value.description && (!item.description || !item.description.toLowerCase().includes(columnFilters.value.description.toLowerCase()))) return false
     
     if (columnFilters.value.creator) {
@@ -126,7 +156,7 @@ const filteredItems = computed(() => {
   })
 })
 
-const formData = ref({ name: '', description: '', triggers: [], hotkeys: {} })
+const formData = ref({ name: '', category: null, description: '', triggers: [], hotkeys: {} })
 const isWarningOpen = ref(false)
 
 const sanitizeHotkeys = (newMap) => {
@@ -141,7 +171,7 @@ const sanitizeHotkeys = (newMap) => {
   formData.value.hotkeys = newMap
 }
 
-const resetForm = () => { formData.value = { name: '', description: '', triggers: [], hotkeys: {} } }
+const resetForm = () => { formData.value = { name: '', category: null, description: '', triggers: [], hotkeys: {} } }
 
 const populateForm = (item) => {
   const hotkeysDict = {}
@@ -150,6 +180,7 @@ const populateForm = (item) => {
 
   formData.value = { 
     name: item.name, 
+    category: item.category || null,
     description: item.description,
     triggers: item.triggers ? [...item.triggers] : [],
     hotkeys: hotkeysDict
@@ -158,13 +189,15 @@ const populateForm = (item) => {
 
 const loadData = async () => {
   try {
-    const [resGroups, resDefs, resHotkeys, resPairs] = await Promise.all([
+    const [resGroups, resCats, resDefs, resHotkeys, resPairs] = await Promise.all([
       api.get('triggers/groups/'),
+      api.get('category/trigger-group/'),
       api.get('triggers/definitions/'),
       api.get('triggers/hotkeys/'),
       api.get('triggers/pairs/') 
     ])
     items.value = resGroups.data
+    categories.value = resCats.data
     allTriggerDefs.value = resDefs.data
     allHotkeys.value = resHotkeys.data
     allTriggerPairs.value = resPairs.data 
@@ -208,6 +241,7 @@ const saveRecord = async (skipWarning = false) => {
     let groupId = crud.editingId.value
     const groupPayload = { 
       name: formData.value.name, 
+      category: formData.value.category,
       description: formData.value.description, 
       triggers: formData.value.triggers 
     }

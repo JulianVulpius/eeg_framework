@@ -2,16 +2,64 @@
   <div class="event-media-gallery">
     
     <div class="gallery-toolbar">
-      <input type="file" @change="onFileSelected" ref="fileInput" style="display: none;" accept="image/*,video/*,audio/*,.pdf,.doc,.docx,.xls,.xlsx,.csv,.txt" />
-      <button class="btn-primary" @click="$refs.fileInput.click()" :disabled="isUploading">
-        {{ isUploading ? $t('common.uploading') + '...' : '+ ' + ($t('views.events.upload_media')) }}
-      </button>
+      
+      <div class="filter-container">
+        <div class="filter-item">
+          <label>{{ $t('common.creator') }}</label>
+          <input 
+            type="text" 
+            v-model="creatorFilter" 
+            class="form-control" 
+            :placeholder="$t('common.search')" 
+          />
+        </div>
+        
+        <div class="filter-item">
+          <label>{{ $t('master_data.category') }}</label>
+          <div class="search-select-wrapper">
+            <BaseSearchSelect 
+              v-model="categoryFilter"
+              :options="mediaCategories"
+              :nullLabel="`${$t('common.all')}`"
+            />
+          </div>
+        </div>
+
+        <div class="filter-item">
+          <label>{{ $t('views.events.media_type') }}</label>
+          <select v-model="mediaTypeFilter" class="form-control">
+            <option value="">{{ $t('common.all') }}</option>
+            <option value="IMAGE">{{ $t('views.stimulus.type_image') }}</option>
+            <option value="VIDEO">{{ $t('views.stimulus.type_video') }}</option>
+            <option value="AUDIO">{{ $t('views.stimulus.type_audio') }}</option>
+            <option value="DOCUMENT">{{ $t('views.events.type_document') }}</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="action-group">
+        <button 
+          class="btn-secondary" 
+          @click="exportVisibleFiles" 
+          :disabled="isExporting || filteredGalleryItems.length === 0"
+          :title="$t('views.events.export_visible_desc')"
+        >
+          <span v-if="isExporting" class="spinner">⏳</span>
+          <span v-else>📥</span>
+          {{ isExporting ? $t('common.loading') : $t('views.events.export_visible') }}
+        </button>
+
+        <input type="file" @change="onFileSelected" ref="fileInput" style="display: none;" accept="image/*,video/*,audio/*,.pdf,.doc,.docx,.xls,.xlsx,.csv,.txt" />
+        <button class="btn-primary" @click="$refs.fileInput.click()" :disabled="isUploading">
+          {{ isUploading ? $t('common.uploading') + '...' : '+ ' + ($t('views.events.upload_media')) }}
+        </button>
+      </div>
     </div>
 
     <div v-if="isLoading" class="loading-state">{{ $t('common.loading') }}</div>
 
     <div v-else class="gallery-grid">
-      <div v-for="item in galleryItems" :key="item.id" class="gallery-item card">
+      <div v-for="item in filteredGalleryItems" :key="item.id" class="gallery-item card">
         
         <div 
           class="media-preview" 
@@ -45,6 +93,10 @@
               <option value="">{{ $t('views.events.select_media_category')}}</option>
               <option v-for="cat in mediaCategories" :key="cat.id" :value="cat.id">{{ cat.name }}</option>
             </select>
+
+            <span v-if="item.media_asset_details?.creator" style="font-size: 0.7rem; color: #7f8c8d; margin-top: 2px;">
+              {{ item.media_asset_details.creator }}
+            </span>
           </div>
 
           <button class="delete-btn" @click="deleteItem(item.media_asset_details?.id)" :title="$t('actions.delete')">🗑️</button>
@@ -52,7 +104,7 @@
 
       </div>
       
-      <div v-if="galleryItems.length === 0" class="empty-gallery">
+      <div v-if="filteredGalleryItems.length === 0" class="empty-gallery">
         {{ $t('common.no_data') }}
       </div>
     </div>
@@ -60,10 +112,12 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { useI18n } from 'vue-i18n'
 import api from '@/services/api'
 import { useGlobalModal } from '@/composables/useGlobalModal'
+
+import BaseSearchSelect from '@/components/ui/BaseSearchSelect.vue'
 
 const props = defineProps({
   eventId: { type: [String, Number], required: true },
@@ -76,9 +130,38 @@ const { showWarning, requireConfirmation } = useGlobalModal()
 const fileInput = ref(null)
 const isUploading = ref(false)
 const isLoading = ref(true)
+const isExporting = ref(false)
 
 const galleryItems = ref([])
 const mediaCategories = ref([]) 
+
+const creatorFilter = ref('')
+const categoryFilter = ref(null)
+const mediaTypeFilter = ref('')
+
+const filteredGalleryItems = computed(() => {
+  return galleryItems.value.filter(item => {
+    const details = item.media_asset_details
+    if (!details) return false
+
+    if (categoryFilter.value !== null && categoryFilter.value !== '' && details.category !== categoryFilter.value) {
+      return false
+    }
+
+    if (mediaTypeFilter.value !== '' && details.media_type !== mediaTypeFilter.value) {
+      return false
+    }
+
+    if (creatorFilter.value) {
+      const creatorName = details.creator ? details.creator.toLowerCase() : ''
+      if (!creatorName.includes(creatorFilter.value.toLowerCase())) {
+        return false
+      }
+    }
+
+    return true
+  })
+})
 
 const getAbsoluteUrl = (path) => {
   if (!path) return ''
@@ -183,11 +266,111 @@ const handleMediaClick = (item) => {
   window.open(url, '_blank')
 }
 
+const downloadFile = async (url, filename) => {
+  try {
+    const response = await fetch(url)
+    if (!response.ok) throw new Error('Network response was not ok')
+    const blob = await response.blob()
+    const link = document.createElement('a')
+    link.href = window.URL.createObjectURL(blob)
+    link.download = filename
+    document.body.appendChild(link)
+    link.click()
+    document.body.removeChild(link)
+    window.URL.revokeObjectURL(link.href)
+  } catch (error) {
+    console.error('Download failed', error)
+  }
+}
+
+const exportVisibleFiles = async () => {
+  if (filteredGalleryItems.value.length === 0) return
+  
+  isExporting.value = true
+  try {
+    for (const item of filteredGalleryItems.value) {
+      const details = item.media_asset_details
+      if (details && details.file_exists) {
+        const url = getAbsoluteUrl(details.file)
+        const filename = details.original_filename || `export_${details.id}`
+        await downloadFile(url, filename)
+        await new Promise(resolve => setTimeout(resolve, 400))
+      }
+    }
+  } catch (error) {
+    showWarning(t('common.error'), t('common.error'))
+  } finally {
+    isExporting.value = false
+  }
+}
+
 onMounted(loadGalleryAndCategories)
 </script>
 
 <style scoped>
-.gallery-toolbar { margin-bottom: 20px; display: flex; justify-content: flex-end; align-items: center; gap: 20px; }
+.gallery-toolbar { 
+  margin-bottom: 20px; 
+  display: flex; 
+  justify-content: space-between; 
+  align-items: flex-end; 
+  flex-wrap: wrap; 
+  gap: 20px; 
+  background: #fdfdfd;
+  padding: 15px;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+}
+
+.filter-container {
+  display: flex;
+  gap: 15px;
+  flex: 1;
+  flex-wrap: wrap;
+}
+
+.filter-item {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  flex: 1;
+  min-width: 150px;
+  max-width: 250px;
+}
+
+.filter-item label {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #34495e;
+  margin: 0;
+  padding: 0;
+}
+
+.filter-item .form-control {
+  width: 100%;
+}
+
+.search-select-wrapper {
+  width: 100%;
+}
+
+.search-select-wrapper :deep(.form-group) {
+  margin-bottom: 0 !important;
+}
+
+.action-group {
+  display: flex;
+  justify-content: flex-end;
+  align-items: flex-end; 
+  gap: 12px;
+  padding-bottom: 1px; 
+}
+
+.spinner {
+  display: inline-block;
+  animation: spin 2s linear infinite;
+}
+@keyframes spin { 100% { transform: rotate(360deg); } }
+
 .gallery-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 20px; }
 .gallery-item { display: flex; flex-direction: column; overflow: hidden; padding: 0; border: 1px solid #e0e0e0; }
 

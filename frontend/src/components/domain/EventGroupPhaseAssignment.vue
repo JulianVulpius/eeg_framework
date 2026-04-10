@@ -3,7 +3,7 @@
     <div class="group-selector">
       <label class="section-label">1. {{ $t('views.events.select_event_group') }}</label>
       <select v-model="selectedGroupId" class="form-control select-box">
-        <option :value="null">- {{ $t('actions.select') || 'Bitte wählen' }} -</option>
+        <option :value="null">{{ $t('actions.select') || 'Bitte wählen' }}</option>
         <option v-for="grp in eventGroups" :key="grp.id" :value="grp.id">
           {{ grp.name }}
         </option>
