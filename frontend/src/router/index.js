@@ -112,6 +112,10 @@ const router = createRouter({
           component: () => import('@/views/session/SessionControlView.vue') 
         },
         { 
+          path: 'sessions/heartrate', 
+          component: () => import('@/views/session/SessionHeartRateView.vue') 
+        },
+        { 
           path: 'sessions/history', 
           component: () => import('@/views/session/SessionHistoryView.vue') 
         },

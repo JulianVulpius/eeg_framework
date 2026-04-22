@@ -46,7 +46,8 @@
     "manufacturer_categories": "Hersteller",
     "generic_recording_categories": "Generic Recording",
     "media_asset_categories": "Medium",
-    "subject_profile_info_categories": "Proband Profil Info"
+    "subject_profile_info_categories": "Proband Profil Info",
+    "heartrate_live": "Herzfrequenz Live"
   },
   "breadcrumb": {
     "history_single_report": "Einzelbericht",

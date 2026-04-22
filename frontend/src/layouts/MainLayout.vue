@@ -18,6 +18,10 @@
             ▶ {{ $t('nav.session_launcher') }}
           </router-link>
           
+          <router-link to="/sessions/heartrate" class="btn-play-sync btn-heartrate" active-class="btn-active">
+            ❤️ {{ $t('nav.heartrate_live') }}
+          </router-link>
+          
           <router-link to="/sessions/history" class="btn-play-sync btn-history" active-class="btn-active">
             📊 {{ $t('nav.session_history') }}
           </router-link>
@@ -147,6 +151,9 @@ watch(() => route.path, () => {
 
 .btn-launcher { margin-top: 10px; background: linear-gradient(135deg, var(--primary-color), var(--primary-hover)); border-color: var(--primary-hover); box-shadow: 0 4px 6px rgba(52, 152, 219, 0.3); }
 .btn-launcher:hover { background: linear-gradient(135deg, var(--primary-hover), var(--primary-color)); box-shadow: 0 6px 12px rgba(52, 152, 219, 0.4); }
+
+.btn-heartrate { margin-top: 10px; background: linear-gradient(135deg, #e74c3c, #c0392b); border-color: #c0392b; box-shadow: 0 4px 6px rgba(231, 76, 60, 0.3); }
+.btn-heartrate:hover { background: linear-gradient(135deg, #c0392b, #e74c3c); box-shadow: 0 6px 12px rgba(231, 76, 60, 0.4); }
 
 .btn-history { margin-top: 10px; background: #f1f3f5; color: var(--text-main); border-color: var(--border-light); box-shadow: none; }
 .btn-history:hover { background: #e9ecef; box-shadow: none; border-color: var(--border-color); filter: none; transform: none;}
