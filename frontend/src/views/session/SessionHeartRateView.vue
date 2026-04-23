@@ -59,7 +59,6 @@ const bpmDisplay = ref('--');
 const dataLog = ref([]);
 const hasData = computed(() => chartData.value.labels.length > 0);
 let ws = null;
-let lastMessageTime = 0;
 
 const chartData = ref({
   labels: [],
@@ -76,8 +75,8 @@ const chartData = ref({
 });
 
 watch(locale, () => {
-  chartData.value.datasets[0].label = t('views.heartrate.graph_label', 'Heartrate');
-  chartData.value = { ...chartData.value }; 
+  chartData.value.datasets[0].label = t('views.heartrate.graph_label');
+  chartData.value = { ...chartData.value };
 });
 
 const chartOptions = {
@@ -99,39 +98,49 @@ const connect = () => {
 
   ws.onmessage = (event) => {
     const payload = JSON.parse(event.data);
-    isLive.value = true;
-    bpmDisplay.value = Math.round(payload.bpm);
 
-    dataLog.value.unshift(JSON.stringify(payload));
-    if (dataLog.value.length > 10) dataLog.value.pop();
-
-    const now = Date.now();
-    let currentLabels = [...chartData.value.labels];
-    let currentData = [...chartData.value.datasets[0].data];
-
-    // Reset graph on break (> 4s)
-    if (lastMessageTime !== 0 && (now - lastMessageTime > 4000)) {
-      currentLabels = [];
-      currentData = [];
-    }
-    lastMessageTime = now;
-
-    currentLabels.push(new Date().toLocaleTimeString());
-    currentData.push(payload.bpm);
-
-    if (currentLabels.length > 40) {
-      currentLabels.shift();
-      currentData.shift();
+    if (payload.action === 'session_start') {
+      chartData.value = {
+        ...chartData.value,
+        labels: [],
+        datasets: [{
+          ...chartData.value.datasets[0],
+          data: []
+        }]
+      };
+      
+      dataLog.value.unshift(JSON.stringify(payload));
+      if (dataLog.value.length > 10) dataLog.value.pop();
+      return; 
     }
 
-    chartData.value = {
-      ...chartData.value,
-      labels: currentLabels,
-      datasets: [{
-        ...chartData.value.datasets[0],
-        data: currentData
-      }]
-    };
+    if (payload.bpm) {
+      isLive.value = true;
+      bpmDisplay.value = Math.round(payload.bpm);
+
+      dataLog.value.unshift(JSON.stringify(payload));
+      if (dataLog.value.length > 10) dataLog.value.pop();
+
+      let currentLabels = [...chartData.value.labels];
+      let currentData = [...chartData.value.datasets[0].data];
+
+      currentLabels.push(new Date().toLocaleTimeString());
+      currentData.push(payload.bpm);
+
+      if (currentLabels.length > 300) {
+        currentLabels.shift();
+        currentData.shift();
+      }
+
+      chartData.value = {
+        ...chartData.value,
+        labels: currentLabels,
+        datasets: [{
+          ...chartData.value.datasets[0],
+          data: currentData
+        }]
+      };
+    }
   };
 
   ws.onclose = () => {
