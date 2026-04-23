@@ -418,7 +418,7 @@
       "type_json": "JSON Objekt",
       "select_category": "- Kategorie wählen -",
       "assigned_order_info": "ℹ️ Hinweis: die Reihenfolge der zugewiesenen Definitionen bestimmt die Reihenfolge im generierten Formular.",
-      "filter_category_all": "- alle kategorien -",
+      "filter_category_all": "- Alle Kategorien -",
       "move_up": "nach oben",
       "move_down": "nach unten",
       "assigned_definitions": "Zugewiesene Felder",
@@ -427,6 +427,16 @@
     "models": {
       "identifier": "System-Identifier",
       "identifier_hint": "Eindeutiger System-Key (darf später nicht geändert werden, wird automatisch formatiert)."
+    },
+    "heartrate": {
+    "title": "Sitzung: Herzfrequenz",
+    "status_connected": "VERBUNDEN",
+    "status_waiting": "WARTE AUF DATEN",
+    "placeholder": "Starte die Messung auf der SmartWatch",
+    "dev_log_title": "Entwickler Live-Log (Raw JSON)",
+    "dev_log_empty": "Noch keine Datenpakete empfangen...",
+    "btn_clear_log": "Log leeren",
+    "graph_label": "Herzfrequenz"
     }
   }
 }

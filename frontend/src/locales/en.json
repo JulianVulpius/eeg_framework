@@ -418,7 +418,7 @@
       "type_json": "JSON Object",
       "select_category": "- Select Category -",
       "assigned_order_info": "ℹ️ Note: the order of assigned definitions dictates the order they will appear in the generated form.",
-      "filter_category_all": "- all categories -",
+      "filter_category_all": "- All Categories -",
       "move_up": "move up",
       "move_down": "move down",
       "assigned_definitions": "Assigned Fields",
@@ -427,6 +427,16 @@
     "models": {
       "identifier": "System Identifier",
       "identifier_hint": "Unique system key (must not be changed later, auto-formatted to uppercase)."
+    },
+    "heartrate": {
+    "title": "Session Heartrate",
+    "status_connected": "CONNECTED",
+    "status_waiting": "WAITING FOR DATA",
+    "placeholder": "Start measurement on SmartWatch",
+    "dev_log_title": "Developer Live Log (Raw JSON)",
+    "dev_log_empty": "No data packets received yet...",
+    "btn_clear_log": "Clear Log",
+    "graph_label": "Heartrate"
     }
   }
 }
