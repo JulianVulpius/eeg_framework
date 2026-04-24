@@ -1,83 +1,15 @@
 <template>
-  <div class="session-report">
+  <div class="session-report" style="padding-bottom: 40px;">
     <BaseBreadcrumb :items="breadcrumbItems" />
 
     <div class="page-header" style="margin-bottom: 20px;">
-      <h1>{{ $t('views.report.title') }}</h1>
+      <h1 style="font-size: 1.8rem; color: #2c3e50; margin: 0;">{{ $t('views.report.title') }}</h1>
     </div>
 
     <div v-if="isLoading" class="loading-state">{{ $t('common.loading') }}</div>
     
     <div v-else-if="reportData" class="report-content">
-      <div class="card meta-card">
-        <div class="meta-grid">
-          <div><label>{{ $t('views.report.session_id') }}</label><div class="val">{{ reportData.session_id }}</div></div>
-          <div><label>{{ $t('views.report.event') }}</label><div class="val">{{ reportData.event_name }}</div></div>
-          <div><label>{{ $t('views.report.page_group') }}</label><div class="val">{{ reportData.page_group_name }}</div></div>
-          <div><label>{{ $t('views.report.subject') }}</label><div class="val">{{ reportData.subject_identifier }}</div></div>
-          <div><label>{{ $t('views.report.date') }}</label><div class="val">{{ formatDate(reportData.start_time) }}</div></div>
-          <div v-if="reportData.location_name"><label>{{ $t('views.report.location') }}</label><div class="val">{{ reportData.location_name }}</div></div>
-        </div>
-      </div>
-
-      <div v-if="reportData.metadata_groups.length === 0 && reportData.uploaded_files.length === 0" class="card empty-state">
-        {{ $t('views.report.no_data') }}
-      </div>
-
-      <div v-if="reportData.uploaded_files && reportData.uploaded_files.length > 0" class="card group-card">
-        <h3>📁 {{ $t('views.report.files_title') }}</h3>
-        <table class="report-table">
-          <thead>
-            <tr>
-              <th style="width: 10%;">{{ $t('views.report.file_order') }}</th>
-              <th style="width: 15%;">{{ $t('views.report.file_type') }}</th>
-              <th style="width: 25%;">{{ $t('views.report.file_name') }}</th>
-              <th style="width: 30%;">{{ $t('views.report.file_desc') }}</th>
-              <th style="width: 20%;">{{ $t('views.report.file_link') }}</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr v-for="(file, idx) in reportData.uploaded_files" :key="idx">
-              <td>{{ file.order }}</td>
-              <td>
-                <span class="badge">{{ file.type }}</span>
-                <span v-if="file.category" style="display: block; font-size: 0.75rem; color: #7f8c8d; margin-top: 4px;">{{ file.category }}</span>
-              </td>
-              <td><strong>{{ file.name || '-' }}</strong></td>
-              <td>{{ file.description || '-' }}</td>
-              <td>
-                <a v-if="file.url" :href="getAbsoluteUrl(file.url)" target="_blank" style="color: #3498db; text-decoration: none; font-size: 0.9rem;">
-                  {{ file.url.split('/').pop() }}
-                </a>
-                <span v-else class="text-muted">-</span>
-              </td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
-
-      <div v-for="(group, idx) in reportData.metadata_groups" :key="idx" class="card group-card">
-        <h3>{{ group.group_name }}</h3>
-        <table class="report-table">
-          <thead>
-            <tr>
-              <th style="width: 50%;">{{ $t('views.report.question') }}</th>
-              <th style="width: 50%;">{{ $t('views.report.answer') }}</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr v-for="(ans, aIdx) in group.answers" :key="aIdx">
-              <td>{{ ans.question }}</td>
-              <td>
-                <span v-if="ans.type === 'BOOLEAN'" class="badge" :class="ans.answer === 'true' ? 'badge-yes' : 'badge-no'">
-                  {{ ans.answer === 'true' ? $t('common.yes') : $t('common.no') }}
-                </span>
-                <span v-else><strong>{{ ans.answer }}</strong></span>
-              </td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
+      <SessionReportDisplay :report="reportData" />
     </div>
   </div>
 </template>
@@ -88,6 +20,7 @@ import { useRoute } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import api from '@/services/api'
 import BaseBreadcrumb from '@/components/ui/BaseBreadcrumb.vue'
+import SessionReportDisplay from '@/components/domain/SessionReportDisplay.vue'
 
 const route = useRoute()
 const { t } = useI18n()
@@ -100,20 +33,6 @@ const breadcrumbItems = computed(() => [
   { label: t('nav.session_history'), route: '/sessions/history' },
   { label: `${t('breadcrumb.history_single_report')} #${sessionId}`, route: null }
 ])
-
-const formatDate = (dateStr) => {
-  if (!dateStr) return '-'
-  return new Date(dateStr).toLocaleString(undefined, {
-    year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit'
-  })
-}
-
-const getAbsoluteUrl = (path) => {
-  if (!path) return ''
-  if (path.startsWith('http')) return path
-  const baseUrl = (import.meta.env.VITE_API_URL || 'http://localhost:8000/api/').replace(/\/api\/?$/, '')
-  return baseUrl + path
-}
 
 const loadReport = async () => {
   try {
@@ -128,21 +47,3 @@ const loadReport = async () => {
 
 onMounted(loadReport)
 </script>
-
-<style scoped>
-.session-report { padding-bottom: 40px; }
-.page-header h1 { font-size: 1.8rem; color: #2c3e50; margin: 0; }
-.meta-card { background: #fdfdfd; border-left: 4px solid #3498db; margin-bottom: 30px; }
-.meta-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; }
-.meta-grid label { font-size: 0.85rem; color: #7f8c8d; text-transform: uppercase; letter-spacing: 0.5px; font-weight: 600; margin-bottom: 5px; display: block; }
-.meta-grid .val { font-size: 1.1rem; color: #2c3e50; font-weight: 500; }
-.group-card { margin-bottom: 30px; padding: 25px; }
-.group-card h3 { margin-top: 0; margin-bottom: 20px; color: #2c3e50; font-size: 1.3rem; padding-bottom: 10px; border-bottom: 2px solid #ecf0f1; }
-.report-table { width: 100%; border-collapse: collapse; }
-.report-table th, .report-table td { padding: 12px 15px; text-align: left; border-bottom: 1px solid #ecf0f1; }
-.report-table th { background-color: #f8f9fa; color: #34495e; font-weight: 600; font-size: 0.95rem; }
-.report-table tr:hover { background-color: #fdfdfd; }
-.badge-yes { background-color: #2ecc71; color: white; }
-.badge-no { background-color: #e74c3c; color: white; }
-.empty-state { text-align: center; padding: 50px; color: #7f8c8d; font-style: italic; background: #f8f9fa; border: 2px dashed #dcdde1; }
-</style>
