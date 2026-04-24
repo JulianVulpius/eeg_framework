@@ -40,3 +40,66 @@
   padding-bottom: 10px; 
   margin-bottom: 15px; 
 }
+
+.metric-card {
+  text-align: center;
+  padding: 30px 20px;
+}
+.metric-label {
+  display: block;
+  font-size: 0.95rem;
+  color: var(--text-muted);
+  margin-bottom: 10px;
+  text-transform: uppercase;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+}
+.metric-value {
+  font-size: 3.5rem;
+  font-weight: 800;
+  color: var(--primary-color);
+  line-height: 1;
+}
+
+/* Terminal / Live Log Box */
+.terminal-card {
+  background: #2c3e50;
+  color: #ecf0f1;
+  border-radius: 8px;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+.terminal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: #1a252f;
+  padding: 10px 15px;
+  border-bottom: 1px solid #34495e;
+}
+.terminal-header h3 {
+  margin: 0;
+  font-size: 0.95rem;
+  color: #bdc3c7;
+}
+.terminal-body {
+  padding: 15px;
+  height: 250px;
+  flex-grow: 1; 
+  overflow-y: auto;
+  font-family: 'Consolas', monospace;
+  font-size: 0.85rem;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.terminal-line {
+  border-bottom: 1px solid #34495e;
+  padding-bottom: 4px;
+  display: flex;
+  gap: 10px;
+}
+.terminal-time { color: #f1c40f; min-width: 80px; }
+.terminal-msg { color: #2ecc71; word-break: break-all; }
+.terminal-empty { color: #7f8c8d; text-align: center; padding-top: 80px; font-style: italic; }

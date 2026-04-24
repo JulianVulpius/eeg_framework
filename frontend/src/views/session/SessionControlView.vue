@@ -1,32 +1,22 @@
 <template>
-  <div class="category-manager">
-    <div class="page-header">
-      <h1>{{ $t('views.session_control.title') }}</h1>
+  <div class="category-manager" style="padding-bottom: 40px;">
+    
+    <div class="page-header" style="margin-bottom: 20px;">
+      <h1 style="margin: 0;">{{ $t('views.session_control.title') }}</h1>
     </div>
 
-    <div class="control-grid">
-      <div class="setup-panel">
-        <div class="panel-section">
-          <h3>{{ $t('views.session_control.config') }}</h3>
+    <div style="display: grid; grid-template-columns: 1fr 2fr; gap: 25px;">
+      
+      <div style="display: flex; flex-direction: column; gap: 20px;">
+        <div class="card">
+          <h3 style="margin-top: 0; border-bottom: 1px solid var(--border-color); padding-bottom: 10px;">{{ $t('views.session_control.config') }}</h3>
           
           <div class="form-group">
-            <BaseSearchSelect 
-              v-model="selectedPlaylist"
-              :options="playlists"
-              :label="$t('views.session_control.select_playlist')"
-              :nullLabel="$t('views.session_control.no_playlist')"
-              :disabled="isRunning"
-            />
+            <BaseSearchSelect v-model="selectedPlaylist" :options="playlists" :label="$t('views.session_control.select_playlist')" :nullLabel="$t('views.session_control.no_playlist')" :disabled="isRunning" />
           </div>
 
           <div class="form-group" style="margin-top: 15px;">
-            <BaseSearchSelect 
-              v-model="selectedGroup"
-              :options="triggerGroups"
-              :label="$t('views.session_control.select_group')"
-              :nullLabel="$t('views.session_control.no_hotkeys')"
-              :disabled="isRunning"
-            />
+            <BaseSearchSelect v-model="selectedGroup" :options="triggerGroups" :label="$t('views.session_control.select_group')" :nullLabel="$t('views.session_control.no_hotkeys')" :disabled="isRunning" />
           </div>
 
           <div class="form-group" style="margin-top: 15px;">
@@ -35,8 +25,8 @@
           </div>
         </div>
 
-        <div class="panel-section">
-          <h3>{{ $t('views.session_control.active_hotkeys') }}</h3>
+        <div class="card">
+          <h3 style="margin-top: 0; border-bottom: 1px solid var(--border-color); padding-bottom: 10px;">{{ $t('views.session_control.active_hotkeys') }}</h3>
           
           <div style="margin-bottom: 10px;" v-if="activeHotkeys.length > 0">
             <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
@@ -45,42 +35,56 @@
             </label>
           </div>
 
-          <ul class="hotkey-list" v-if="activeHotkeys.length > 0">
-            <li v-for="hk in activeHotkeys" :key="hk.id" :style="{ opacity: hotkeysEnabled ? 1 : 0.5 }">
-              <kbd>{{ hk.key_code.toUpperCase() }}</kbd> ➔ {{ hk.triggerName }} (Value: {{ hk.triggerChar }})
+          <ul style="list-style: none; padding: 0; margin: 0;" v-if="activeHotkeys.length > 0">
+            <li v-for="hk in activeHotkeys" :key="hk.id" :style="{ opacity: hotkeysEnabled ? 1 : 0.5, padding: '8px 0', borderBottom: '1px dashed var(--border-light)' }">
+              <kbd style="background: #eee; padding: 2px 6px; border-radius: 4px; border: 1px solid #ccc;">{{ hk.key_code.toUpperCase() }}</kbd> ➔ {{ hk.triggerName }} (Value: {{ hk.triggerChar }})
             </li>
           </ul>
-          <p class="empty-state" v-else>{{ $t('views.session_control.no_hotkeys_loaded') }}</p>
+          <p v-else style="color: #7f8c8d; font-style: italic; margin: 0;">{{ $t('views.session_control.no_hotkeys_loaded') }}</p>
         </div>
       </div>
 
-      <div class="execution-panel">
-        <div class="engine-controls">
-          <button class="btn-start" :disabled="isRunning || !selectedPlaylist" @click="startEngine">
+      <div style="display: flex; flex-direction: column; gap: 20px;">
+        
+        <div class="card" style="display: flex; gap: 15px; padding: 20px;">
+          <button class="btn btn-primary" style="flex: 1; padding: 15px; font-size: 1.1rem;" :disabled="isRunning || !selectedPlaylist" @click="startEngine">
             ▶ START
           </button>
-          <button class="btn-pause" :disabled="!isRunning" @click="togglePause">
+          <button class="btn btn-warning" style="flex: 1; padding: 15px; font-size: 1.1rem; color: white;" :disabled="!isRunning" @click="togglePause">
             {{ isPaused ? '▶ RESUME' : '⏸ PAUSE' }}
           </button>
-          <button class="btn-stop" :disabled="!isRunning" @click="stopEngine">
+          <button class="btn btn-danger" style="flex: 1; padding: 15px; font-size: 1.1rem;" :disabled="!isRunning" @click="stopEngine">
             ⏹ STOP
           </button>
         </div>
 
-        <div class="status-box" :class="{ 'is-running': isRunning, 'is-paused': isPaused }">
-          Status: <strong>{{ engineStatus }}</strong>
-        </div>
-
-        <div class="panel-section log-section">
-          <h3>{{ $t('views.session_control.live_log') }}</h3>
-          <button class="btn-clear" @click="clearLog">{{ $t('actions.clear') }}</button>
-          <div class="log-container">
-            <div v-for="(log, index) in logs" :key="index" class="log-entry">
-              <span class="log-time">[{{ log.time }}]</span> {{ log.msg }}
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+          <div :class="statusBadgeClass">
+            Status: <strong>{{ engineStatus }}</strong>
+          </div>
+          <div class="card metric-card" style="margin: 0; padding: 10px;">
+            <span class="metric-label" style="margin-bottom: 5px;">Duration</span>
+            <div class="metric-value" style="font-size: 2rem;">
+              {{ formatDuration(sessionDuration) }}
             </div>
-            <div v-if="logs.length === 0" class="empty-state">{{ $t('views.session_control.waiting_events') }}</div>
           </div>
         </div>
+
+        <div class="terminal-card" style="flex-grow: 1;">
+          <div class="terminal-header">
+            <h3>{{ $t('views.session_control.live_log') }}</h3>
+            <button class="btn btn-danger" style="padding: 4px 10px; font-size: 0.8rem;" @click="clearLog">{{ $t('actions.clear') }}</button>
+          </div>
+          
+          <div class="terminal-body">
+            <div v-for="(log, index) in logs" :key="index" class="terminal-line">
+              <span class="terminal-time">[{{ log.time }}]</span>
+              <span class="terminal-msg" style="color: #ecf0f1;">{{ log.msg }}</span>
+            </div>
+            <div v-if="logs.length === 0" class="terminal-empty">{{ $t('views.session_control.waiting_events') }}</div>
+          </div>
+        </div>
+
       </div>
     </div>
   </div>
@@ -91,10 +95,11 @@ import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { useI18n } from 'vue-i18n'
 import api from '@/services/api'
 import engineApi from '@/services/engineApi'
-
 import BaseSearchSelect from '@/components/ui/BaseSearchSelect.vue'
+import { useFormatters } from '@/composables/useFormatters'
 
 const { t } = useI18n()
+const { formatDuration } = useFormatters()
 
 const playlists = ref([])
 const triggerGroups = ref([])
@@ -110,10 +115,19 @@ const isRunning = ref(false)
 const isPaused = ref(false)
 const logs = ref([])
 
+const sessionDuration = ref(0)
+let timerInterval = null
+
 const engineStatus = computed(() => {
   if (!isRunning.value) return 'Ready'
   if (isPaused.value) return 'Paused'
   return 'Running'
+})
+
+const statusBadgeClass = computed(() => {
+  if (!isRunning.value) return 'badge-ready'
+  if (isPaused.value) return 'badge-paused'
+  return 'badge-running'
 })
 
 const activeHotkeys = computed(() => {
@@ -148,6 +162,11 @@ const addLog = (msg) => {
 }
 const clearLog = () => { logs.value = [] }
 
+const startTimer = () => {
+  clearInterval(timerInterval)
+  timerInterval = setInterval(() => { sessionDuration.value++ }, 1000)
+}
+
 const startEngine = async () => {
   try {
     const playlist = playlists.value.find(p => p.id === selectedPlaylist.value)
@@ -162,7 +181,10 @@ const startEngine = async () => {
     })
 
     await engineApi.post('/start', { transition_time: transitionTime.value, songs: realSongs })
-    isRunning.value = true; isPaused.value = false;
+    isRunning.value = true; 
+    isPaused.value = false;
+    sessionDuration.value = 0;
+    startTimer();
     addLog(t('views.session_control.log_started', { name: playlist.name }))
   } catch (error) { 
     addLog(t('views.session_control.log_error_start', { msg: error.message })) 
@@ -174,10 +196,12 @@ const togglePause = async () => {
     if (isPaused.value) { 
       await engineApi.post('/resume'); 
       isPaused.value = false; 
+      startTimer();
       addLog(t('views.session_control.log_resumed')) 
     } else { 
       await engineApi.post('/pause'); 
       isPaused.value = true; 
+      clearInterval(timerInterval);
       addLog(t('views.session_control.log_paused')) 
     }
   } catch (error) { 
@@ -188,7 +212,9 @@ const togglePause = async () => {
 const stopEngine = async () => {
   try {
     await engineApi.post('/stop')
-    isRunning.value = false; isPaused.value = false;
+    isRunning.value = false; 
+    isPaused.value = false;
+    clearInterval(timerInterval);
     addLog(t('views.session_control.log_stopped'))
   } catch (error) { 
     addLog(t('views.session_control.log_error_stop', { msg: error.message })) 
@@ -207,35 +233,12 @@ const handleKeydown = (event) => {
 }
 
 onMounted(() => { loadDjangoData(); window.addEventListener('keydown', handleKeydown) })
-onUnmounted(() => { window.removeEventListener('keydown', handleKeydown); if (isRunning.value) stopEngine() })
+onUnmounted(() => { 
+  window.removeEventListener('keydown', handleKeydown); 
+  clearInterval(timerInterval);
+  if (isRunning.value) stopEngine(); 
+})
 </script>
 
 <style scoped>
-.control-grid { display: grid; grid-template-columns: 1fr 2fr; gap: 20px; margin-top: 20px; }
-.setup-panel, .execution-panel { display: flex; flex-direction: column; gap: 20px; }
-
-.panel-section { background: var(--sidebar-bg); padding: 20px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); }
-.panel-section h3 { margin-top: 0; border-bottom: 1px solid var(--border-color); padding-bottom: 10px; color: var(--text-main); }
-
-.hotkey-list { list-style: none; padding: 0; margin: 0; }
-.hotkey-list li { padding: 8px 0; border-bottom: 1px dashed var(--border-light); font-size: 0.95rem; }
-
-.engine-controls { display: flex; gap: 15px; }
-.engine-controls button { flex: 1; padding: 15px; font-size: 1.1rem; font-weight: bold; border: none; border-radius: 8px; cursor: pointer; transition: opacity 0.2s, transform 0.1s; }
-.engine-controls button:disabled { opacity: 0.5; cursor: not-allowed; }
-.engine-controls button:not(:disabled):active { transform: scale(0.98); }
-
-.btn-start { background-color: var(--success-color); color: white; }
-.btn-pause { background-color: var(--warning-color); color: white; }
-.btn-stop { background-color: var(--danger-color); color: white; }
-
-.status-box { padding: 15px; border-radius: 8px; background-color: var(--bg-color); border-left: 5px solid var(--border-color); font-size: 1.1rem; }
-.status-box.is-running { border-color: var(--success-color); background-color: rgba(46, 204, 113, 0.1); }
-.status-box.is-paused { border-color: var(--warning-color); background-color: rgba(243, 156, 18, 0.1); }
-
-.log-section { flex-grow: 1; display: flex; flex-direction: column; position: relative; }
-.btn-clear { position: absolute; top: 15px; right: 20px; background: none; border: 1px solid var(--border-color); border-radius: 4px; cursor: pointer; padding: 4px 8px; font-size: 0.8rem; }
-.log-container { background: var(--text-main); color: var(--bg-color); font-family: 'Consolas', monospace; font-size: 0.9rem; padding: 10px; border-radius: 4px; height: 300px; overflow-y: auto; margin-top: 10px; }
-.log-entry { margin-bottom: 4px; }
-.log-time { color: var(--text-muted); margin-right: 8px; }
 </style>

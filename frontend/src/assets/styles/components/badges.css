@@ -21,3 +21,15 @@
   background: #fadbd8; 
   color: var(--danger-dark); 
 }
+
+.badge-ready { border-left: 5px solid #3498db; background-color: rgba(52, 152, 219, 0.1); padding: 15px; font-size: 1.1rem; border-radius: 4px; }
+.badge-active { background: #d5f5e3; color: #1e8449; border: 1px solid #abebc6; animation: pulse 2s infinite; }
+.badge-idle { background: #f2f3f4; color: #707b7c; border: 1px solid #d5dbdb; }
+.badge-running { border-left: 5px solid #2ecc71; background-color: rgba(46, 204, 113, 0.1); padding: 15px; font-size: 1.1rem; border-radius: 4px; }
+.badge-paused { border-left: 5px solid #f39c12; background-color: rgba(243, 156, 18, 0.1); padding: 15px; font-size: 1.1rem; border-radius: 4px; }
+
+@keyframes pulse { 
+  0% { opacity: 1; } 
+  50% { opacity: 0.6; } 
+  100% { opacity: 1; } 
+}
