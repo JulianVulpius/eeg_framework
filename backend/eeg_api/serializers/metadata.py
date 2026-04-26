@@ -1,6 +1,6 @@
 from rest_framework import serializers
 from django.contrib.contenttypes.models import ContentType
-from eeg_api.models.metadata import EntityMetaDataRegistry, MetaDataDefinition, MetaDataGroup, MetaDataGroupDefinition
+from eeg_api.models.metadata import EntityMetaDataRegistry, MetaDataDefinition, MetaDataGroup, MetaDataGroupDefinition, MetaDataValue, MetaDataGroupInstance
 
 class ContentTypeSerializer(serializers.ModelSerializer):
     class Meta:
@@ -70,3 +70,22 @@ class MetaDataGroupSerializer(serializers.ModelSerializer):
                     order=index + 1
                 )
         return instance
+
+class MetaDataValueSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = MetaDataValue
+        fields = ['id', 'definition', 'value']
+
+class MetaDataValueWriteSerializer(serializers.ModelSerializer):
+    """ Used strictly for saving new values """
+    class Meta:
+        model = MetaDataValue
+        fields = ['definition', 'value']
+
+class MetaDataGroupInstanceSerializer(serializers.ModelSerializer):
+    values = MetaDataValueSerializer(many=True, read_only=True)
+    
+    class Meta:
+        model = MetaDataGroupInstance
+        fields = ['id', 'group', 'creation_source', 'content_type', 'object_id', 'values', 'created_at']
+        read_only_fields = ['created_at', 'creation_source']

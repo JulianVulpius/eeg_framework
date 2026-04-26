@@ -11,11 +11,12 @@ from .views.trigger import (
     TriggerDefinitionViewSet, TriggerGroupViewSet, 
     TriggerPairViewSet, TriggerHotkeyMappingViewSet
 )
-from .views.stimulus import StimulusViewSet, PlaylistViewSet 
 from .views.metadata import (
     ContentTypeViewSet, EntityMetaDataRegistryViewSet, 
-    MetaDataDefinitionViewSet, MetaDataGroupViewSet
+    MetaDataDefinitionViewSet, MetaDataGroupViewSet,
+    MetaDataGroupInstanceViewSet
 )
+from .views.stimulus import StimulusViewSet, PlaylistViewSet 
 from .views.ui import (
     ComponentTypeViewSet, LocationViewSet, ComponentViewSet, 
     PageViewSet, PageGroupViewSet, EventViewSet, EventGalleryViewSet
@@ -64,6 +65,7 @@ router.register(r'content-types', ContentTypeViewSet, basename='content-types')
 router.register(r'metadata/registry', EntityMetaDataRegistryViewSet, basename='metadata-registry')
 router.register(r'metadata/definitions', MetaDataDefinitionViewSet, basename='metadata-definitions')
 router.register(r'metadata/groups', MetaDataGroupViewSet, basename='metadata-groups')
+router.register(r'metadata-instances', MetaDataGroupInstanceViewSet, basename='metadata-instances')
 
 # ui and event routes
 router.register(r'component-types', ComponentTypeViewSet, basename='componenttype')

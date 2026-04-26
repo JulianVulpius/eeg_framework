@@ -79,7 +79,17 @@ class MetaDataGroupDefinition(models.Model):
         return f"{self.group.name} - {self.definition.name} (Pos: {self.order})"
 
 class MetaDataGroupInstance(AuditBaseModel):
+    class CreationSource(models.TextChoices):
+        MANUAL = 'MANUAL', 'Manual Registry Assignment'
+        COMPONENT = 'COMPONENT', 'Automated Component / Session'
+
     group = models.ForeignKey(MetaDataGroup, on_delete=models.PROTECT)
+    
+    creation_source = models.CharField(
+        max_length=20,
+        choices=CreationSource.choices,
+        default=CreationSource.MANUAL
+    )
     
     # acts as EntityType_ID
     content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE)
@@ -93,7 +103,7 @@ class MetaDataGroupInstance(AuditBaseModel):
         db_table = 'MetaDataGroupInstance'
 
     def __str__(self):
-        return f"Instance of {self.group.name} for {self.content_type.model} ID {self.object_id}"
+        return f"Instance of {self.group.name} ({self.creation_source}) for {self.content_type.model} ID {self.object_id}"
 
 class MetaDataValue(models.Model):
     # No audit base needed here because the parent Instance already tracks when the form was created/changed
