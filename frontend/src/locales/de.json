@@ -88,6 +88,21 @@
     "delete": "Löschen",
     "close": "Schließen"
   },
+  "metadata_filter": {
+    "button": "Nach Metadaten filtern",
+    "title": "Metadaten Filter",
+    "active": "Metadaten-Filter aktiv:",
+    "rules": "Regel(n)",
+    "add_rule": "Bedingung hinzufügen",
+    "match_and": "Alle Bedingungen müssen zutreffen (UND)",
+    "match_or": "Mindestens eine Bedingung muss zutreffen (ODER)",
+    "op_exact": "Exakt",
+    "op_contains": "Enthält",
+    "select_def": "-- Feld auswählen --",
+    "value": "Wert",
+    "apply": "Filter anwenden",
+    "clear": "Filter löschen"
+  },
   "common": {
     "name": "Name",
     "description": "Beschreibung",

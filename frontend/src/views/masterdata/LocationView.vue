@@ -6,6 +6,14 @@
       @add="crud.openAddDialog(resetForm)" 
     />
 
+    <MetaDataFilterToolbar 
+      :table-supports-metadata="tableSupportsMetadata"
+      :has-any-metadata="hasAnyMetadata"
+      :filter-state="metaFilterState"
+      @open="isFilterModalOpen = true"
+      @clear="clearMetaFilter"
+    />
+
     <div class="table-container">
       <table class="data-table">
         <thead>
@@ -114,6 +122,14 @@
       @updated="refreshMetadataIcons"
     />
 
+    <MetaDataFilterModal 
+      :isOpen="isFilterModalOpen"
+      :contentTypeId="contentTypeId"
+      @close="isFilterModalOpen = false"
+      @apply="applyMetaFilter"
+      @clear="clearMetaFilter"
+    />
+
   </div>
 </template>
 
@@ -134,14 +150,28 @@ import ColumnHeaderFilter from '@/components/table/ColumnHeaderFilter.vue'
 import TableActionButtons from '@/components/table/TableActionButtons.vue'
 import MetaDataManagerModal from '@/components/domain/MetaDataManagerModal.vue'
 
+import MetaDataFilterToolbar from '@/components/domain/MetaDataFilterToolbar.vue'
+import MetaDataFilterModal from '@/components/domain/MetaDataFilterModal.vue'
+
 const { t } = useI18n()
 const crud = useCrud()
 const { requireConfirmation } = useGlobalModal()
 
-const { bulkCheckMetadata, getAvailableGroupsForTable } = useMetadataRegistry()
+const { bulkCheckMetadata, getAvailableGroupsForTable, searchMetadata } = useMetadataRegistry()
 const tableSupportsMetadata = ref(false)
 const metadataPresenceMap = ref({})
 const contentTypeId = ref(null)
+
+const hasAnyMetadata = computed(() => {
+  return Object.values(metadataPresenceMap.value).some(hasData => hasData === true)
+})
+
+const isFilterModalOpen = ref(false)
+const metaFilterState = ref({
+  isActive: false,
+  ruleCount: 0,
+  allowedIds: []
+})
 
 const metaModalState = ref({
   isOpen: false,
@@ -164,8 +194,10 @@ const getCategoryName = (id) => {
   return cat ? cat.name : '-'
 }
 
+// WICHTIG: Die angepasste Intersection Filter-Logik
 const filteredItems = computed(() => {
-  return items.value.filter(item => {
+  // 1. Normale Text/Kategorien-Filter anwenden
+  let res = items.value.filter(item => {
     if (columnFilters.value.name) {
       const q = columnFilters.value.name.toLowerCase()
       if (!item.name.toLowerCase().includes(q)) return false
@@ -181,6 +213,12 @@ const filteredItems = computed(() => {
     }
     return true
   })
+
+  if (metaFilterState.value.isActive) {
+    res = res.filter(item => metaFilterState.value.allowedIds.includes(item.id))
+  }
+
+  return res
 })
 
 const formData = ref({
@@ -243,6 +281,24 @@ const refreshMetadataIcons = async () => {
   if (items.value.length > 0 && contentTypeId.value) {
     const rowIds = items.value.map(row => row.id)
     metadataPresenceMap.value = await bulkCheckMetadata(contentTypeId.value, rowIds)
+  }
+}
+
+const applyMetaFilter = async (filterData) => {
+  const matchingIds = await searchMetadata(contentTypeId.value, filterData.matchType, filterData.rules)
+  
+  metaFilterState.value = {
+    isActive: true,
+    ruleCount: filterData.rules.length,
+    allowedIds: matchingIds
+  }
+}
+
+const clearMetaFilter = () => {
+  metaFilterState.value = { 
+    isActive: false, 
+    ruleCount: 0, 
+    allowedIds: [] 
   }
 }
 

@@ -120,3 +120,55 @@ class MetaDataGroupInstanceViewSet(viewsets.ModelViewSet):
         result = {str(obj_id): (obj_id in existing_instances) for obj_id in object_ids}
 
         return Response(result, status=status.HTTP_200_OK)
+
+    @action(detail=False, methods=['post'], url_path='search')
+    def search(self, request):
+        """ 
+        Expected Payload: {"content_type": 12, "match_type": "AND", "rules": [{"definition": 5, "operator": "exact", "value": "Herz"}]}
+        """
+        content_type_id = request.data.get('content_type')
+        match_type = request.data.get('match_type', 'AND') # 'AND' 'OR'
+        rules = request.data.get('rules', [])
+
+        if not content_type_id:
+            return Response({"error": "content_type required"}, status=status.HTTP_400_BAD_REQUEST)
+
+        instances = MetaDataGroupInstance.objects.filter(content_type_id=content_type_id)
+        all_obj_ids = set(instances.values_list('object_id', flat=True))
+        
+        if not rules:
+            return Response(list(all_obj_ids), status=status.HTTP_200_OK)
+
+        matching_obj_ids = set()
+
+        for obj_id in all_obj_ids:
+            obj_instances = instances.filter(object_id=obj_id)
+            obj_values = MetaDataValue.objects.filter(instance__in=obj_instances)
+            
+            rule_matches = []
+            
+            for rule in rules:
+                def_id = rule.get('definition')
+                op = rule.get('operator', 'exact')
+                val = str(rule.get('value', '')).lower()
+                
+                q = obj_values.filter(definition_id=def_id)
+                found = False
+                
+                for v in q:
+                    db_val = str(v.value).lower()
+                    if op == 'contains' and val in db_val:
+                        found = True
+                        break
+                    elif op == 'exact' and val == db_val:
+                        found = True
+                        break
+                        
+                rule_matches.append(found)
+
+            if match_type == 'AND' and all(rule_matches):
+                matching_obj_ids.add(obj_id)
+            elif match_type == 'OR' and any(rule_matches):
+                matching_obj_ids.add(obj_id)
+
+        return Response(list(matching_obj_ids), status=status.HTTP_200_OK)

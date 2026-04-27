@@ -88,6 +88,21 @@
     "delete": "Delete",
     "close": "Close"
   },
+  "metadata_filter": {
+    "button": "Filter by Metadata",
+    "title": "Metadata Filter",
+    "active": "Metadata Filter Active:",
+    "rules": "Rule(s)",
+    "add_rule": "Add Condition",
+    "match_and": "All conditions must be met (AND)",
+    "match_or": "At least one condition must be met (OR)",
+    "op_exact": "Exact",
+    "op_contains": "Contains",
+    "select_def": "-- Select Field --",
+    "value": "Value",
+    "apply": "Apply Filter",
+    "clear": "Clear Filter"
+  },
   "common": {
     "name": "Name",
     "description": "Description",

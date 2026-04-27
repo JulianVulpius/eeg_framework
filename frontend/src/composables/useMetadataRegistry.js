@@ -84,21 +84,36 @@ export function useMetadataRegistry() {
     })
   }
 
-const bulkCheckMetadata = async (contentTypeId, objectIdsArray) => {
-    if (!objectIdsArray || objectIdsArray.length === 0) return {}
+  const bulkCheckMetadata = async (contentTypeId, objectIdsArray) => {
+      if (!objectIdsArray || objectIdsArray.length === 0) return {}
+      try {
+        const response = await api.post('metadata-instances/bulk-check/', 
+          {
+            content_type: contentTypeId,
+            object_ids: objectIdsArray
+          }, 
+          {
+            hideToast: true 
+          }
+        )
+        return response.data
+      } catch (err) {
+        return {}
+      }
+    }
+
+  const searchMetadata = async (contentTypeId, matchType, rules) => {
     try {
-      const response = await api.post('metadata-instances/bulk-check/', 
-        {
-          content_type: contentTypeId,
-          object_ids: objectIdsArray
-        }, 
-        {
-          hideToast: true 
-        }
-      )
-      return response.data
+      const response = await api.post('metadata-instances/search/', {
+        content_type: contentTypeId,
+        match_type: matchType,
+        rules: rules
+      }, { hideToast: true })
+      
+      return response.data // Array with IDs [4, 15, 23]
     } catch (err) {
-      return {}
+      showWarning(t('common.error'), "Metadaten-Suche fehlgeschlagen")
+      return []
     }
   }
 
@@ -111,6 +126,7 @@ const bulkCheckMetadata = async (contentTypeId, objectIdsArray) => {
     updateManualMetadata,
     deleteManualInstance,
     checkLegacyStatus,
-    bulkCheckMetadata
+    bulkCheckMetadata,
+    searchMetadata
   }
 }
