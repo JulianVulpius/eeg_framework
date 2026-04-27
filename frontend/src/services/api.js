@@ -14,15 +14,19 @@ const api = axios.create({
 api.interceptors.response.use(
   (response) => {
     const method = response.config.method.toLowerCase()
-    const { showToast } = useToast()
-    const t = i18n.global.t
+    const shouldShowToast = response.config.hideToast !== true
+    
+    if (shouldShowToast) {
+      const { showToast } = useToast()
+      const t = i18n.global.t
 
-    if (method === 'post') {
-      showToast(t('toast.created') || 'Erfolgreich erstellt', 'success')
-    } else if (['put', 'patch'].includes(method)) {
-      showToast(t('toast.updated') || 'Erfolgreich aktualisiert', 'success')
-    } else if (method === 'delete') {
-      showToast(t('toast.deleted') || 'Erfolgreich gelöscht', 'error')
+      if (method === 'post') {
+        showToast(t('toast.created'), 'success')
+      } else if (['put', 'patch'].includes(method)) {
+        showToast(t('toast.updated'), 'success')
+      } else if (method === 'delete') {
+        showToast(t('toast.deleted'), 'error')
+      }
     }
 
     return response
@@ -35,12 +39,12 @@ api.interceptors.response.use(
       return Promise.reject(error)
     }
 
-    let errorMsg = t('errors.save_failed') || 'Ein Fehler ist aufgetreten.'
+    let errorMsg = t('errors.save_failed')
     if (error.response?.data) {
       errorMsg = error.response.data.detail || error.response.data.message || errorMsg
     }
 
-    showWarning(errorMsg, t('common.error') || 'Fehler')
+    showWarning(errorMsg, t('common.error'))
     
     return Promise.reject(error)
   }

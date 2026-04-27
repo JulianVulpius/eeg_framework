@@ -44,9 +44,15 @@
             <td><strong>{{ item.name }}</strong></td>
             <td><span class="badge category-badge">{{ getCategoryName(item.category) }}</span></td>
             <td>{{ item.description || '-' }}</td>
+            
             <TableActionButtons 
+              :item="item"
+              :table-supports-metadata="tableSupportsMetadata"
+              :has-metadata="metadataPresenceMap[item.id]"
               @edit="crud.openEditDialog(item.id, () => populateForm(item))"
               @delete="confirmAndDelete(item.id)"
+              @view-metadata="handleViewMetadata"
+              @edit-metadata="handleEditMetadata"
             />
           </tr>
         </tbody>
@@ -96,15 +102,28 @@
         </div>
       </form>
     </BaseModal>
+
+    <MetaDataManagerModal 
+      :isOpen="metaModalState.isOpen"
+      :initialMode="metaModalState.mode"
+      :contentTypeId="contentTypeId"
+      :objectId="metaModalState.targetId"
+      :objectName="metaModalState.targetName"
+      :tableSupportsMetadata="tableSupportsMetadata"
+      @close="metaModalState.isOpen = false"
+      @updated="refreshMetadataIcons"
+    />
+
   </div>
 </template>
 
 <script setup>
-import { ref, onMounted, computed } from 'vue'
+import { ref, onMounted, computed, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import api from '@/services/api'
 import { useCrud } from '@/composables/useCrud'
 import { useGlobalModal } from '@/composables/useGlobalModal'
+import { useMetadataRegistry } from '@/composables/useMetadataRegistry'
 
 import BaseModal from '@/components/ui/BaseModal.vue'
 import BaseInputError from '@/components/ui/BaseInputError.vue'
@@ -113,10 +132,23 @@ import CrudHeader from '@/components/ui/CrudHeader.vue'
 
 import ColumnHeaderFilter from '@/components/table/ColumnHeaderFilter.vue'
 import TableActionButtons from '@/components/table/TableActionButtons.vue'
+import MetaDataManagerModal from '@/components/domain/MetaDataManagerModal.vue'
 
 const { t } = useI18n()
 const crud = useCrud()
 const { requireConfirmation } = useGlobalModal()
+
+const { bulkCheckMetadata, getAvailableGroupsForTable } = useMetadataRegistry()
+const tableSupportsMetadata = ref(false)
+const metadataPresenceMap = ref({})
+const contentTypeId = ref(null)
+
+const metaModalState = ref({
+  isOpen: false,
+  mode: 'view',
+  targetId: null,
+  targetName: ''
+})
 
 const items = ref([])
 const categories = ref([])
@@ -180,6 +212,40 @@ const loadData = async () => {
   } catch (error) {}
 }
 
+const initMetadataSystem = async () => {
+  try {
+    const ctRes = await api.get('content-types/')
+    const targetCt = ctRes.data.find(c => c.model === 'location')
+    
+    if (targetCt) {
+      contentTypeId.value = targetCt.id
+      const allowedGroups = await getAvailableGroupsForTable(targetCt.id)
+      tableSupportsMetadata.value = allowedGroups.length > 0
+    }
+  } catch (error) {}
+}
+
+watch([items, contentTypeId], async ([newItems, newCtId]) => {
+  if (newItems.length === 0 || !newCtId) return
+  const rowIds = newItems.map(row => row.id)
+  metadataPresenceMap.value = await bulkCheckMetadata(newCtId, rowIds)
+}, { immediate: true })
+
+const handleViewMetadata = (item) => {
+  metaModalState.value = { isOpen: true, mode: 'view', targetId: item.id, targetName: item.name }
+}
+
+const handleEditMetadata = (item) => {
+  metaModalState.value = { isOpen: true, mode: 'edit', targetId: item.id, targetName: item.name }
+}
+
+const refreshMetadataIcons = async () => {
+  if (items.value.length > 0 && contentTypeId.value) {
+    const rowIds = items.value.map(row => row.id)
+    metadataPresenceMap.value = await bulkCheckMetadata(contentTypeId.value, rowIds)
+  }
+}
+
 const saveRecord = async () => {
   crud.clearErrors()
   let hasError = false
@@ -213,5 +279,8 @@ const confirmAndDelete = (id) => {
   })
 }
 
-onMounted(loadData)
+onMounted(() => {
+  loadData()
+  initMetadataSystem()
+})
 </script>

@@ -68,6 +68,26 @@
     "masterdata_desc": "",
     "categories_desc": ""
   },
+  "metadata_tool": {
+    "title_view": "Metadata for",
+    "title_manage": "Manage Metadata for",
+    "view": "View",
+    "edit": "Manage",
+    "add_new": "Add New Metadata",
+    "select_category": "Category",
+    "select_group": "Select Metadata Group",
+    "attached_data": "Attached Data",
+    "readonly_session_data": "Read-Only System Data",
+    "archived_category": "Archived Category",
+    "legacy": "Legacy",
+    "system": "System",
+    "draft": "Draft:",
+    "table_not_configured": "This table is currently not configured to receive metadata.",
+    "save": "Save Metadata",
+    "cancel": "Cancel",
+    "delete": "Delete",
+    "close": "Close"
+  },
   "common": {
     "name": "Name",
     "description": "Description",

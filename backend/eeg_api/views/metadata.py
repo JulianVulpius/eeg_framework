@@ -80,3 +80,43 @@ class MetaDataGroupInstanceViewSet(viewsets.ModelViewSet):
             )
 
         return Response(self.get_serializer(instance).data, status=status.HTTP_201_CREATED)
+    
+    @action(detail=True, methods=['put'], url_path='update-manual-instance')
+    def update_manual_instance(self, request, pk=None):
+        """ Updates existing values for an instance in hindsight """
+        instance = self.get_object()
+        values_data = request.data.get('values', [])
+        
+        for val in values_data:
+            MetaDataValue.objects.update_or_create(
+                instance=instance,
+                definition_id=val['definition'],
+                defaults={'value': val['value']}
+            )
+            
+        return Response(self.get_serializer(instance).data, status=status.HTTP_200_OK)
+
+    @action(detail=False, methods=['post'], url_path='bulk-check')
+    def bulk_check(self, request):
+        """
+        Fast bulk check for tables to avoid N+1 query problems.
+        Expects payload: {"content_type": 12, "object_ids": [1, 2, 3, 4, 5]}
+        Returns mapping: {"1": true, "2": false, "3": true, ...}
+        """
+        content_type_id = request.data.get('content_type')
+        object_ids = request.data.get('object_ids', [])
+
+        if not content_type_id or not isinstance(object_ids, list):
+            return Response(
+                {"error": "content_type and a list of object_ids are required"}, 
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        existing_instances = MetaDataGroupInstance.objects.filter(
+            content_type_id=content_type_id,
+            object_id__in=object_ids
+        ).values_list('object_id', flat=True).distinct()
+
+        result = {str(obj_id): (obj_id in existing_instances) for obj_id in object_ids}
+
+        return Response(result, status=status.HTTP_200_OK)

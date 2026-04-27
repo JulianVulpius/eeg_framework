@@ -68,6 +68,26 @@
     "masterdata_desc": "",
     "categories_desc": ""
   },
+  "metadata_tool": {
+    "title_view": "Metadaten für",
+    "title_manage": "Metadaten verwalten für",
+    "view": "Ansicht",
+    "edit": "Verwalten",
+    "add_new": "Neue Metadaten hinzufügen",
+    "select_category": "Kategorie",
+    "select_group": "Metadatengruppe wählen",
+    "attached_data": "Angehängte Daten",
+    "readonly_session_data": "Schreibgeschützte Systemdaten",
+    "archived_category": "Archivierte Kategorie",
+    "legacy": "Legacy",
+    "system": "System",
+    "draft": "Entwurf:",
+    "table_not_configured": "Diese Tabelle ist aktuell nicht für Metadaten konfiguriert.",
+    "save": "Metadaten speichern",
+    "cancel": "Abbrechen",
+    "delete": "Löschen",
+    "close": "Schließen"
+  },
   "common": {
     "name": "Name",
     "description": "Beschreibung",
