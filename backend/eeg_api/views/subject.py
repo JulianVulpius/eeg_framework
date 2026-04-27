@@ -18,7 +18,7 @@ class SubjectProfileInfoViewSet(viewsets.ModelViewSet):
     serializer_class = SubjectProfileInfoSerializer
 
     def get_queryset(self):
-        queryset = SubjectProfileInfo.objects.all().order_by('-created_at')
+        queryset = SubjectProfileInfo.objects.all().order_by('created_at') 
         subject_id = self.request.query_params.get('subject')
         if subject_id:
             queryset = queryset.filter(subject_id=subject_id)

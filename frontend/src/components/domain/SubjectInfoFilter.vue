@@ -33,7 +33,7 @@ const selectedDropdownValue = ref(null)
 const availableCategoryOptions = computed(() => {
   return props.categories
     .filter(cat => !props.modelValue.includes(cat.id))
-    .map(cat => ({ value: cat.id, label: cat.name }))
+    .map(cat => ({ id: cat.id, name: cat.name }))
 })
 
 const getCategoryName = (id) => {

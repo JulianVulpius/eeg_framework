@@ -15,7 +15,7 @@
         />
       </div>
 
-      <div class="chat-history">
+      <div class="chat-history" ref="chatContainer">
         <div v-if="filteredInfos.length === 0" class="empty-state">
           {{ $t('common.no_entries') }}
         </div>
@@ -26,7 +26,9 @@
           class="chat-bubble"
         >
           <div class="bubble-header">
-            <span class="bubble-category">{{ getCategoryName(info.category) }}</span>
+            <span v-if="info.category" class="bubble-category">
+              {{ getCategoryName(info.category) }}
+            </span>
             <strong class="bubble-title">{{ info.title }}</strong>
           </div>
           <div class="bubble-body">
@@ -74,7 +76,7 @@
 </template>
 
 <script setup>
-import { ref, computed, watch } from 'vue'
+import { ref, computed, watch, nextTick } from 'vue'
 import { useI18n } from 'vue-i18n'
 import api from '@/services/api'
 import { useCrud } from '@/composables/useCrud'
@@ -99,25 +101,36 @@ const infos = ref([])
 const selectedCategoryIds = ref([])
 const isSubmitting = ref(false)
 
+const chatContainer = ref(null)
+
 const defaultForm = { category: null, title: '', description: '' }
 const formData = ref({ ...defaultForm })
+
+const scrollToBottom = async () => {
+  await nextTick() 
+  if (chatContainer.value) {
+    chatContainer.value.scrollTop = chatContainer.value.scrollHeight
+  }
+}
 
 watch(() => props.isOpen, async (newVal) => {
   if (newVal && props.subject) {
     crud.clearErrors()
     selectedCategoryIds.value = []
     formData.value = { ...defaultForm }
-    loadCategories()
-    loadInfos()
+    await loadCategories()
+    await loadInfos() 
+    scrollToBottom()
   }
 })
 
+watch(selectedCategoryIds, () => scrollToBottom())
+
 const loadCategories = async () => {
   try {
-    const response = await api.get('subject-profile-info-categories/')
+    const response = await api.get('category/subject-profile-info/')
     categories.value = response.data
   } catch (error) {
-    console.error("Categories failed to load", error)
   }
 }
 
@@ -125,18 +138,24 @@ const loadInfos = async () => {
   try {
     const response = await api.get(`subject-profile-infos/?subject=${props.subject.id}`)
     infos.value = response.data
-  } catch (error) {}
+  } catch (error) {
+  }
 }
 
 const filteredInfos = computed(() => {
-  if (selectedCategoryIds.value.length === 0) return infos.value
-  return infos.value.filter(info => selectedCategoryIds.value.includes(info.category))
+  let filtered = infos.value
+  
+  if (selectedCategoryIds.value.length > 0) {
+    filtered = infos.value.filter(info => selectedCategoryIds.value.includes(info.category))
+  }
+  
+  return [...filtered].sort((a, b) => new Date(a.created_at) - new Date(b.created_at))
 })
 
 const getCategoryName = (categoryId) => {
-  if (!categoryId) return t('master_data.no_category')
+  if (!categoryId) return '' 
   const cat = categories.value.find(c => c.id === categoryId)
-  return cat ? cat.name : t('master_data.no_category')
+  return cat ? cat.name : ''
 }
 
 const submitInfo = async () => {
@@ -149,6 +168,7 @@ const submitInfo = async () => {
     })
     formData.value = { ...defaultForm }
     await loadInfos()
+    scrollToBottom()
   } catch (error) {
     crud.handleFormError(error, t)
   } finally {
@@ -202,6 +222,7 @@ const closeModal = () => {
   display: flex;
   flex-direction: column;
   gap: 10px;
+  scroll-behavior: smooth;
 }
 
 .chat-bubble {
