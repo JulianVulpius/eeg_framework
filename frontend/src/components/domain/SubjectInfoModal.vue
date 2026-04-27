@@ -24,18 +24,37 @@
           v-for="info in filteredInfos" 
           :key="info.id" 
           class="chat-bubble"
+          :class="{ 'is-deleting': deletingInfoId === info.id }"
         >
-          <div class="bubble-header">
-            <span v-if="info.category" class="bubble-category">
-              {{ getCategoryName(info.category) }}
-            </span>
-            <strong class="bubble-title">{{ info.title }}</strong>
-          </div>
-          <div class="bubble-body">
-            {{ info.description }}
-          </div>
-          <div class="bubble-footer">
-            {{ formatDate(info.created_at) }}
+          <template v-if="deletingInfoId !== info.id">
+            <button 
+              class="delete-bubble-btn" 
+              @click="deletingInfoId = info.id" 
+              title="Löschen / Delete"
+            >
+              −
+            </button>
+
+            <div class="bubble-header">
+              <span v-if="info.category" class="bubble-category">
+                {{ getCategoryName(info.category) }}
+              </span>
+              <strong class="bubble-title">{{ info.title }}</strong>
+            </div>
+            <div class="bubble-body">
+              {{ info.description }}
+            </div>
+            <div class="bubble-footer">
+              {{ formatDate(info.created_at) }}
+            </div>
+          </template>
+
+          <div v-else class="inline-confirm">
+            <p>Eintrag wirklich löschen? / Really delete entry?</p>
+            <div class="inline-confirm-actions">
+              <button type="button" class="btn-cancel-sm" @click="deletingInfoId = null">✕ Abbrechen / Cancel</button>
+              <button type="button" class="btn-delete-sm" @click="executeDelete(info.id)">✓ Löschen / Delete</button>
+            </div>
           </div>
         </div>
       </div>
@@ -80,7 +99,7 @@ import { ref, computed, watch, nextTick } from 'vue'
 import { useI18n } from 'vue-i18n'
 import api from '@/services/api'
 import { useCrud } from '@/composables/useCrud'
-import { useFormatters } from '@/composables/useFormatters' 
+import { useFormatters } from '@/composables/useFormatters'
 
 import BaseModal from '@/components/ui/BaseModal.vue'
 import BaseInputError from '@/components/ui/BaseInputError.vue'
@@ -94,13 +113,14 @@ const props = defineProps({
 const emit = defineEmits(['close'])
 const { t } = useI18n()
 const crud = useCrud()
-const { formatDate } = useFormatters() 
+const { formatDate } = useFormatters()
 
 const categories = ref([])
 const infos = ref([])
 const selectedCategoryIds = ref([])
 const isSubmitting = ref(false)
 
+const deletingInfoId = ref(null)
 const chatContainer = ref(null)
 
 const defaultForm = { category: null, title: '', description: '' }
@@ -118,6 +138,7 @@ watch(() => props.isOpen, async (newVal) => {
     crud.clearErrors()
     selectedCategoryIds.value = []
     formData.value = { ...defaultForm }
+    deletingInfoId.value = null
     await loadCategories()
     await loadInfos() 
     scrollToBottom()
@@ -129,7 +150,7 @@ watch(selectedCategoryIds, () => scrollToBottom())
 const loadCategories = async () => {
   try {
     const response = await api.get('category/subject-profile-info/')
-    categories.value = response.data
+    categories.value = response.data.results || response.data
   } catch (error) {
   }
 }
@@ -137,23 +158,21 @@ const loadCategories = async () => {
 const loadInfos = async () => {
   try {
     const response = await api.get(`subject-profile-infos/?subject=${props.subject.id}`)
-    infos.value = response.data
+    infos.value = response.data.results || response.data
   } catch (error) {
   }
 }
 
 const filteredInfos = computed(() => {
   let filtered = infos.value
-  
   if (selectedCategoryIds.value.length > 0) {
     filtered = infos.value.filter(info => selectedCategoryIds.value.includes(info.category))
   }
-  
   return [...filtered].sort((a, b) => new Date(a.created_at) - new Date(b.created_at))
 })
 
 const getCategoryName = (categoryId) => {
-  if (!categoryId) return '' 
+  if (!categoryId) return ''
   const cat = categories.value.find(c => c.id === categoryId)
   return cat ? cat.name : ''
 }
@@ -176,8 +195,19 @@ const submitInfo = async () => {
   }
 }
 
+const executeDelete = async (infoId) => {
+  try {
+    await api.delete(`subject-profile-infos/${infoId}/`)
+    deletingInfoId.value = null
+    await loadInfos()
+  } catch (error) {
+    crud.handleFormError(error, t)
+  }
+}
+
 const closeModal = () => {
   crud.clearErrors()
+  deletingInfoId.value = null
   emit('close')
 }
 </script>
@@ -229,6 +259,8 @@ const closeModal = () => {
   background-color: #dcf8c6;
   border-radius: 8px;
   padding: 10px 12px;
+  padding-right: 22px;
+  position: relative; 
   max-width: 90%;
   align-self: flex-start;
   box-shadow: 0 1px 2px rgba(0,0,0,0.1);
@@ -237,6 +269,76 @@ const closeModal = () => {
   word-wrap: break-word;
   overflow-wrap: anywhere;
   word-break: break-word;
+  transition: background-color 0.3s;
+}
+
+.chat-bubble.is-deleting {
+  background-color: #ffebee;
+  border: 1px solid #ffcdd2;
+}
+
+.delete-bubble-btn {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  background: transparent;
+  border: none;
+  color: #555;
+  font-size: 0.9rem;
+  font-weight: bold;
+  line-height: 1;
+  cursor: pointer;
+  opacity: 0.15;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  width: 16px;
+  height: 16px;
+  transition: opacity 0.2s, background-color 0.2s, color 0.2s;
+}
+
+.delete-bubble-btn:hover {
+  opacity: 1;
+  color: #d32f2f;
+  background-color: rgba(211, 47, 47, 0.1); 
+}
+
+.inline-confirm {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 4px 0;
+}
+.inline-confirm p {
+  margin: 0;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #c62828;
+}
+.inline-confirm-actions {
+  display: flex;
+  gap: 8px;
+}
+.btn-cancel-sm, .btn-delete-sm {
+  border: none;
+  border-radius: 4px;
+  padding: 6px 10px;
+  font-size: 0.75rem;
+  cursor: pointer;
+  font-weight: 600;
+  transition: opacity 0.2s;
+}
+.btn-cancel-sm:hover, .btn-delete-sm:hover {
+  opacity: 0.8;
+}
+.btn-cancel-sm {
+  background: #e0e0e0;
+  color: #333;
+}
+.btn-delete-sm {
+  background: #c62828;
+  color: white;
 }
 
 .bubble-header {
