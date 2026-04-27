@@ -127,7 +127,8 @@
     "no_image": "Kein Bild vorhanden",
     "uploading": "Wird hochgeladen...",
     "file_not_found": "Datei existiert nicht mehr",
-    "all": "Alle"
+    "all": "Alle",
+    "no_entries": "Noch keine Einträge vorhanden."
   },
   "actions": {
     "add_new": "+ Neu hinzufügen",
@@ -144,7 +145,9 @@
     "move_all": "Alle verschieben",
     "select_image": "Bild auswählen",
     "delete_image": "Bild löschen",
-    "remove_image": "Bild entfernen"
+    "remove_image": "Bild entfernen",
+    "manage_infos": "Zusatzinfos verwalten",
+    "send": "Senden"
   },
   "errors": {
     "save_failed": "Fehler beim Speichern des Datensatzes.",
@@ -169,7 +172,8 @@
     "desc_placeholder": "Geben Sie eine kurze Beschreibung ein...",
     "confirm_delete_title": "Löschen bestätigen",
     "confirm_delete_desc": "Sind Sie sicher, dass Sie diesen Datensatz löschen möchten? Diese Aktion kann nicht rückgängig gemacht werden.",
-    "yes_delete": "Ja, löschen"
+    "yes_delete": "Ja, löschen",
+    "subject_infos": "Zusatzinfos für {name}"
   },
   "master_data": {
     "low_hz": "Niedrigste (Hz)",
@@ -185,7 +189,11 @@
     "gender_female": "Weiblich",
     "gender_other": "Divers",
     "none": "Keine Angabe",
-    "is_eeg": "Ist EEG-Gerät"
+    "is_eeg": "Ist EEG-Gerät",
+    "title": "Titel",
+    "description": "Beschreibung",
+    "no_category": "Ohne Kategorie",
+    "select_category": "Kategorie auswählen..."
   },
   "views": {
     "history": {

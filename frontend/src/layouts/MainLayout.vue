@@ -19,7 +19,7 @@
           </router-link>
           
           <router-link to="/sessions/heartrate" class="btn-play-sync btn-heartrate" active-class="btn-active">
-            ❤️ {{ $t('nav.heartrate_live') }}
+            ▶ {{ $t('nav.heartrate_live') }}
           </router-link>
           
           <router-link to="/sessions/history" class="btn-play-sync btn-history" active-class="btn-active">

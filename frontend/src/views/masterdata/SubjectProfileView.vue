@@ -19,12 +19,30 @@
           <tr v-if="filteredItems.length === 0"><td :colspan="crud.showIdColumn.value ? 7 : 6" class="empty-state">{{ $t('common.no_data') }}</td></tr>
           <tr v-for="item in filteredItems" :key="item.id">
             <td v-if="crud.showIdColumn.value" class="id-column">{{ item.id }}</td>
-            <td><strong>{{ item.identifier }}</strong></td>
+            
+            <td>
+              <div class="identifier-cell">
+                <button 
+                  @click="openInfoModal(item)" 
+                  class="btn-icon info-btn" 
+                  :title="$t('actions.manage_infos')"
+                >
+                  ℹ️
+                </button>
+                <strong>{{ item.identifier }}</strong>
+              </div>
+            </td>
+
             <td>{{ item.firstname }}</td>
             <td>{{ item.lastname }}</td>
             <td>{{ formatDate(item.birthday) }}</td>
             <td>{{ getGenderLabel(item.gender) }}</td>
-            <TableActionButtons @edit="crud.openEditDialog(item.id, () => populateForm(item))" @delete="confirmAndDelete(item.id)" />
+            <td class="actions-column">
+              <TableActionButtons 
+                @edit="crud.openEditDialog(item.id, () => populateForm(item))" 
+                @delete="confirmAndDelete(item.id)" 
+              />
+            </td>
           </tr>
         </tbody>
       </table>
@@ -74,6 +92,12 @@
         </div>
       </form>
     </BaseModal>
+
+    <SubjectInfoModal 
+      :isOpen="isInfoModalOpen" 
+      :subject="selectedSubjectForInfo" 
+      @close="isInfoModalOpen = false" 
+    />
   </div>
 </template>
 
@@ -87,9 +111,9 @@ import { useGlobalModal } from '@/composables/useGlobalModal'
 import BaseModal from '@/components/ui/BaseModal.vue'
 import BaseInputError from '@/components/ui/BaseInputError.vue'
 import CrudHeader from '@/components/ui/CrudHeader.vue'
-
 import ColumnHeaderFilter from '@/components/table/ColumnHeaderFilter.vue'
 import TableActionButtons from '@/components/table/TableActionButtons.vue'
+import SubjectInfoModal from '@/components/domain/SubjectInfoModal.vue'
 
 const { t } = useI18n()
 const items = ref([])
@@ -97,6 +121,9 @@ const crud = useCrud()
 const { requireConfirmation } = useGlobalModal()
 
 const columnFilters = ref({ identifier: '', firstname: '', lastname: '' })
+
+const isInfoModalOpen = ref(false)
+const selectedSubjectForInfo = ref(null)
 
 const filteredItems = computed(() => {
   return items.value.filter(item => {
@@ -116,7 +143,13 @@ const loadData = async () => {
   try {
     const response = await api.get('subjects/')
     items.value = response.data
-  } catch (error) {}
+  } catch (error) {
+  }
+}
+
+const openInfoModal = (subject) => {
+  selectedSubjectForInfo.value = subject
+  isInfoModalOpen.value = true
 }
 
 const getGenderLabel = (genderCode) => {
@@ -166,3 +199,21 @@ const confirmAndDelete = (id) => {
 
 onMounted(loadData)
 </script>
+
+<style scoped>
+.identifier-cell {
+  display: flex;
+  align-items: center;
+  gap: 10px; 
+}
+.info-btn {
+  font-size: 1.2rem;
+  border: none;
+  background: none;
+  cursor: pointer;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+</style>
