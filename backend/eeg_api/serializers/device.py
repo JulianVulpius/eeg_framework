@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from eeg_api.models.device import DeviceModel, Manufacturer, EEGChannel, DeviceModelEEGChannel, FrequencyBand
+from eeg_api.models.device import DeviceModel, Manufacturer, EEGChannel, DeviceModelEEGChannel, FrequencyBand, DeviceInstance
 
 class FrequencyBandSerializer(serializers.ModelSerializer):
     class Meta:
@@ -62,3 +62,22 @@ class DeviceModelSerializer(serializers.ModelSerializer):
         instance.is_eeg = validated_data.get('is_eeg', instance.is_eeg)
         instance.save()
         return instance
+
+class DeviceModelSerializer(serializers.ModelSerializer):
+    is_locked = serializers.BooleanField(read_only=True)
+    manufacturer_name = serializers.ReadOnlyField(source='manufacturer.name')
+
+    class Meta:
+        model = DeviceModel
+        fields = [
+            'id', 'name', 'manufacturer', 'manufacturer_name', 'category', 
+            'is_eeg', 'hardware_specs', 'default_settings', 'is_archived', 'is_locked'
+        ]
+
+class DeviceInstanceSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = DeviceInstance
+        fields = [
+            'id', 'session', 'device_model', 'phase_config', 
+            'metadata_overwrite_instance', 'final_channels', 'created_at'
+        ]

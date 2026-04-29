@@ -2,6 +2,7 @@ from django.db import models
 from django.conf import settings
 from .ui import Event, PageGroup
 from .subject import SubjectProfile
+from .device import DeviceModel
 
 class EventRole(models.Model):
     event = models.ForeignKey(Event, on_delete=models.CASCADE, related_name='roles')
@@ -72,3 +73,42 @@ class EventStaffAssignment(models.Model):
     def __str__(self):
         scope = f"group: {self.event_group.name}" if self.event_group else "global"
         return f"{self.user} as {self.role.name} ({scope}) @ {self.role.event.name}"
+
+class EventDeviceModel(models.Model):
+    event = models.ForeignKey(Event, on_delete=models.CASCADE, related_name='device_pool')
+    device_model = models.ForeignKey('eeg_api.DeviceModel', on_delete=models.CASCADE, related_name='event_pools')
+
+    class Meta:
+        db_table = 'Event_DeviceModel'
+        unique_together = ('event', 'device_model')
+
+    def __str__(self):
+        return f"{self.device_model.name} allowed in {self.event.name}"
+
+
+class EventGroupPageGroupDevice(models.Model):
+    phase = models.ForeignKey('EventGroupPageGroup', on_delete=models.CASCADE, related_name='device_configs')
+    device_from_pool = models.ForeignKey('EventDeviceModel', on_delete=models.CASCADE, related_name='phase_configs')
+    
+    metadata_instance = models.OneToOneField(
+        'eeg_api.MetaDataGroupInstance', 
+        on_delete=models.SET_NULL, 
+        null=True, 
+        blank=True, 
+        related_name='phase_device_config'
+    )
+    
+    expected_channels = models.JSONField(
+        default=list, 
+        blank=True,
+        help_text='List of expected channel names selected from Master, e.g., ["Fp1", "Fp2", "Cz"]'
+    )
+
+    is_archived = models.BooleanField(default=False)
+
+    class Meta:
+        db_table = 'EventGroupPageGroup_Device'
+        unique_together = ('phase', 'device_from_pool')
+
+    def __str__(self):
+        return f"Config for {self.device_from_pool.device_model.name} in {self.phase}"

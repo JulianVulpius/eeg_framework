@@ -4,7 +4,7 @@ from .media import MediaAssetCategory, MediaAsset
 from .subject import SubjectProfile, SubjectProfileInfoCategory, SubjectProfileInfo
 from .device import (
     ManufacturerCategory, Manufacturer, EEGChannel, DeviceModelCategory, DeviceModel, DeviceModelEEGChannel, 
-    DeviceInstance, DeviceInstanceEEGChannel, FrequencyBand
+    DeviceInstance, FrequencyBand
 )
 from .trigger import TriggerDefinition, TriggerGroupCategory, TriggerGroup, TriggerGroupDefinition, TriggerPair
 from .stimulus import StimulusCategory, Stimulus, PlaylistCategory, Playlist, PlaylistStimulus
@@ -26,4 +26,7 @@ from .recordings import (
     EEGDataFile, HeartRateDataFile
 )
 
-from .event_management import EventRole, EventGroup, EventSubjectAssignment, EventStaffAssignment
+from .event_management import (
+    EventRole, EventGroup, EventSubjectAssignment, EventStaffAssignment,
+    EventDeviceModel, EventGroupPageGroupDevice
+)

@@ -4,7 +4,8 @@ from rest_framework.routers import DefaultRouter
 from .views.category import GenericCategoryViewSet
 from .views.device import (
     DeviceModelViewSet, ManufacturerViewSet, 
-    EEGChannelViewSet, FrequencyBandViewSet
+    EEGChannelViewSet, FrequencyBandViewSet,
+    DeviceInstanceViewSet
 )
 from .views.session import SessionViewSet
 from .views.trigger import (
@@ -30,7 +31,8 @@ from .views.recordings import (
 from .views.media import MediaAssetViewSet
 from .views.event_management import (
     EventRoleViewSet, EventGroupViewSet, 
-    EventSubjectAssignmentViewSet, EventStaffAssignmentViewSet
+    EventSubjectAssignmentViewSet, EventStaffAssignmentViewSet,
+    EventDeviceModelViewSet, EventGroupPageGroupDeviceViewSet
 )
 
 router = DefaultRouter()
@@ -46,6 +48,7 @@ router.register(r'device-models', DeviceModelViewSet, basename='device-models')
 router.register(r'manufacturers', ManufacturerViewSet, basename='manufacturer')
 router.register(r'eeg-channels', EEGChannelViewSet, basename='eegchannel')
 router.register(r'frequency-bands', FrequencyBandViewSet, basename='frequency-bands')
+router.register(r'device-instances', DeviceInstanceViewSet, basename='device-instances')
 
 # session route
 router.register(r'sessions', SessionViewSet, basename='sessions')
@@ -93,6 +96,8 @@ router.register(r'event-management/roles', EventRoleViewSet, basename='event-rol
 router.register(r'event-management/groups', EventGroupViewSet, basename='event-groups')
 router.register(r'event-management/subject-assignments', EventSubjectAssignmentViewSet, basename='event-subject-assignments')
 router.register(r'event-management/staff-assignments', EventStaffAssignmentViewSet, basename='event-staff-assignments')
+router.register(r'event-management/device-pool', EventDeviceModelViewSet, basename='event-device-pool')
+router.register(r'event-management/phase-devices', EventGroupPageGroupDeviceViewSet, basename='phase-devices')
 
 urlpatterns = [
     path('', include(router.urls)),

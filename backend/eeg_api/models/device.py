@@ -85,6 +85,26 @@ class DeviceModel(models.Model):
         through='DeviceModelEEGChannel',
         related_name='device_models'
     )
+    
+    hardware_specs = models.OneToOneField(
+        'eeg_api.MetaDataGroupInstance', 
+        on_delete=models.SET_NULL, 
+        null=True, 
+        blank=True, 
+        related_name='specs_for_device_model',
+        help_text="Immutable hardware facts (Never cloned downstream)"
+    )
+
+    default_settings = models.OneToOneField(
+        'eeg_api.MetaDataGroupInstance', 
+        on_delete=models.SET_NULL, 
+        null=True, 
+        blank=True, 
+        related_name='settings_for_device_model',
+        help_text="Factory default variables (Cloned downstream)"
+    )
+    
+    is_archived = models.BooleanField(default=False)
 
     class Meta:
         db_table = 'DeviceModel'
@@ -104,35 +124,40 @@ class DeviceModelEEGChannel(models.Model):
         return f"{self.device_model.name} supports {self.eeg_channel.name}"
 
 class DeviceInstance(AuditBaseModel):
-    model = models.ForeignKey(DeviceModel, on_delete=models.PROTECT)
-    name = models.CharField(
-        max_length=150, 
-        help_text="Internal name or asset tag for this specific physical device (e.g., 'Lab Headset A')"
-    )
-    active_channels = models.ManyToManyField(
-        EEGChannel,
-        through='DeviceInstanceEEGChannel',
+    session = models.ForeignKey(
+        'eeg_api.Session', 
+        on_delete=models.CASCADE, 
         related_name='device_instances'
+    )
+    
+    device_model = models.ForeignKey(
+        'eeg_api.DeviceModel', 
+        on_delete=models.PROTECT, 
+        related_name='instances'
+    )
+
+    phase_config = models.ForeignKey(
+        'eeg_api.EventGroupPageGroupDevice', 
+        on_delete=models.PROTECT, 
+        related_name='instances'
+    )
+    
+    metadata_overwrite_instance = models.OneToOneField(
+        'eeg_api.MetaDataGroupInstance', 
+        on_delete=models.PROTECT, 
+        null=True, 
+        blank=True,
+        related_name='session_device_instance'
+    )
+    
+    final_channels = models.JSONField(
+        default=dict, 
+        blank=True, 
+        help_text='JSON dict of channels and their status, e.g., {"Fp1": "GOOD", "Fz": "NOISY"}'
     )
 
     class Meta:
         db_table = 'DeviceInstance'
 
     def __str__(self):
-        return f"{self.name} ({self.model.name})"
-
-class DeviceInstanceEEGChannel(models.Model):
-    device_instance = models.ForeignKey(DeviceInstance, on_delete=models.CASCADE)
-    eeg_channel = models.ForeignKey(EEGChannel, on_delete=models.CASCADE)
-    data_column_index = models.PositiveIntegerField(
-        help_text="The exact column index (e.g., 0, 1, 2) in the EEG data file"
-    )
-
-    class Meta:
-        db_table = 'DeviceInstance_EEGChannel'
-        unique_together = ('device_instance', 'eeg_channel')
-        # sort queries by the column index so parsing script reads them in order
-        ordering = ['data_column_index'] 
-
-    def __str__(self):
-        return f"{self.device_instance.name} - {self.eeg_channel.name} (Col: {self.data_column_index})"
+        return f"Device Instance for Session {self.session.id} ({self.device_model.name})"
