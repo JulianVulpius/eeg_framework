@@ -40,3 +40,27 @@ input:focus, select:focus, textarea:focus { outline: none; border-color: var(--p
   flex: 1; 
   margin-bottom: 0;
 }
+
+/* --- Global Header Toggles (Show ID, Show Archived) --- */
+.header-toggle-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  color: var(--text-muted, #7f8c8d);
+  font-weight: 600;
+  font-size: 0.9rem;
+  white-space: nowrap;
+}
+
+.header-toggle-wrapper input[type="checkbox"] {
+  width: 17px;
+  height: 17px;
+  cursor: pointer;
+  margin: 0;
+  accent-color: var(--primary-color, #2980b9);
+}
+
+.header-toggle-wrapper:hover {
+  color: var(--text-main, #2c3e50);
+}

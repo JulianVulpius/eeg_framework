@@ -5,12 +5,10 @@
       v-model="crud.showIdColumn.value" 
       @add="crud.openAddDialog(resetForm)" 
     >
-      <div style="margin-right: 20px; display: flex; align-items: center; gap: 8px;">
-        <input type="checkbox" id="showArchivedToggle" v-model="showArchived" style="cursor: pointer; width: 16px; height: 16px;" />
-        <label for="showArchivedToggle" style="margin: 0; cursor: pointer; color: var(--text-muted); font-weight: 500;">
-          {{ $t('master_data.show_archived') }}
-        </label>
-      </div>
+      <label class="header-toggle-wrapper">
+        <input type="checkbox" v-model="showArchived" />
+        {{ $t('master_data.show_archived') }}
+      </label>
     </CrudHeader>
 
     <div class="table-container">

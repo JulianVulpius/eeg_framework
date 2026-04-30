@@ -50,10 +50,10 @@ const showToolbar = computed(() => props.tableSupportsMetadata || props.hasAnyMe
 }
 
 .btn-meta-filter {
-  background-color: #afb2b4; 
-  color: #000000; 
+  background-color: #f1a6a6; 
+  color: #ffffff; 
   font-weight: bold;
-  border: 2px solid #5a6268;
+  border: 2px solid #f1a6a6;
   padding: 0.5rem 1rem;
   border-radius: 4px;
   cursor: pointer;
@@ -64,7 +64,7 @@ const showToolbar = computed(() => props.tableSupportsMetadata || props.hasAnyMe
 }
 
 .btn-meta-filter:hover {
-  background-color: #5a6268;
+  background-color: #da624d;
   transform: translateY(-1px);
 }
 
