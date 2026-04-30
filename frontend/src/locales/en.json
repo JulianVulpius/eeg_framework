@@ -193,7 +193,22 @@
     "title": "Title",
     "description": "Description",
     "no_category": "No Category",
-    "select_category": "Select category..."
+    "select_category": "Select category...",
+    "is_locked": "Locked (In Use)",
+    "archived": "Archived",
+    "show_archived": "Show Archived",
+    "hardware_specs": "Hardware Specs",
+    "default_settings": "Default Settings",
+    "select_specs_group": "Select Metadata Group for Specs",
+    "select_settings_group": "Select Metadata Group for Settings",
+    "fill_values": "Fill Values",
+    "archive_warning_text": "This device has recorded data and cannot be deleted. Would you like to archive it instead?",
+    "edit_metadata": "Edit Metadata",
+    "select_metadata_type": "Which metadata would you like to edit?",
+    "no_metadata_assigned": "No metadata groups have been configured for this device yet.",
+    "no_group_assigned_for_tab": "No metadata group has been assigned for this section. Please edit the device and assign a group first.",
+    "device_specs_hint": "Immutable hardware facts (Never cloned downstream)",
+    "device_settings_hint": "Factory default variables (Cloned downstream)"
   },
   "views": {
     "history": {

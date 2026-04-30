@@ -1,4 +1,5 @@
 from django.db import models
+from django.contrib.contenttypes.fields import GenericRelation
 from .base import AuditBaseModel
 
 class FrequencyBand(models.Model):
@@ -105,6 +106,7 @@ class DeviceModel(models.Model):
     )
     
     is_archived = models.BooleanField(default=False)
+    metadata_instances = GenericRelation('eeg_api.MetaDataGroupInstance')
 
     class Meta:
         db_table = 'DeviceModel'

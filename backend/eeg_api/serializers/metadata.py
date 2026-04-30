@@ -24,6 +24,8 @@ class MetaDataGroupSerializer(serializers.ModelSerializer):
         required=False
     )
     assigned_definitions = serializers.SerializerMethodField(read_only=True)
+    
+    full_definitions = serializers.SerializerMethodField(read_only=True)
 
     def validate_name(self, value):
         query = MetaDataGroup.objects.filter(name__iexact=value.strip())
@@ -35,11 +37,15 @@ class MetaDataGroupSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = MetaDataGroup
-        fields = ['id', 'category', 'name', 'description', 'definitions', 'assigned_definitions']
+        fields = ['id', 'category', 'name', 'description', 'definitions', 'assigned_definitions', 'full_definitions']
 
     def get_assigned_definitions(self, obj):
         mgds = MetaDataGroupDefinition.objects.filter(group=obj).order_by('order')
         return [mgd.definition.id for mgd in mgds]
+
+    def get_full_definitions(self, obj):
+        mgds = MetaDataGroupDefinition.objects.filter(group=obj).order_by('order')
+        return MetaDataDefinitionSerializer([mgd.definition for mgd in mgds], many=True).data
 
     def create(self, validated_data):
         definitions_data = validated_data.pop('definitions', [])
@@ -72,9 +78,12 @@ class MetaDataGroupSerializer(serializers.ModelSerializer):
         return instance
 
 class MetaDataValueSerializer(serializers.ModelSerializer):
+    value = serializers.CharField(allow_blank=True, allow_null=True, required=False)
+
     class Meta:
         model = MetaDataValue
         fields = ['id', 'definition', 'value']
+        read_only_fields = ['id']
 
 class MetaDataValueWriteSerializer(serializers.ModelSerializer):
     """ Used strictly for saving new values """
@@ -83,9 +92,26 @@ class MetaDataValueWriteSerializer(serializers.ModelSerializer):
         fields = ['definition', 'value']
 
 class MetaDataGroupInstanceSerializer(serializers.ModelSerializer):
-    values = MetaDataValueSerializer(many=True, read_only=True)
+    values = MetaDataValueSerializer(many=True, required=False)
     
     class Meta:
         model = MetaDataGroupInstance
         fields = ['id', 'group', 'creation_source', 'content_type', 'object_id', 'values', 'created_at']
-        read_only_fields = ['created_at', 'creation_source']
+        read_only_fields = ['created_at', 'creation_source', 'content_type', 'object_id']
+
+    def update(self, instance, validated_data):
+        values_data = validated_data.pop('values', None)
+        
+        instance = super().update(instance, validated_data)
+        
+        if values_data is not None:
+            for val_data in values_data:
+                definition_obj = val_data.get('definition')
+                value_text = val_data.get('value')
+                
+                MetaDataValue.objects.update_or_create(
+                    instance=instance,
+                    definition=definition_obj,
+                    defaults={'value': value_text}
+                )
+        return instance

@@ -193,7 +193,22 @@
     "title": "Titel",
     "description": "Beschreibung",
     "no_category": "Ohne Kategorie",
-    "select_category": "Kategorie auswählen..."
+    "select_category": "Kategorie auswählen...",
+    "is_locked": "Gesperrt (In Verwendung)",
+    "archived": "Archiviert",
+    "show_archived": "Archivierte anzeigen",
+    "hardware_specs": "Hardware Spezifikationen",
+    "default_settings": "Standard Einstellungen",
+    "select_specs_group": "Metadaten-Gruppe für Spezifikationen wählen",
+    "select_settings_group": "Metadaten-Gruppe für Einstellungen wählen",
+    "fill_values": "Werte eintragen",
+    "archive_warning_text": "Dieses Gerät hat bereits aufgezeichnete Daten und kann nicht gelöscht werden. Soll es stattdessen archiviert werden?",
+    "edit_metadata": "Metadaten bearbeiten",
+    "select_metadata_type": "Welche Metadaten möchtest du eintragen?",
+    "no_metadata_assigned": "Es wurden noch keine Metadatengruppen für dieses Gerät konfiguriert.",
+    "no_group_assigned_for_tab": "Für diesen Bereich wurde keine Metadaten-Gruppe zugewiesen. Bitte bearbeite zuerst das Gerät und weise eine Gruppe zu.",
+     "device_specs_hint": "Unveränderliche Hardware-Fakten (werden niemals nachgelagert kopiert)",
+    "device_settings_hint": "Werkseinstellungen (nachgelagert geklont)"
   },
   "views": {
     "history": {

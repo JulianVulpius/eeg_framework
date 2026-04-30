@@ -82,6 +82,7 @@ class MetaDataGroupInstance(AuditBaseModel):
     class CreationSource(models.TextChoices):
         MANUAL = 'MANUAL', 'Manual Registry Assignment'
         COMPONENT = 'COMPONENT', 'Automated Component / Session'
+        DEVICE = 'DEVICE', 'Device Settings / Specs'
 
     group = models.ForeignKey(MetaDataGroup, on_delete=models.PROTECT)
     
