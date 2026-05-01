@@ -7,7 +7,6 @@
   >
     <div v-if="device" class="metadata-tabs-container">
       
-      <!-- Tab Header -->
       <div class="tabs-header">
         <button 
           v-if="device.current_hardware_specs_group_id"
@@ -25,7 +24,6 @@
         </button>
       </div>
 
-      <!-- Tab Content -->
       <div class="tab-content" style="padding-top: 20px;">
         
         <div v-if="isLoading" class="loading-state">
@@ -33,16 +31,15 @@
         </div>
 
         <div v-else-if="!hasAnyGroup" class="empty-state" style="padding: 30px; color: #e74c3c;">
-          Fehlende Verknüpfung! Bitte weise diesem Gerät zuerst eine Gruppe zu und speichere es.
+          {{ $t('master_data.missing_connection') }}
         </div>
 
         <form v-else @submit.prevent="saveAllMetadata">
           
           <div v-if="currentDefinitions.length === 0" class="empty-state" style="padding: 30px;">
-            Die ausgewählte Metadaten-Gruppe für diesen Tab enthält noch keine Felder (Definitions).
+            {{ $t('master_data.missing_definition') }}
           </div>
 
-          <!-- Dynamische Formularfelder (v-model greift auf den getrennten State zu) -->
           <div v-for="def in currentDefinitions" :key="def.id" class="form-group">
             <label>{{ def.name }} <span v-if="def.is_required">*</span></label>
             

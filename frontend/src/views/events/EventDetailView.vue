@@ -25,6 +25,11 @@
       <button :class="['tab-btn', { active: activeTab === 'page_groups' }]" @click="activeTab = 'page_groups'">
         {{ $t('nav.page_groups') }}
       </button>
+      
+      <button :class="['tab-btn', { active: activeTab === 'devices' }]" @click="activeTab = 'devices'">
+        {{ $t('views.events.tab_device_pool') }}
+      </button>
+
       <button :class="['tab-btn', { active: activeTab === 'groups' }]" @click="activeTab = 'groups'">
         {{ $t('views.events.tab_groups') }}
       </button>
@@ -181,6 +186,35 @@
         </BaseTransferList>
       </div>
 
+      <div v-if="activeTab === 'devices'" class="panel">
+        <div class="panel-header">
+          <h3>{{ $t('views.events.tab_device_pool') }}</h3>
+          <button @click="saveDevicePool" class="btn-primary" v-if="hasPermission('admin')">{{ $t('actions.save') }}</button>
+        </div>
+        <p style="margin-bottom: 25px; color: #7f8c8d;">
+          {{ $t('views.events.device_pool_desc') }}
+        </p>
+        
+        <BaseTransferList
+          v-model="eventData.devices"
+          :options="allMasterDevices"
+          :leftTitle="$t('views.events.available_devices')"
+          :rightTitle="$t('views.events.selected_devices')"
+          :searchPlaceholder="$t('views.events.search_devices')"
+          :enableOrdering="false"
+          :disabled="!hasPermission('admin')"
+          :leftFilterFn="filterAvailableDeviceLogic"
+          :rightFilterFn="filterSelectedDeviceLogic"
+        >
+          <template #left-filters>
+            <BaseSearchSelect v-model="filterAvailableDevice" :options="deviceCategories" :placeholder="$t('views.metadata.search_category')" />
+          </template>
+          <template #right-filters>
+            <BaseSearchSelect v-model="filterSelectedDevice" :options="deviceCategories" :placeholder="$t('views.metadata.search_category')" />
+          </template>
+        </BaseTransferList>
+      </div>
+
       <div v-if="activeTab === 'groups'" class="panel">
         <div class="panel-header">
           <h3>{{ $t('views.events.tab_groups') }}</h3>
@@ -219,7 +253,13 @@
           <h3>{{ $t('views.events.assigned_phases') }}</h3>
         </div>
         <p style="margin-bottom: 20px; color: #555;">{{ $t('views.events.phases_description') }}</p>
-        <EventGroupPhaseAssignment :eventGroups="eventGroups" :pageGroups="resolvedAssignedPageGroups" @update-assignment="saveEventGroupPhase" />
+        <EventGroupPhaseAssignment 
+          :eventGroups="eventGroups" 
+          :pageGroups="resolvedAssignedPageGroups" 
+          :eventDevicePool="resolvedDevicePool"
+          @update-assignment="saveEventGroupPhase" 
+          @edit-metadata="openPhaseMetadataModal"
+        />
       </div>
 
       <div v-if="activeTab === 'subjects'" class="panel">
@@ -373,6 +413,14 @@
       @close="modals.randomizer = false"
       @saved="loadSubjects"
     />
+
+    <MetaDataManagerModal 
+      :isOpen="isPhaseMetadataModalOpen"
+      :metadataInstanceId="editingPhaseConfig?.metadata_instance"
+      title="Phase Settings bearbeiten"
+      @close="isPhaseMetadataModalOpen = false"
+    />
+
   </div>
 </template>
 
@@ -401,6 +449,7 @@ import EventGroupRandomizerModal from '@/components/domain/EventGroupRandomizerM
 import ImagePreview from '@/components/ui/ImagePreview.vue'
 import ImageUploadBox from '@/components/ui/ImageUploadBox.vue'
 import EventMediaGallery from '@/components/domain/EventMediaGallery.vue'
+import MetaDataManagerModal from '@/components/domain/MetaDataManagerModal.vue'
 
 const route = useRoute()
 const { t } = useI18n()
@@ -415,6 +464,7 @@ const eventData = ref({})
 
 const availablePageGroups = ref([])
 const assignedPageGroups = ref([])
+const allMasterDevices = ref([]) 
 const eventGroups = ref([])
 const eventRoles = ref([])
 const staffAssignments = ref([])
@@ -422,8 +472,10 @@ const subjectAssignments = ref([])
 const realSubjects = ref([])
 
 const pageGroupCategories = ref([])
+const deviceCategories = ref([]) 
 const categories = ref([])
 const locations = ref([])
+const mediaCategories = ref([])
 
 const groupFilters = ref({ name: '', description: '' })
 const subjectFilters = ref({ id: '', firstname: '', lastname: '', group: '' })
@@ -432,14 +484,46 @@ const roleFilters = ref({ name: '', permissions: '' })
 
 const filterAvailablePG = ref(null)
 const filterSelectedPG = ref(null)
-
 const filterAvailableLogic = (opt) => !filterAvailablePG.value || opt.category === filterAvailablePG.value
 const filterSelectedLogic = (opt) => !filterSelectedPG.value || opt.category === filterSelectedPG.value
+
+const filterAvailableDevice = ref(null)
+const filterSelectedDevice = ref(null)
+const filterAvailableDeviceLogic = (opt) => !filterAvailableDevice.value || opt.category === filterAvailableDevice.value
+const filterSelectedDeviceLogic = (opt) => !filterSelectedDevice.value || opt.category === filterSelectedDevice.value
 
 const breadcrumbItems = computed(() => [
   { label: t('nav.events'), route: '/events' },
   { label: eventData.value.name || t('common.loading') }
 ])
+
+const isPhaseMetadataModalOpen = ref(false)
+const editingPhaseConfig = ref(null)
+
+const openPhaseMetadataModal = (config) => {
+  editingPhaseConfig.value = config
+  isPhaseMetadataModalOpen.value = true
+}
+
+const resolvedDevicePool = computed(() => {
+  if (!eventData.value.devices || eventData.value.devices.length === 0) return [];
+  
+  return eventData.value.devices.map(deviceId => {
+    const id = typeof deviceId === 'object' ? deviceId.id : deviceId;
+    const master = allMasterDevices.value.find(d => d.id === id);
+    
+    if (master) {
+      return {
+        id: master.id, 
+        device_model_id: master.id,
+        device_name: master.name || 'Unbekanntes Gerät',
+        category: master.category,
+        channels: master.channel_names || master.channels || []
+      };
+    }
+    return null;
+  }).filter(Boolean);
+});
 
 const getEntityName = (list, id, key = 'name') => {
   if (!id) return null
@@ -559,6 +643,11 @@ const extractDatePart = (isoString) => {
 const loadEventBaseData = async () => {
   try {
     const res = await api.get(`events/${eventId}/`)
+    
+    if (!res.data.devices) {
+      res.data.devices = []
+    }
+    
     eventData.value = res.data
     eventData.value.event_start_date = extractDatePart(res.data.event_start)
     eventData.value.event_start_time = parseApiTime(res.data.event_start) 
@@ -567,18 +656,26 @@ const loadEventBaseData = async () => {
     assignedPageGroups.value = res.data.page_groups || []
   } catch (err) {}
 }
-const mediaCategories = ref([])
 
 const loadPageGroupsAndCategories = async () => {
   try {
-    const [pgRes, catRes, evCatRes, locRes, mediaCatRes] = await Promise.all([
+    const [pgRes, catRes, evCatRes, locRes, mediaCatRes, deviceRes, deviceCatRes] = await Promise.all([
       api.get('page-groups/'), api.get('category/page-group/'),
       api.get('category/event/'), api.get('locations/'),
-      api.get('category/media-asset/')
+      api.get('category/media-asset/'), api.get('device-models/'),
+      api.get('category/device-model/')
     ])
     availablePageGroups.value = pgRes.data; pageGroupCategories.value = catRes.data
     categories.value = evCatRes.data; locations.value = locRes.data
     mediaCategories.value = mediaCatRes.data
+    deviceCategories.value = deviceCatRes.data
+    
+    allMasterDevices.value = deviceRes.data.filter(d => !d.is_archived).map(dev => ({
+      ...dev, 
+      id: dev.id,
+      name: dev.name + (dev.manufacturer_name ? ` (${dev.manufacturer_name})` : ''),
+      category: dev.category 
+    }))
   } catch (err) {}
 }
 
@@ -619,6 +716,17 @@ const savePartialEvent = async (payload) => {
     await loadEventBaseData() 
   } catch (error) {
     showWarning(t('common.error_saving'), t('common.error'))
+  }
+}
+
+const saveDevicePool = async () => {
+  try {
+    await api.patch(`events/${eventId}/`, {
+      devices: eventData.value.devices
+    })
+    await loadEventBaseData()
+  } catch (error) {
+    crudHelper.handleFormError(error, t)
   }
 }
 

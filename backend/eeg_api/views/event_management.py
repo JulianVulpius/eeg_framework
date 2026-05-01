@@ -2,6 +2,7 @@ from django.db.models import Exists, OuterRef
 from django.db.models import ProtectedError
 from rest_framework import viewsets, status
 from rest_framework.response import Response
+from eeg_api.models.device import DeviceInstance
 
 from eeg_api.utils import clone_metadata_group_instance
 
@@ -63,9 +64,15 @@ class EventGroupPageGroupDeviceViewSet(viewsets.ModelViewSet):
     serializer_class = EventGroupPageGroupDeviceSerializer
 
     def get_queryset(self):
-        return EventGroupPageGroupDevice.objects.annotate(
+        queryset = EventGroupPageGroupDevice.objects.annotate(
             is_locked=Exists(DeviceInstance.objects.filter(phase_config=OuterRef('pk')))
         )
+        
+        event_group_id = self.request.query_params.get('phase__event_group')
+        if event_group_id:
+            queryset = queryset.filter(phase__event_group_id=event_group_id)
+            
+        return queryset
 
     def destroy(self, request, *args, **kwargs):
         instance = self.get_object()

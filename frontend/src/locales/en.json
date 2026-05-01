@@ -128,7 +128,9 @@
     "uploading": "Uploading...",
     "file_not_found": "File no longer exists",
     "all": "All",
-    "no_entries": "No entries yet."
+    "no_entries": "No entries yet.",
+    "remove": "Remove",
+    "all_categories": "All Categories"
   },
   "actions": {
     "add_new": "+ Add New",
@@ -208,7 +210,10 @@
     "no_metadata_assigned": "No metadata groups have been configured for this device yet.",
     "no_group_assigned_for_tab": "No metadata group has been assigned for this section. Please edit the device and assign a group first.",
     "device_specs_hint": "Immutable hardware facts (Never cloned downstream)",
-    "device_settings_hint": "Factory default variables (Cloned downstream)"
+    "device_settings_hint": "Factory default variables (Cloned downstream)",
+    "missing_connection": "Missing link! Please assign this device to a group first and save it.",
+    "missing_definition": "The selected metadata group for this tab does not yet contain any fields (definitions)."
+
   },
   "views": {
     "history": {
@@ -392,7 +397,23 @@
       "media_type": "Media Type",
       "type_document": "Document / PDF",
       "export_visible": "Export All",
-      "export_visible_desc": "Downloads all currently filtered files"
+      "export_visible_desc": "Downloads all currently filtered files",
+      "tab_device_pool": "Device Pool",
+      "device_pool_desc": "Select which devices (from Master Data) should be available in this event.",
+      "available_devices": "Available Devices",
+      "selected_devices": "Selected Devices",
+      "search_devices": "Search devices...",
+      "configure_phase_devices": "Configure Devices per Phase",
+      "assign_device": "+ Assign Device",
+      "device_pool_empty": "No devices available in the event pool.",
+      "select_device": "Select Device",
+      "expected_channels": "Expected EEG Channels",
+      "edit_settings": "Edit Settings",
+      "is_locked_warning": "This configuration already has data and cannot be changed.",
+      "archived_badge": "Archived",
+      "already_assigned": "Already assigned",
+      "assign": "Add",
+      "no_channels_defined": "No channels defined in master device."
     },
     "triggers": {
       "available": "Available",

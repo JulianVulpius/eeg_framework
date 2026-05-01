@@ -97,7 +97,7 @@ router.register(r'event-management/groups', EventGroupViewSet, basename='event-g
 router.register(r'event-management/subject-assignments', EventSubjectAssignmentViewSet, basename='event-subject-assignments')
 router.register(r'event-management/staff-assignments', EventStaffAssignmentViewSet, basename='event-staff-assignments')
 router.register(r'event-management/device-pool', EventDeviceModelViewSet, basename='event-device-pool')
-router.register(r'event-management/phase-devices', EventGroupPageGroupDeviceViewSet, basename='phase-devices')
+router.register(r'event-management/phase-device-configs', EventGroupPageGroupDeviceViewSet, basename='phase-device-configs')
 
 urlpatterns = [
     path('', include(router.urls)),

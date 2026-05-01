@@ -2,6 +2,8 @@ import json
 from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
 from eeg_api.serializers.media import MediaAssetSerializer
+from eeg_api.models.event_management import EventDeviceModel
+from eeg_api.models.device import DeviceModel
 from eeg_api.models.ui import (
     ComponentType, Event, PageGroup, EventPageGroup, 
     Component, Page, PageComponent, PageGroupPage, Location, EventGallery
@@ -94,30 +96,52 @@ class PageGroupSerializer(serializers.ModelSerializer):
         instance.save()
         return instance
 
+from eeg_api.models.event_management import EventDeviceModel
+
 class EventSerializer(serializers.ModelSerializer):
     page_groups = serializers.PrimaryKeyRelatedField(
         queryset=PageGroup.objects.all(),
         many=True,
         required=False
     )
+
+    devices = serializers.PrimaryKeyRelatedField(
+        queryset=DeviceModel.objects.all(),
+        many=True,
+        required=False,
+        write_only=True
+    )
     session_locations = serializers.SerializerMethodField()
 
     class Meta:
         model = Event
-        fields = ['id', 'name', 'category', 'description', 'location', 'event_start', 'event_end', 'page_groups', 'session_locations', 'logo', 'poster']
+        fields = ['id', 'name', 'category', 'description', 'location', 'event_start', 'event_end', 'page_groups', 'devices', 'session_locations', 'logo', 'poster']
 
     def get_session_locations(self, obj):
             return list(obj.sessions.exclude(location__isnull=True).values_list('location_id', flat=True).distinct())
 
+    def to_representation(self, instance):
+        ret = super().to_representation(instance)
+        ret['devices'] = list(instance.device_pool.values_list('device_model_id', flat=True))
+        return ret
+
     def create(self, validated_data):
         page_groups_data = validated_data.pop('page_groups', [])
+        devices_data = validated_data.pop('devices', []) 
+        
         event = Event.objects.create(**validated_data)
+        
         for page_group in page_groups_data:
             EventPageGroup.objects.create(event=event, page_group=page_group)
+            
+        for device in devices_data:
+            EventDeviceModel.objects.create(event=event, device_model=device)
+            
         return event
 
     def update(self, instance, validated_data):
         page_groups_data = validated_data.pop('page_groups', None)
+        devices_data = validated_data.pop('devices', None)
 
         instance = super().update(instance, validated_data)
 
@@ -125,6 +149,11 @@ class EventSerializer(serializers.ModelSerializer):
             EventPageGroup.objects.filter(event=instance).delete()
             for page_group in page_groups_data:
                 EventPageGroup.objects.create(event=instance, page_group=page_group)
+
+        if devices_data is not None:
+            EventDeviceModel.objects.filter(event=instance).delete()
+            for device in devices_data:
+                EventDeviceModel.objects.create(event=instance, device_model=device)
 
         return instance
 

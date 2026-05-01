@@ -128,7 +128,9 @@
     "uploading": "Wird hochgeladen...",
     "file_not_found": "Datei existiert nicht mehr",
     "all": "Alle",
-    "no_entries": "Noch keine Einträge vorhanden."
+    "no_entries": "Noch keine Einträge vorhanden.",
+    "remove": "Entfernen",
+    "all_categories": "Alle Kategorien"
   },
   "actions": {
     "add_new": "+ Neu hinzufügen",
@@ -208,7 +210,9 @@
     "no_metadata_assigned": "Es wurden noch keine Metadatengruppen für dieses Gerät konfiguriert.",
     "no_group_assigned_for_tab": "Für diesen Bereich wurde keine Metadaten-Gruppe zugewiesen. Bitte bearbeite zuerst das Gerät und weise eine Gruppe zu.",
      "device_specs_hint": "Unveränderliche Hardware-Fakten (werden niemals nachgelagert kopiert)",
-    "device_settings_hint": "Werkseinstellungen (nachgelagert geklont)"
+    "device_settings_hint": "Werkseinstellungen (nachgelagert geklont)",
+    "missing_connection": "Fehlende Verknüpfung! Bitte weise diesem Gerät zuerst eine Gruppe zu und speichere es.",
+    "missing_definition": "Die ausgewählte Metadaten-Gruppe für diesen Tab enthält noch keine Felder (Definitions)."
   },
   "views": {
     "history": {
@@ -391,8 +395,23 @@
       "media_type": "Medientyp",
       "type_document": "Dokument / PDF",
       "export_visible": "Exportieren",
-      "export_visible_desc": "Lädt alle aktuell gefilterten Dateien als Zip/Download herunter"
-      
+      "export_visible_desc": "Lädt alle aktuell gefilterten Dateien als Zip/Download herunter",
+      "tab_device_pool": "Geräte-Pool",
+      "device_pool_desc": "Wähle aus, welche Geräte (Master Data) in diesem Event grundsätzlich zur Verfügung stehen sollen.",
+      "available_devices": "Verfügbare Geräte",
+      "selected_devices": "Ausgewählte Geräte",
+      "search_devices": "Geräte suchen...",
+      "configure_phase_devices": "Geräte pro Phase konfigurieren",
+      "assign_device": "+ Gerät zuweisen",
+      "device_pool_empty": "Keine Geräte im Event-Pool verfügbar.",
+      "select_device": "Gerät auswählen",
+      "expected_channels": "Erwartete EEG Kanäle",
+      "edit_settings": "Settings bearbeiten",
+      "is_locked_warning": "Diese Konfiguration hat bereits Daten und kann nicht mehr geändert werden.",
+      "archived_badge": "Archiviert",
+      "already_assigned": "Bereits zugewiesen",
+      "assign": "Hinzufügen",
+      "no_channels_defined": "Keine Kanäle im Gerätmodell definiert."
     },
     "triggers": {
       "available": "Verfügbar",
