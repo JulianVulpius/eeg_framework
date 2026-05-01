@@ -42,6 +42,7 @@ class EventDeviceModelSerializer(serializers.ModelSerializer):
 class EventGroupPageGroupDeviceSerializer(serializers.ModelSerializer):
     is_locked = serializers.BooleanField(read_only=True)
     device_name = serializers.ReadOnlyField(source='device_from_pool.device_model.name')
+    device_model_id = serializers.ReadOnlyField(source='device_from_pool.device_model.id')
     page_group_id = serializers.ReadOnlyField(source='phase.page_group.id')
     
     event_group_id = serializers.IntegerField(write_only=True, required=False)
@@ -51,7 +52,7 @@ class EventGroupPageGroupDeviceSerializer(serializers.ModelSerializer):
     class Meta:
         model = EventGroupPageGroupDevice
         fields = [
-            'id', 'phase', 'page_group_id', 'device_from_pool', 'device_name', 
+            'id', 'phase', 'page_group_id', 'device_from_pool', 'device_name', 'device_model_id',
             'metadata_instance', 'expected_channels', 'is_archived', 'is_locked',
             'event_group_id', 'target_page_group_id', 'master_device_id'
         ]

@@ -257,6 +257,7 @@
           :eventGroups="eventGroups" 
           :pageGroups="resolvedAssignedPageGroups" 
           :eventDevicePool="resolvedDevicePool"
+          :deviceCategories="deviceCategories"
           @update-assignment="saveEventGroupPhase" 
           @edit-metadata="openPhaseMetadataModal"
         />
@@ -414,10 +415,10 @@
       @saved="loadSubjects"
     />
 
-    <MetaDataManagerModal 
+    <PhaseConfigMetadataModal 
       :isOpen="isPhaseMetadataModalOpen"
-      :metadataInstanceId="editingPhaseConfig?.metadata_instance"
-      title="Phase Settings bearbeiten"
+      :instanceId="editingPhaseConfig?.metadata_instance"
+      :configName="editingPhaseConfig?.device_name"
       @close="isPhaseMetadataModalOpen = false"
     />
 
@@ -449,7 +450,7 @@ import EventGroupRandomizerModal from '@/components/domain/EventGroupRandomizerM
 import ImagePreview from '@/components/ui/ImagePreview.vue'
 import ImageUploadBox from '@/components/ui/ImageUploadBox.vue'
 import EventMediaGallery from '@/components/domain/EventMediaGallery.vue'
-import MetaDataManagerModal from '@/components/domain/MetaDataManagerModal.vue'
+import PhaseConfigMetadataModal from '@/components/domain/PhaseConfigMetadataModal.vue'
 
 const route = useRoute()
 const { t } = useI18n()

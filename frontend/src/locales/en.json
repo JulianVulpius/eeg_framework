@@ -130,7 +130,8 @@
     "all": "All",
     "no_entries": "No entries yet.",
     "remove": "Remove",
-    "all_categories": "All Categories"
+    "all_categories": "All Categories",
+     "reset": "Reset"
   },
   "actions": {
     "add_new": "+ Add New",
@@ -413,7 +414,8 @@
       "archived_badge": "Archived",
       "already_assigned": "Already assigned",
       "assign": "Add",
-      "no_channels_defined": "No channels defined in master device."
+      "no_channels_defined": "No channels defined in master device.",
+      "no_settings": "No default settings are stored for this device."
     },
     "triggers": {
       "available": "Available",

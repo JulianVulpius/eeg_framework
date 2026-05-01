@@ -64,23 +64,40 @@
             </div>
 
             <div class="form-group">
-              <label>{{ $t('views.events.expected_channels')}}</label>
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+              <label style="margin: 0;">{{ $t('views.events.expected_channels')}}</label>
+              
+              <button 
+                v-if="!config.is_locked && !config.is_archived"
+                class="btn-secondary btn-sm" 
+                style="padding: 2px 8px; font-size: 0.8rem;"
+                @click="resetChannels(config)"
+              >
+                <i class="fas fa-undo"></i> {{ $t('common.reset') }}
+              </button>
+            </div>
               
               <div v-if="getAvailableChannelsForConfig(config).length === 0" class="text-muted">
                 {{ $t('views.events.no_channels_defined')}}
               </div>
               
-              <div v-else class="channel-grid">
-                <label v-for="ch in getAvailableChannelsForConfig(config)" :key="ch" class="channel-tag" :class="{ 'disabled': config.is_locked || config.is_archived }">
-                  <input 
-                    type="checkbox" 
-                    :value="ch" 
-                    v-model="config.expected_channels" 
-                    :disabled="config.is_locked || config.is_archived"
-                    @change="updateConfig(config)"
-                  />
+             <div v-else class="channel-grid">
+                <span 
+                  v-for="ch in config.expected_channels" 
+                  :key="ch" 
+                  class="channel-tag" 
+                  :class="{ 'disabled': config.is_locked || config.is_archived }"
+                >
                   {{ ch }}
-                </label>
+                  <button 
+                    v-if="!config.is_locked && !config.is_archived"
+                    class="btn-icon text-danger remove-channel-btn" 
+                    @click="removeChannel(config, ch)"
+                    :title="$t('common.remove')"
+                  >
+                    ✖
+                  </button>
+                </span>
               </div>
             </div>
 
@@ -151,6 +168,7 @@ import api from '@/services/api'
 import BaseModal from '@/components/ui/BaseModal.vue'
 import BaseSearchSelect from '@/components/ui/BaseSearchSelect.vue'
 import { useGlobalModal } from '@/composables/useGlobalModal'
+import SearchableCheckboxGroup from '@/components/ui/SearchableCheckboxGroup.vue'
 
 const props = defineProps({
   eventGroups: { type: Array, required: true },
@@ -173,6 +191,30 @@ const modalSearchName = ref('')
 const modalSearchCategory = ref(null)
 
 const selectedGroup = computed(() => props.eventGroups.find(g => g.id === selectedGroupId.value))
+
+const removeChannel = async (config, channelToRemove) => {
+  if (config.is_locked || config.is_archived) return
+
+  config.expected_channels = config.expected_channels.filter(ch => ch !== channelToRemove);
+  await updateConfig(config);
+}
+
+const resetChannels = async (config) => {
+  if (config.is_locked || config.is_archived) return
+  
+  const poolDevice = props.eventDevicePool.find(d => d.device_model_id === config.device_model_id)
+  
+  if (poolDevice && poolDevice.channels) {
+    let originalChannels = poolDevice.channels
+    if (typeof originalChannels === 'string') {
+      originalChannels = originalChannels.split(',').map(s => s.trim())
+    }
+
+    config.expected_channels = [...originalChannels]
+    
+    await updateConfig(config)
+  }
+}
 
 const getPageGroupName = (id) => {
   const pg = props.pageGroups.find(p => p.id === id)
@@ -204,7 +246,7 @@ const isDeviceAlreadyAssigned = (poolDev) => {
   const configsInCurrentPhase = getConfigsForPhase(targetPageGroupId.value);
   
   return configsInCurrentPhase.some(c => 
-    c.device_name === poolDev.device_name || c.device_from_pool === poolDev.id
+    c.device_model_id === poolDev.device_model_id
   );
 }
 const uniqueCategoriesAsOptions = computed(() => {
@@ -333,4 +375,20 @@ const deleteConfig = (config) => {
 .filter-bar { display: flex; gap: 15px; margin-bottom: 20px; align-items: center; }
 .device-list { display: flex; flex-direction: column; gap: 10px; max-height: 400px; overflow-y: auto; }
 .device-list-item { display: flex; justify-content: space-between; align-items: center; padding: 15px; border: 1px solid #e0e0e0; border-radius: 6px; background: #fff; }
+
+.remove-channel-btn {
+  background: none;
+  border: none;
+  color: #e74c3c;
+  font-size: 0.8rem;
+  margin-left: 5px;
+  cursor: pointer;
+  padding: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+.remove-channel-btn:hover {
+  color: #c0392b;
+}
 </style>

@@ -146,14 +146,30 @@ class EventSerializer(serializers.ModelSerializer):
         instance = super().update(instance, validated_data)
 
         if page_groups_data is not None:
-            EventPageGroup.objects.filter(event=instance).delete()
-            for page_group in page_groups_data:
-                EventPageGroup.objects.create(event=instance, page_group=page_group)
+            current_pg_ids = set(EventPageGroup.objects.filter(event=instance).values_list('page_group_id', flat=True))
+            new_pg_ids = set(pg.id for pg in page_groups_data)
+            
+            to_remove_pg = current_pg_ids - new_pg_ids
+            if to_remove_pg:
+                EventPageGroup.objects.filter(event=instance, page_group_id__in=to_remove_pg).delete()
+                
+            to_add_pg = new_pg_ids - current_pg_ids
+            for pg_id in to_add_pg:
+                pg_instance = next(p for p in page_groups_data if p.id == pg_id)
+                EventPageGroup.objects.create(event=instance, page_group=pg_instance)
 
         if devices_data is not None:
-            EventDeviceModel.objects.filter(event=instance).delete()
-            for device in devices_data:
-                EventDeviceModel.objects.create(event=instance, device_model=device)
+            current_device_ids = set(EventDeviceModel.objects.filter(event=instance).values_list('device_model_id', flat=True))
+            new_device_ids = set(dev.id for dev in devices_data)
+            
+            to_remove_dev = current_device_ids - new_device_ids
+            if to_remove_dev:
+                EventDeviceModel.objects.filter(event=instance, device_model_id__in=to_remove_dev).delete()
+                
+            to_add_dev = new_device_ids - current_device_ids
+            for dev_id in to_add_dev:
+                dev_instance = next(d for d in devices_data if d.id == dev_id)
+                EventDeviceModel.objects.create(event=instance, device_model=dev_instance)
 
         return instance
 

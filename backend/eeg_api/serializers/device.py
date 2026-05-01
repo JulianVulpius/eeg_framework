@@ -48,7 +48,7 @@ class DeviceModelSerializer(serializers.ModelSerializer):
         ]
 
     def get_channel_names(self, obj):
-        return ", ".join(obj.channels.values_list('name', flat=True))
+        return list(obj.channels.values_list('name', flat=True))
 
     def get_current_hardware_specs_group_id(self, obj):
         return obj.hardware_specs.group_id if obj.hardware_specs else None

@@ -89,11 +89,12 @@
                   v-model="draftValues[def.id]"
                   class="form-control"
                 />
-                <select v-else-if="def.expected_data_type === 'BOOLEAN'" v-model="draftValues[def.id]" class="form-control">
-                  <option :value="null">-- {{ $t('common.select') }} --</option>
-                  <option value="true">{{ $t('common.yes') }}</option>
-                  <option value="false">{{ $t('common.no') }}</option>
-                </select>
+                <input 
+                  v-else-if="def.expected_data_type === 'BOOLEAN'" 
+                  type="checkbox" 
+                  v-model="draftValues[def.id]" 
+                  style="width: 20px; height: 20px; margin-top: 5px;"
+                />
                 <textarea v-else v-model="draftValues[def.id]" class="form-control" rows="2"></textarea>
               </div>
             </div>
@@ -143,11 +144,12 @@
                   v-model="editValues[instance.id][val.definition]"
                   class="form-control"
                 />
-                <select v-else-if="getDefType(val.definition) === 'BOOLEAN'" v-model="editValues[instance.id][val.definition]" class="form-control">
-                  <option :value="null">-- {{ $t('common.select') }} --</option>
-                  <option value="true">{{ $t('common.yes') }}</option>
-                  <option value="false">{{ $t('common.no') }}</option>
-                </select>
+                <input 
+                  v-else-if="getDefType(val.definition) === 'BOOLEAN'" 
+                  type="checkbox" 
+                  v-model="editValues[instance.id][val.definition]" 
+                  style="width: 20px; height: 20px; margin-top: 5px;"
+                />
                 <textarea v-else v-model="editValues[instance.id][val.definition]" class="form-control" rows="2"></textarea>
               </div>
               <button class="btn-primary mt-2" @click="saveExistingEdits(instance.id)">{{ $t('metadata_tool.save') }}</button>
@@ -267,7 +269,11 @@ const initEditState = () => {
     if (!instance.isReadOnly) {
       editValues.value[instance.id] = {}
       getCompleteValues(instance).forEach(v => {
-        editValues.value[instance.id][v.definition] = v.value
+        let val = v.value
+        if (getDefType(v.definition) === 'BOOLEAN') {
+          val = (val === 'true' || val === '1' || val === true)
+        }
+        editValues.value[instance.id][v.definition] = val
       })
     }
   })

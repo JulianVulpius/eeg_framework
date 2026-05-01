@@ -130,7 +130,8 @@
     "all": "Alle",
     "no_entries": "Noch keine Einträge vorhanden.",
     "remove": "Entfernen",
-    "all_categories": "Alle Kategorien"
+    "all_categories": "Alle Kategorien",
+    "reset": "Zurücksetzen"
   },
   "actions": {
     "add_new": "+ Neu hinzufügen",
@@ -411,7 +412,8 @@
       "archived_badge": "Archiviert",
       "already_assigned": "Bereits zugewiesen",
       "assign": "Hinzufügen",
-      "no_channels_defined": "Keine Kanäle im Gerätmodell definiert."
+      "no_channels_defined": "Keine Kanäle im Gerätmodell definiert.",
+      "no_settings": "Keine Default-Settings für dieses Gerät hinterlegt."
     },
     "triggers": {
       "available": "Verfügbar",
