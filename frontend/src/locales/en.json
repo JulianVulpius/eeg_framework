@@ -328,7 +328,11 @@
       "select_scope": "Target Audience (Execution Scope)",
       "scope_all": "Complete (Load all pages)",
       "scope_subject": "Subject View (Subject pages only)",
-      "scope_admin": "Admin View (Admin pages only)"
+      "scope_admin": "Admin View (Admin pages only)",
+      "no_group_warning": "No group assigned! (Required for sessions)",
+      "select_group": "Please select a group...",
+      "group_auto_selected": "Group auto-selected:",
+      "no_group_assigned": "⚠️ This subject has no event group. A session cannot be started."
     },
     "events": {
       "start": "Start Date",

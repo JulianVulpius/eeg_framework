@@ -1,11 +1,84 @@
 <template>
   <div class="recording-upload card">
     <h2 style="margin-bottom: 10px;">{{ $t('views.runner.upload_title') }}</h2>
-    <p style="color: #e67e22; font-size: 0.9rem; margin-bottom: 20px;">
-      ⚠️ {{ $t('views.runner.upload_overwrite_warning') }}
-    </p>
     
-    <form @submit.prevent>
+    <div v-if="isLoadingContext" class="text-muted mb-4">
+      Lade Geräte-Kontext...
+    </div>
+
+    <form v-else @submit.prevent>
+      
+      <!-- TIER 3 & 4 DEVICE SELECTION FLOW -->
+      <div class="device-context-section mb-4 p-3" style="background: #f8f9fa; border: 1px solid #dcdde1; border-radius: 6px;">
+        <h4 style="margin-top: 0; color: #2c3e50; font-size: 1.05rem;">Aufnahme-Gerät auswählen</h4>
+        
+        <div class="form-group mb-3">
+          <label>Geplante Geräte für diese Phase (Tier 3)</label>
+          <select v-model="selectedPhaseConfigId" class="form-control" @change="onDeviceSelectionChange">
+            <option :value="null">-- Bitte Gerät wählen --</option>
+            <option v-for="cfg in plannedPhaseConfigs" :key="cfg.id" :value="cfg.id">
+              {{ cfg.device_name }}
+            </option>
+          </select>
+        </div>
+
+        <!-- Ad-Hoc Magic -->
+        <div class="text-right mb-3">
+          <button type="button" class="btn-icon" style="font-size: 0.85rem; color: #3498db; text-decoration: underline;" @click="openAdHocModal">
+            Anderes Gerät aus Pool hinzufügen?
+          </button>
+        </div>
+
+        <!-- Status & Actions based on selection -->
+        <div v-if="selectedPhaseConfig" class="instance-action-area p-3" style="background: white; border-radius: 4px; border: 1px solid #eee;">
+          
+          <!-- FALL 1: Reuse (Instanz existiert bereits) -->
+          <div v-if="existingInstancesForSelection.length > 0 && !forceNewInstance">
+            <p style="color: #27ae60; font-weight: 600; margin-top: 0; margin-bottom: 10px;">
+              ✅ Bestehende Instanz(en) gefunden!
+            </p>
+            <p style="font-size: 0.85rem; color: #7f8c8d; margin-bottom: 15px;">
+              Wähle die gewünschte Instanz oder erstelle eine neue für diese Aufnahme.
+            </p>
+            
+            <div style="display: flex; gap: 10px; align-items: flex-end; flex-wrap: wrap;">
+              <div class="form-group" style="margin-bottom: 0; flex: 1; min-width: 200px;">
+                <select v-model="selectedInstanceIdToReuse" class="form-control" style="font-family: monospace; font-size: 0.9rem;">
+                  <option v-for="inst in existingInstancesForSelection" :key="inst.id" :value="inst.id">
+                    Instance ID: {{ inst.id }} (Erstellt: {{ new Date(inst.created_at).toLocaleTimeString() }})
+                  </option>
+                </select>
+              </div>
+              <button type="button" class="btn-secondary btn-sm" @click="forceNewInstance = true">
+                + Neue erstellen
+              </button>
+            </div>
+          </div>
+
+          <!-- FALL 2: New (Instanz muss konfiguriert werden) -->
+          <div v-else>
+            <p style="color: #e67e22; font-weight: 600; margin-top: 0; margin-bottom: 10px;">
+              ⚠️ Neue Instanz konfigurieren
+            </p>
+            <p style="font-size: 0.85rem; color: #7f8c8d; margin-bottom: 15px;">
+              Bevor du hochladen kannst, müssen Kanäle und Settings für diese Session festgelegt werden.
+            </p>
+            <div style="display: flex; gap: 10px;">
+              <button type="button" class="btn-primary btn-sm" @click="isInstanceModalOpen = true">
+                ⚙️ Setup starten
+              </button>
+              <button v-if="forceNewInstance && existingInstancesForSelection.length > 0" type="button" class="btn-secondary btn-sm" @click="forceNewInstance = false">
+                Abbrechen
+              </button>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <hr style="margin: 25px 0; border: 0; border-top: 1px solid #ecf0f1;" />
+
+      <!-- STANDARD UPLOAD FIELDS -->
       <div class="form-row" style="display: flex; gap: 1rem; margin-bottom: 15px;">
         <div class="form-group" style="flex: 2;">
           <label>{{ $t('views.runner.upload_type') }} *</label>
@@ -34,11 +107,7 @@
 
       <div class="form-group" style="margin-bottom: 15px;">
         <label>{{ $t('views.runner.upload_file') }}</label>
-        <input 
-          type="file" 
-          @change="onFileChange" 
-          class="form-control" 
-        />
+        <input type="file" @change="onFileChange" class="form-control" />
       </div>
 
       <div class="form-group" style="margin-bottom: 15px;">
@@ -62,6 +131,52 @@
       @cancel="onCancelSkip"
       @close="isSkipModalOpen = false"
     />
+
+    <BaseModal 
+      :isOpen="isAdHocModalOpen" 
+      title="Gerät aus Pool hinzufügen" 
+      @close="isAdHocModalOpen = false"
+    >
+      <div v-if="isLoadingAdHocPool" class="text-center p-3">
+        Lade Event-Pool...
+      </div>
+      <div v-else-if="adHocPoolDevices.length === 0" class="text-muted text-center p-3">
+        Keine weiteren Geräte im Event-Pool verfügbar.
+      </div>
+      <div v-else>
+        <p class="mb-3" style="font-size: 0.9rem; color: #7f8c8d;">
+          Wähle ein Gerät aus dem Pool dieses Events, das spontan für diese Aufnahme verwendet werden soll.
+        </p>
+        <div class="list-group">
+          <button 
+            v-for="dev in adHocPoolDevices" 
+            :key="dev.id" 
+            class="list-group-item list-group-item-action d-flex justify-content-between align-items-center"
+            @click="addAdHocDevice(dev)"
+            :disabled="isAddingAdHocDevice"
+            style="margin-bottom: 8px; border: 1px solid #ccc; border-radius: 4px; padding: 10px; background: #fff; width: 100%; text-align: left; cursor: pointer;"
+          >
+            <span>
+              <strong>{{ dev.device_name }}</strong>
+            </span>
+            <span v-if="isAddingAdHocDevice" class="text-muted small">Füge hinzu...</span>
+            <span v-else class="text-primary small" style="font-weight: bold;">+ Hinzufügen</span>
+          </button>
+        </div>
+      </div>
+      <div class="modal-actions mt-3 text-right">
+        <button class="btn-secondary" @click="isAdHocModalOpen = false">{{ $t('actions.cancel') }}</button>
+      </div>
+    </BaseModal>
+
+    <DeviceInstanceModal 
+      :isOpen="isInstanceModalOpen"
+      :sessionId="sessionId"
+      :phaseConfig="selectedPhaseConfig"
+      @saved="onInstanceCreated"
+      @close="isInstanceModalOpen = false"
+    />
+
   </div>
 </template>
 
@@ -73,41 +188,125 @@ import api from '@/services/api'
 import BaseSearchSelect from '@/components/ui/BaseSearchSelect.vue'
 import BaseInputError from '@/components/ui/BaseInputError.vue'
 import WarningModal from '@/components/ui/WarningModal.vue'
+import DeviceInstanceModal from '@/components/runner/DeviceInstanceModal.vue'
 import { useGlobalModal } from '@/composables/useGlobalModal'
 
 const props = defineProps({
   parameters: Object,
-  sessionId: [String, Number]
+  sessionId: [String, Number],
+  eventId: [String, Number],
+  pageGroupId: [String, Number],
+  eventGroupId: [String, Number]
 })
 
 const { t } = useI18n()
 const { showWarning } = useGlobalModal()
 
-const fixedOrder = computed(() => props.parameters?.order || 1)
+// --- DEVICE CONTEXT STATE ---
+const isLoadingContext = ref(true)
+const plannedPhaseConfigs = ref([])
+const existingSessionInstances = ref([])
 
+const selectedPhaseConfigId = ref(null)
+const selectedInstanceIdToReuse = ref(null) // NEU: Für Multiple Instances
+const forceNewInstance = ref(false)
+const isInstanceModalOpen = ref(false)
+
+// Computed Helpers for Device Context
+const selectedPhaseConfig = computed(() => {
+  return plannedPhaseConfigs.value.find(c => c.id === selectedPhaseConfigId.value)
+})
+
+// NEU: Gibt ein Array zurück statt nur einem einzelnen Element
+const existingInstancesForSelection = computed(() => {
+  if (!selectedPhaseConfigId.value) return []
+  return existingSessionInstances.value.filter(inst => inst.phase_config === selectedPhaseConfigId.value)
+})
+
+// NEU: Logik für die finale ID
+const finalInstanceId = computed(() => {
+  if (forceNewInstance.value) return null
+  if (selectedInstanceIdToReuse.value) return selectedInstanceIdToReuse.value
+  if (existingInstancesForSelection.value.length > 0) return existingInstancesForSelection.value[0].id
+  return null
+})
+
+// --- UPLOAD STATE ---
+const fixedOrder = computed(() => props.parameters?.order || 1)
 const recordingType = ref('eeg')
 const selectedGenericCategory = ref(null)
 const genericCategories = ref([])
-
 const file = ref(null)
 const customFileName = ref('')
 const description = ref('')
-
 const fieldErrors = ref({ category: '' })
+
+const isAdHocModalOpen = ref(false)
+const isLoadingAdHocPool = ref(false)
+const adHocPoolDevices = ref([])
+const isAddingAdHocDevice = ref(false)
 
 const isSkipModalOpen = ref(false)
 let resolveSubmitPromise = null
 let rejectSubmitPromise = null
 
+// --- INITIALIZATION ---
 onMounted(async () => {
   try {
-    const res = await api.get('category/generic-recording/') 
-    genericCategories.value = res.data
+    const catRes = await api.get('category/generic-recording/') 
+    genericCategories.value = catRes.data
+
+    if (props.eventId && props.pageGroupId) {
+      let configUrl = `event-management/phase-device-configs/?phase__page_group=${props.pageGroupId}`
+      if (props.eventGroupId) {
+        configUrl += `&phase__event_group=${props.eventGroupId}`
+      } else {
+        configUrl += `&phase__event_group__event=${props.eventId}`
+      }
+
+      const [phaseRes, instanceRes] = await Promise.all([
+        api.get(configUrl),
+        api.get(`device-instances/?session=${props.sessionId}`)
+      ])
+      
+      plannedPhaseConfigs.value = phaseRes.data
+      existingSessionInstances.value = instanceRes.data
+      
+      if (plannedPhaseConfigs.value.length === 1) {
+        selectedPhaseConfigId.value = plannedPhaseConfigs.value[0].id
+        autoSelectDefaultInstance()
+      }
+    }
   } catch (error) {
-    showWarning(t('common.error_loading') || 'Error', t('common.error'))
+    console.error("Context Load Error:", error)
+  } finally {
+    isLoadingContext.value = false
   }
 })
 
+// --- DEVICE ACTIONS ---
+const onDeviceSelectionChange = () => {
+  forceNewInstance.value = false
+  autoSelectDefaultInstance()
+}
+
+const autoSelectDefaultInstance = () => {
+  if (existingInstancesForSelection.value.length > 0) {
+    // Wähle standardmäßig die neueste Instanz aus (angenommen sie kommen aufsteigend)
+    const latest = existingInstancesForSelection.value[existingInstancesForSelection.value.length - 1]
+    selectedInstanceIdToReuse.value = latest.id
+  } else {
+    selectedInstanceIdToReuse.value = null
+  }
+}
+
+const onInstanceCreated = (newInstance) => {
+  existingSessionInstances.value.push(newInstance)
+  forceNewInstance.value = false
+  selectedInstanceIdToReuse.value = newInstance.id
+}
+
+// --- UPLOAD ACTIONS ---
 const onTypeChange = () => {
   if (recordingType.value !== 'generic') selectedGenericCategory.value = null
   fieldErrors.value.category = ''
@@ -130,6 +329,11 @@ const onCancelSkip = () => {
 const submit = () => {
   return new Promise(async (resolve, reject) => {
     fieldErrors.value = { category: '' }
+
+    if (plannedPhaseConfigs.value.length > 0 && !finalInstanceId.value && file.value) {
+      showWarning("Bitte wähle ein Gerät aus und konfiguriere die Instanz, bevor du hochlädst.", "Gerät fehlt")
+      return reject(new Error("No device instance configured"))
+    }
 
     if (recordingType.value === 'generic' && !selectedGenericCategory.value) {
       fieldErrors.value.category = t('views.runner.upload_error_no_category') || t('errors.required_field')
@@ -154,6 +358,11 @@ const submit = () => {
     formData.append('file', file.value, uploadFileName)
     formData.append('session', props.sessionId) 
     formData.append('order', fixedOrder.value)
+    
+    if (finalInstanceId.value) {
+      formData.append('device_instance', finalInstanceId.value)
+    }
+
     if (description.value) formData.append('description', description.value)
     if (recordingType.value === 'generic') formData.append('category', selectedGenericCategory.value)
     
@@ -169,5 +378,64 @@ const submit = () => {
   })
 }
 
+// Methode um das Ad-Hoc-Modal zu öffnen und die Geräte zu laden
+const openAdHocModal = async () => {
+  isAdHocModalOpen.value = true
+  isLoadingAdHocPool.value = true
+  try {
+    // Lade den Tier-2-Pool für dieses Event
+    const poolRes = await api.get(`event-device-models/?event=${props.eventId}`)
+    const allPoolDevices = poolRes.data
+
+    // Filtere Geräte heraus, die schon in der Phase geplant sind (anhand der device_model_id)
+    const alreadyPlannedDeviceModelIds = plannedPhaseConfigs.value.map(cfg => cfg.device_model_id || cfg.master_device_id)
+    
+    adHocPoolDevices.value = allPoolDevices.filter(d => !alreadyPlannedDeviceModelIds.includes(d.device_model))
+  } catch (e) {
+    console.error("Fehler beim Laden des Ad-Hoc-Pools", e)
+  } finally {
+    isLoadingAdHocPool.value = false
+  }
+}
+
+// Methode, um das ausgewählte Pool-Gerät spontan der Phase hinzuzufügen
+const addAdHocDevice = async (poolDevice) => {
+  isAddingAdHocDevice.value = true
+  try {
+    // 1. POST an Tier 3 (Phase Config erstellen)
+    const payload = {
+      event_group_id: props.eventGroupId,
+      target_page_group_id: props.pageGroupId,
+      master_device_id: poolDevice.device_model,
+      expected_channels: [] // Oder poolDevice.channels, falls im Serializer verfügbar
+    }
+
+    const res = await api.post('event-management/phase-device-configs/', payload)
+    const newPhaseConfig = res.data
+
+    // 2. Füge es der lokalen Liste hinzu
+    plannedPhaseConfigs.value.push(newPhaseConfig)
+    
+    // 3. Wähle es sofort im Dropdown aus
+    selectedPhaseConfigId.value = newPhaseConfig.id
+    forceNewInstance.value = true // Erzwinge Konfiguration, da es ja neu ist
+    
+    // 4. Schließe Ad-Hoc Modal und öffne Instanzierungs-Modal
+    isAdHocModalOpen.value = false
+    isInstanceModalOpen.value = true
+
+  } catch (e) {
+    console.error("Fehler beim spontanen Hinzufügen des Geräts", e)
+  } finally {
+    isAddingAdHocDevice.value = false
+  }
+}
+
 defineExpose({ submit })
 </script>
+
+<style scoped>
+.btn-sm { padding: 6px 12px; font-size: 0.85rem; }
+.btn-icon { background: none; border: none; cursor: pointer; padding: 0; }
+.btn-icon:hover { color: #2980b9 !important; }
+</style>

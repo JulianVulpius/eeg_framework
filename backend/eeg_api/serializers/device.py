@@ -56,7 +56,7 @@ class DeviceModelSerializer(serializers.ModelSerializer):
     def get_current_default_settings_group_id(self, obj):
         return obj.default_settings.group_id if obj.default_settings else None
 
-    def _handle_metadata_instance(self, group, current_instance, device_model):
+    def _handle_metadata_instance(self, group, current_instance, device_model, creation_source):
         if not group:
             if current_instance:
                 current_instance.delete()
@@ -64,13 +64,16 @@ class DeviceModelSerializer(serializers.ModelSerializer):
 
         if current_instance:
             if current_instance.group_id == group.id:
+                if current_instance.creation_source != creation_source:
+                    current_instance.creation_source = creation_source
+                    current_instance.save()
                 return current_instance
             else:
                 current_instance.delete()
 
         return MetaDataGroupInstance.objects.create(
             group=group,
-            creation_source=MetaDataGroupInstance.CreationSource.DEVICE,
+            creation_source=creation_source, 
             content_type=ContentType.objects.get_for_model(DeviceModel),
             object_id=device_model.id
         )
@@ -87,9 +90,9 @@ class DeviceModelSerializer(serializers.ModelSerializer):
                 DeviceModelEEGChannel.objects.create(device_model=device_model, eeg_channel=channel)
 
         if hw_group:
-            device_model.hardware_specs = self._handle_metadata_instance(hw_group, None, device_model)
+            device_model.hardware_specs = self._handle_metadata_instance(hw_group, None, device_model, 'DEVICE')
         if ds_group:
-            device_model.default_settings = self._handle_metadata_instance(ds_group, None, device_model)
+            device_model.default_settings = self._handle_metadata_instance(ds_group, None, device_model, 'DEVICE_DEFAULT_SETTINGS')
         
         device_model.save()
         return device_model
@@ -108,16 +111,16 @@ class DeviceModelSerializer(serializers.ModelSerializer):
 
         if channels is not None:
             DeviceModelEEGChannel.objects.filter(device_model=instance).delete()
-            if instance.is_eeg:
+            if getattr(instance, 'is_eeg', True):
                 for channel in channels:
                     DeviceModelEEGChannel.objects.create(device_model=instance, eeg_channel=channel)
         elif not getattr(instance, 'is_eeg', True):
             DeviceModelEEGChannel.objects.filter(device_model=instance).delete()
 
         if has_hw:
-            instance.hardware_specs = self._handle_metadata_instance(hw_group, instance.hardware_specs, instance)
+            instance.hardware_specs = self._handle_metadata_instance(hw_group, instance.hardware_specs, instance, 'DEVICE')
         if has_ds:
-            instance.default_settings = self._handle_metadata_instance(ds_group, instance.default_settings, instance)
+            instance.default_settings = self._handle_metadata_instance(ds_group, instance.default_settings, instance, 'DEVICE_DEFAULT_SETTINGS')
 
         instance.save()
         return instance

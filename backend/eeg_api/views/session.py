@@ -7,6 +7,7 @@ from django.contrib.contenttypes.models import ContentType
 from eeg_api.models.session import Session
 from eeg_api.models.metadata import MetaDataGroup, MetaDataGroupInstance, MetaDataValue, MetaDataDefinition
 from eeg_api.serializers.session import SessionSerializer
+from eeg_api.models.event_management import EventSubjectAssignment
 
 class SessionViewSet(viewsets.ModelViewSet):
     serializer_class = SessionSerializer
@@ -59,12 +60,25 @@ class SessionViewSet(viewsets.ModelViewSet):
         pg = session.page_group
 
         scope = request.query_params.get('scope', 'ALL').upper()
+
+        event_group_id = None
+        if session.subject and session.event:
+            assignment = EventSubjectAssignment.objects.filter(
+                subject=session.subject, 
+                event=session.event
+            ).first()
+            
+            if assignment and assignment.group:
+                event_group_id = assignment.group.id
         
         blueprint_data = {
             "session_id": session.id,
             "event_name": session.event.name,
             "page_group_name": pg.name,
-            "event_logo": session.event.logo.file.url if session.event.logo and session.event.logo.file else None,
+            "page_group_id": pg.id,
+            "event_id": session.event.id,
+            "event_group_id": event_group_id,
+            "event_logo": session.event.logo.file.url if getattr(session.event, 'logo', None) and session.event.logo.file else None,
             "pages": []
         }
         
@@ -106,7 +120,10 @@ class SessionViewSet(viewsets.ModelViewSet):
         instance, created = MetaDataGroupInstance.objects.get_or_create(
             group=group,
             content_type=session_ct,
-            object_id=session.id
+            object_id=session.id,
+            defaults={
+                'creation_source': MetaDataGroupInstance.CreationSource.COMPONENT
+            }
         )
         
         for val in values:

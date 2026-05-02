@@ -98,6 +98,7 @@ router.register(r'event-management/subject-assignments', EventSubjectAssignmentV
 router.register(r'event-management/staff-assignments', EventStaffAssignmentViewSet, basename='event-staff-assignments')
 router.register(r'event-management/device-pool', EventDeviceModelViewSet, basename='event-device-pool')
 router.register(r'event-management/phase-device-configs', EventGroupPageGroupDeviceViewSet, basename='phase-device-configs')
+router.register(r'event-device-models', EventDeviceModelViewSet, basename='event-device-model')
 
 urlpatterns = [
     path('', include(router.urls)),

@@ -326,7 +326,11 @@
       "select_scope": "Zielgruppe (Ausführungs-Scope)",
       "scope_all": "Vollständig (Alle Seiten laden)",
       "scope_subject": "Probanden-Ansicht (Nur Probanden-Seiten)",
-      "scope_admin": "Admin-Ansicht (Nur Versuchsleiter-Seiten)"
+      "scope_admin": "Admin-Ansicht (Nur Versuchsleiter-Seiten)",
+      "no_group_warning": "Keine Gruppe zugewiesen! (Pflicht für Sessions)",
+      "select_group": "Bitte Gruppe wählen...",
+      "group_auto_selected": "Gruppe automatisch gewählt:",
+      "no_group_assigned": "⚠️ Dieses Subjekt hat keine Event-Gruppe. Eine Session kann nicht gestartet werden."
     },
     "events": {
       "start": "Startdatum",

@@ -5,31 +5,70 @@
     </div>
 
     <div class="launcher-cards">
+      <!-- 1. EVENT -->
       <div class="card">
         <h2>{{ $t('views.launcher.select_event') }}</h2>
         <BaseSearchSelect v-model="selectedEventId" :options="events" :placeholder="$t('common.search')" />
       </div>
 
+      <!-- 2. SUBJECT (Gefiltert nach Event!) -->
       <div class="card" :class="{ 'disabled-card': !selectedEventId }">
-        <h2>{{ $t('views.launcher.select_phase') }}</h2>
-        <BaseSearchSelect v-model="selectedPageGroupId" :options="availablePageGroups" :placeholder="$t('common.search')" :disabled="!selectedEventId" />
-      </div>
-
-      <div class="card" :class="{ 'disabled-card': !selectedPageGroupId }">
         <h2>{{ $t('views.launcher.select_subject') }}</h2>
-        <div style="display: flex; gap: 10px; align-items: flex-start;">
+        
+        <div v-if="isLoadingEventContext" class="text-muted mb-2">
+          {{ $t('common.loading') }}...
+        </div>
+        
+        <div v-else style="display: flex; gap: 10px; align-items: flex-start;">
           <div style="flex: 1;">
-            <BaseSearchSelect v-model="selectedSubjectId" :options="subjects" :placeholder="$t('common.search')" :disabled="!selectedPageGroupId" />
+            <BaseSearchSelect 
+              v-model="selectedSubjectId" 
+              :options="availableSubjectsForEvent" 
+              :placeholder="$t('common.search')" 
+              :disabled="!selectedEventId" 
+            />
           </div>
-          <button class="btn-secondary" @click="isSubjectModalOpen = true" :disabled="!selectedPageGroupId">{{ $t('actions.add_new') }}</button>
+          <button class="btn-secondary" @click="isSubjectModalOpen = true" :disabled="!selectedEventId">
+            {{ $t('actions.add_new') }}
+          </button>
         </div>
       </div>
 
+      <!-- 3. EVENT GROUP (Dynamisch anhand Subject) -->
+      <div class="card" v-if="selectedSubjectId" :class="{ 'disabled-card': isLoadingEventContext }">
+        <h2>Experimentelle Gruppe</h2>
+        
+        <div v-if="subjectGroupAssignments.length === 0" style="color: #c0392b; font-weight: bold; background: #fadbd8; padding: 10px; border-radius: 6px;">
+          {{ $t('views.launcher.no_group_assigned') }}
+        </div>
+        
+        <div v-else-if="subjectGroupAssignments.length === 1" style="color: #27ae60; font-weight: 500; background: #e8f8f5; padding: 10px; border-radius: 6px;">
+          ✅ {{ $t('views.launcher.group_auto_selected') }} 
+          <strong>{{ getGroupName(selectedEventGroupId) }}</strong>
+        </div>
+        
+        <div v-else>
+          <BaseSearchSelect 
+            v-model="selectedEventGroupId" 
+            :options="availableEventGroupsForDropdown" 
+            :placeholder="$t('views.launcher.select_group')" 
+          />
+        </div>
+      </div>
+
+      <!-- 4. PHASE (Gefiltert nach Gruppe) -->
+      <div class="card" :class="{ 'disabled-card': !selectedEventGroupId }">
+        <h2>{{ $t('views.launcher.select_phase') }}</h2>
+        <BaseSearchSelect v-model="selectedPageGroupId" :options="availablePageGroups" :placeholder="$t('common.search')" :disabled="!selectedEventGroupId" />
+      </div>
+
+      <!-- 5. LOCATION -->
       <div class="card" :class="{ 'disabled-card': !selectedEventId }">
         <h2>{{ $t('views.launcher.select_location') }} (Optional)</h2>
         <BaseSearchSelect v-model="selectedLocationId" :options="locations" :placeholder="$t('common.search')" :disabled="!selectedEventId" />
       </div>
 
+      <!-- 6. SCOPE -->
       <div class="card" :class="{ 'disabled-card': !selectedPageGroupId }">
         <h2>{{ $t('views.launcher.select_scope') }}</h2>
         <select v-model="selectedScope" class="form-control" :disabled="!selectedPageGroupId" style="width: 100%; padding: 10px; font-size: 1rem; border: 1px solid #dcdde1; border-radius: 4px; background-color: #fff;">
@@ -38,49 +77,22 @@
       </div>
     </div>
 
+    <!-- FOOTER -->
     <div class="action-footer">
-      <button class="btn-play-sync" :disabled="!selectedEventId || !selectedPageGroupId || !selectedSubjectId" @click="startSession" style="font-size: 1.2rem; padding: 15px 30px;">
+      <button class="btn-play-sync" :disabled="!isLaunchable" @click="startSession" style="font-size: 1.2rem; padding: 15px 30px;">
         <span class="play-icon">▶</span> {{ $t('views.launcher.start_session') }}
       </button>
     </div>
 
-    <BaseModal :isOpen="isSubjectModalOpen" :title="$t('views.launcher.create_subject')" @close="closeSubjectModal">
-      <form @submit.prevent="saveSubject">
-        <div class="form-group">
-          <label>{{ $t('master_data.identifier') }} *</label>
-          <input type="text" v-model="subjectForm.identifier" class="form-control" required />
-        </div>
-        <div class="form-row" style="display: flex; gap: 1rem; margin-bottom: 1rem;">
-          <div class="form-group" style="flex: 1;">
-            <label>{{ $t('master_data.firstname') }}</label>
-            <input type="text" v-model="subjectForm.first_name" class="form-control" />
-          </div>
-          <div class="form-group" style="flex: 1;">
-            <label>{{ $t('master_data.lastname') }}</label>
-            <input type="text" v-model="subjectForm.last_name" class="form-control" />
-          </div>
-        </div>
-        <div class="form-row" style="display: flex; gap: 1rem; margin-bottom: 1rem;">
-          <div class="form-group" style="flex: 1;">
-            <label>{{ $t('master_data.birthday') }}</label>
-            <input type="date" v-model="subjectForm.date_of_birth" class="form-control" />
-          </div>
-          <div class="form-group" style="flex: 1;">
-            <label>{{ $t('master_data.gender') }}</label>
-            <select v-model="subjectForm.gender" class="form-control">
-              <option :value="null">{{ $t('master_data.none') }}</option>
-              <option value="M">{{ $t('master_data.gender_male') }}</option>
-              <option value="F">{{ $t('master_data.gender_female') }}</option>
-              <option value="O">{{ $t('master_data.gender_other') }}</option>
-            </select>
-          </div>
-        </div>
-        <div class="modal-actions">
-          <button type="button" class="btn-secondary" @click="closeSubjectModal">{{ $t('actions.cancel') }}</button>
-          <button type="submit" class="btn-primary">{{ $t('actions.save') }}</button>
-        </div>
-      </form>
-    </BaseModal>
+    <!-- NEUES MODAL FÜR SUBJEKTE -->
+    <LauncherSubjectModal 
+      :isOpen="isSubjectModalOpen"
+      :eventId="selectedEventId"
+      :eventName="selectedEventName"
+      :eventGroups="rawEventGroups.filter(g => g.event === selectedEventId)"
+      @saved="onSubjectCreated"
+      @close="isSubjectModalOpen = false"
+    />
 
     <BaseModal :isOpen="isResumeModalOpen" :title="$t('views.launcher.session_exists_title')" @close="isResumeModalOpen = false">
       <div style="margin-bottom: 25px; line-height: 1.5; font-size: 1.05rem; color: #2c3e50;">
@@ -110,6 +122,7 @@ import { useToast } from '@/composables/useToast'
 
 import BaseSearchSelect from '@/components/ui/BaseSearchSelect.vue'
 import BaseModal from '@/components/ui/BaseModal.vue'
+import LauncherSubjectModal from '@/components/runner/LauncherSubjectModal.vue'
 
 const { t } = useI18n()
 const router = useRouter()
@@ -119,10 +132,16 @@ const rawEvents = ref([])
 const rawSubjects = ref([])
 const rawPageGroups = ref([])
 const rawLocations = ref([])
+const rawEventGroups = ref([]) 
+
+// State für Event Kontext
+const eventAssignments = ref([]) // Alle Zuweisungen für das aktuelle Event
+const isLoadingEventContext = ref(false)
 
 const selectedEventId = ref(null)
-const selectedPageGroupId = ref(null)
 const selectedSubjectId = ref(null)
+const selectedEventGroupId = ref(null) 
+const selectedPageGroupId = ref(null)
 const selectedLocationId = ref(null)
 const selectedScope = ref('ALL')
 
@@ -130,15 +149,13 @@ const isSubjectModalOpen = ref(false)
 const isResumeModalOpen = ref(false)
 const existingSessionId = ref(null)
 
-const subjectForm = ref({ identifier: '', first_name: '', last_name: '', date_of_birth: '', gender: null })
-
 const events = computed(() => rawEvents.value.map(e => ({ id: e.id, name: e.name })))
 const locations = computed(() => rawLocations.value.map(l => ({ id: l.id, name: l.name }))) 
 
-const subjects = computed(() => rawSubjects.value.map(s => ({ 
-  id: s.id, 
-  name: `${s.identifier} ${s.first_name ? '(' + s.first_name + ' ' + s.last_name + ')' : ''}` 
-})))
+const selectedEventName = computed(() => {
+  const ev = rawEvents.value.find(e => e.id === selectedEventId.value)
+  return ev ? ev.name : ''
+})
 
 const scopeOptions = computed(() => [
   { id: 'ALL', name: t('views.launcher.scope_all') },
@@ -146,44 +163,133 @@ const scopeOptions = computed(() => [
   { id: 'ADMIN', name: t('views.launcher.scope_admin') }
 ])
 
-const availablePageGroups = computed(() => {
+// --- 1. FILTERUNG SUBJECT NACH EVENT ---
+// Baut das Dropdown für Subjects auf, basierend auf den Zuweisungen des Events
+const availableSubjectsForEvent = computed(() => {
   if (!selectedEventId.value) return []
-  const ev = rawEvents.value.find(e => e.id === selectedEventId.value)
-  if (!ev || !ev.page_groups) return []
-  return ev.page_groups.map(id => {
+  
+  // Extrahiere alle einzigartigen Subjekt-IDs, die diesem Event zugewiesen sind
+  const assignedSubjectIds = [...new Set(eventAssignments.value.map(a => a.subject))]
+  
+  return rawSubjects.value
+    .filter(s => assignedSubjectIds.includes(s.id))
+    .map(s => ({
+      id: s.id,
+      name: `${s.identifier} ${s.first_name ? '(' + s.first_name + ' ' + s.last_name + ')' : ''}`
+    }))
+})
+
+// --- 2. FILTERUNG EVENTGROUP NACH SUBJECT ---
+// Extrahiert die Gruppen des aktuell gewählten Subjekts, FILTERT NULL WIEDER HERAUS!
+const subjectGroupAssignments = computed(() => {
+  if (!selectedSubjectId.value) return []
+  
+  // Nimm alle Zuweisungen des Subjekts im aktuellen Event, ABER nur jene, die auch eine Gruppe haben
+  return eventAssignments.value
+    .filter(a => a.subject === selectedSubjectId.value && a.group !== null)
+})
+
+// Baut das Dropdown, falls es > 1 echte Zuweisungen gibt
+const availableEventGroupsForDropdown = computed(() => {
+  return subjectGroupAssignments.value.map(a => {
+    const g = rawEventGroups.value.find(rg => rg.id === a.group)
+    return g ? { id: g.id, name: g.name } : { id: a.group, name: `Group ${a.group}` }
+  })
+})
+
+const getGroupName = (id) => {
+  const g = rawEventGroups.value.find(rg => rg.id === id)
+  return g ? g.name : id
+}
+
+// --- 3. FILTERUNG PHASEN NACH GRUPPE ---
+const availablePageGroups = computed(() => {
+  if (!selectedEventGroupId.value) return []
+  const group = rawEventGroups.value.find(g => g.id === selectedEventGroupId.value)
+  if (!group || !group.page_groups) return []
+  
+  return group.page_groups.map(id => {
     const pg = rawPageGroups.value.find(p => p.id === id)
     return pg ? { id: pg.id, name: pg.name } : { id, name: `ID: ${id}` }
   })
 })
 
-watch(selectedEventId, () => { selectedPageGroupId.value = null })
+const isLaunchable = computed(() => {
+  return selectedEventId.value && selectedSubjectId.value && selectedEventGroupId.value && selectedPageGroupId.value
+})
+
+// --- WATCHERS ---
+
+// Wenn ein Event gewählt wird, lade dessen Kontext!
+watch(selectedEventId, async (newVal) => { 
+  selectedSubjectId.value = null
+  selectedEventGroupId.value = null
+  selectedPageGroupId.value = null
+  eventAssignments.value = []
+  
+  if (!newVal) return
+
+  isLoadingEventContext.value = true
+  try {
+    const res = await api.get(`event-management/subject-assignments/?event=${newVal}`)
+    eventAssignments.value = res.data
+  } catch (e) {
+    console.error(e)
+  } finally {
+    isLoadingEventContext.value = false
+  }
+})
+
+// Wenn ein Subjekt gewählt wird, prüfe die Gruppen
+watch(selectedSubjectId, (newVal) => {
+  selectedEventGroupId.value = null
+  selectedPageGroupId.value = null
+  
+  if (!newVal) return
+  
+  // Auto-Select, falls genau EINE echte Gruppe existiert
+  if (subjectGroupAssignments.value.length === 1) {
+    selectedEventGroupId.value = subjectGroupAssignments.value[0].group
+  }
+})
+
+watch(selectedEventGroupId, () => {
+  selectedPageGroupId.value = null
+})
+
+// --- METHODS ---
 
 const loadData = async () => {
   try {
-    const [eventsRes, subjectsRes, pgRes, locRes] = await Promise.all([
-      api.get('events/'), api.get('subjects/'), api.get('page-groups/'), api.get('locations/')
+    const [eventsRes, subjectsRes, pgRes, locRes, groupsRes] = await Promise.all([
+      api.get('events/'), api.get('subjects/'), api.get('page-groups/'), api.get('locations/'), api.get('event-management/groups/')
     ])
     rawEvents.value = eventsRes.data
     rawSubjects.value = subjectsRes.data
     rawPageGroups.value = pgRes.data
     rawLocations.value = locRes.data
+    rawEventGroups.value = groupsRes.data
   } catch (error) {}
 }
 
-const closeSubjectModal = () => {
-  isSubjectModalOpen.value = false
-  subjectForm.value = { identifier: '', first_name: '', last_name: '', date_of_birth: '', gender: null }
-}
-
-const saveSubject = async () => {
+const onSubjectCreated = async (newSubject) => {
+  // Das Modal hat Subjekt + Assignment im Backend gespeichert.
+  // Wir updaten unsere lokale Liste, damit das neue Subjekt sofort im Dropdown auftaucht!
+  rawSubjects.value.push(newSubject)
+  
+  // Wir laden die Assignments für das Event neu, damit die neue Verknüpfung greift
+  isLoadingEventContext.value = true
   try {
-    const payload = { ...subjectForm.value }
-    if (!payload.date_of_birth) payload.date_of_birth = null
-    const response = await api.post('subjects/', payload)
-    rawSubjects.value.push(response.data)
-    selectedSubjectId.value = response.data.id
-    closeSubjectModal()
-  } catch (error) {}
+    const res = await api.get(`event-management/subject-assignments/?event=${selectedEventId.value}`)
+    eventAssignments.value = res.data
+    
+    // Auto-Select des neuen Subjekts
+    selectedSubjectId.value = newSubject.id
+  } catch (e) {
+    console.error(e)
+  } finally {
+    isLoadingEventContext.value = false
+  }
 }
 
 const startSession = async () => {

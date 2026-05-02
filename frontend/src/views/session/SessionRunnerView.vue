@@ -86,6 +86,9 @@
                 :ref="el => setComponentRef(el, comp.id)"
                 :parameters="comp.parameters" 
                 :sessionId="sessionId"
+                :eventId="blueprint.event_id"
+                :pageGroupId="blueprint.page_group_id"
+                :eventGroupId="blueprint.event_group_id"
               />
               
               <div v-else class="unknown-component card">

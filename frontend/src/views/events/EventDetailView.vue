@@ -294,7 +294,9 @@
               <td>{{ getEntityName(realSubjects, sub.subject, 'firstname') || '-' }}</td>
               <td>{{ getEntityName(realSubjects, sub.subject, 'lastname') || '-' }}</td>
               <td>
-                <span v-if="sub.groups.length === 0" class="text-muted">{{ $t('views.events.no_group') }}</span>
+                <span v-if="sub.groups.length === 0" class="text-danger" style="font-weight: bold; background: #ffebee; padding: 4px 8px; border-radius: 4px;">
+                  ⚠️ {{ $t('views.events.no_group') }}
+                </span>
                 <span v-else>{{ sub.groups.map(gId => getEntityName(eventGroups, gId)).join(', ') }}</span>
               </td>
               <TableActionButtons @edit="openModal('subject', sub)" @delete="deleteSubjectGroup(sub)" v-if="hasPermission('admin') || hasPermission('add_subjects')" />

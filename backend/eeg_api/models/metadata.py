@@ -83,11 +83,14 @@ class MetaDataGroupInstance(AuditBaseModel):
         MANUAL = 'MANUAL', 'Manual Registry Assignment'
         COMPONENT = 'COMPONENT', 'Automated Component / Session'
         DEVICE = 'DEVICE', 'Device Settings / Specs'
+        DEVICE_DEFAULT_SETTINGS = 'DEVICE_DEFAULT_SETTINGS', 'Device Default Settings'
+        DEVICE_PHASE = 'DEVICE_PHASE', 'Device Phase Defaults'
+        DEVICE_INSTANCE = 'DEVICE_INSTANCE', 'Device Instance Setup'
 
     group = models.ForeignKey(MetaDataGroup, on_delete=models.PROTECT)
     
     creation_source = models.CharField(
-        max_length=20,
+        max_length=30,
         choices=CreationSource.choices,
         default=CreationSource.MANUAL
     )
@@ -98,7 +101,6 @@ class MetaDataGroupInstance(AuditBaseModel):
     object_id = models.PositiveIntegerField()
     # combines them into a single queryable object in Python
     parent_entity = GenericForeignKey('content_type', 'object_id')
-    # ----------------------------------------
 
     class Meta:
         db_table = 'MetaDataGroupInstance'
@@ -108,7 +110,7 @@ class MetaDataGroupInstance(AuditBaseModel):
 
 class MetaDataValue(models.Model):
     # No audit base needed here because the parent Instance already tracks when the form was created/changed
-    # related_name='values' in MetaDataValue is a handy Django trick. If we fetch a MetaDataGroupInstance we can instantly get all its answered questions by typing instance.values.all().
+    # related_name='values' in MetaDataValue is a Django trick. If we fetch a MetaDataGroupInstance we can instantly get all its answered questions by typing instance.values.all().
     instance = models.ForeignKey(MetaDataGroupInstance, on_delete=models.CASCADE, related_name='values')
     definition = models.ForeignKey(MetaDataDefinition, on_delete=models.PROTECT)
     

@@ -168,7 +168,6 @@ import api from '@/services/api'
 import BaseModal from '@/components/ui/BaseModal.vue'
 import BaseSearchSelect from '@/components/ui/BaseSearchSelect.vue'
 import { useGlobalModal } from '@/composables/useGlobalModal'
-import SearchableCheckboxGroup from '@/components/ui/SearchableCheckboxGroup.vue'
 
 const props = defineProps({
   eventGroups: { type: Array, required: true },

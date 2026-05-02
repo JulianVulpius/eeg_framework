@@ -57,8 +57,14 @@ class EventStaffAssignmentViewSet(viewsets.ModelViewSet):
         return queryset
 
 class EventDeviceModelViewSet(viewsets.ModelViewSet):
-    queryset = EventDeviceModel.objects.all()
     serializer_class = EventDeviceModelSerializer
+
+    def get_queryset(self):
+        queryset = EventDeviceModel.objects.all()
+        event_id = self.request.query_params.get('event')
+        if event_id:
+            queryset = queryset.filter(event_id=event_id)
+        return queryset
 
 class EventGroupPageGroupDeviceViewSet(viewsets.ModelViewSet):
     serializer_class = EventGroupPageGroupDeviceSerializer
@@ -87,9 +93,7 @@ class EventGroupPageGroupDeviceViewSet(viewsets.ModelViewSet):
             )
 
     def perform_create(self, serializer):
-
         phase_device_config = serializer.save()
-        
         master_model = phase_device_config.device_from_pool.device_model
         
         if master_model.default_settings:
@@ -97,5 +101,9 @@ class EventGroupPageGroupDeviceViewSet(viewsets.ModelViewSet):
                 source_instance=master_model.default_settings,
                 target_object=phase_device_config
             )
+            
+            cloned_metadata.creation_source = 'DEVICE_PHASE'
+            cloned_metadata.save()
+            
             phase_device_config.metadata_instance = cloned_metadata
             phase_device_config.save()
