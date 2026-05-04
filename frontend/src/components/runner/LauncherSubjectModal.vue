@@ -2,9 +2,7 @@
   <BaseModal :isOpen="isOpen" :title="$t('views.launcher.create_subject')" @close="$emit('close')">
     <form @submit.prevent="saveSubjectAndAssign">
       
-      <!-- Hinweis auf Event-Zuweisung -->
-      <div class="mb-3 p-2" style="background: #e8f4f8; border-left: 3px solid #3498db; font-size: 0.9rem; color: #2980b9;">
-        Dieses Subjekt wird automatisch dem Event <strong>{{ eventName }}</strong> zugewiesen.
+      <div class="mb-3 p-2" style="background: #e8f4f8; border-left: 3px solid #3498db; font-size: 0.9rem; color: #2980b9;" v-html="$t('views.launcher.subject_auto_assign_event', { eventName })">
       </div>
 
       <div class="form-group">
@@ -39,16 +37,15 @@
         </div>
       </div>
 
-      <!-- Optionale Gruppenzuweisung direkt im Modal -->
       <div class="form-group" style="margin-top: 15px; border-top: 1px dashed #ccc; padding-top: 15px;">
-        <label>Experimentelle Gruppe (Optional)</label>
+        <label>{{ $t('views.launcher.experimental_group_optional') }}</label>
         <BaseSearchSelect 
           v-model="selectedGroupId" 
           :options="eventGroups" 
-          placeholder="Subjekt einer Gruppe zuweisen..." 
+          :placeholder="$t('views.launcher.assign_subject_to_group')" 
           :nullLabel="$t('master_data.none')"
         />
-        <small class="text-muted" style="display:block; margin-top:4px;">Wenn keine Gruppe gewählt wird, kann später keine Session gestartet werden.</small>
+        <small class="text-muted" style="display:block; margin-top:4px;">{{ $t('views.launcher.no_group_warning_subtext') }}</small>
       </div>
 
       <div class="modal-actions mt-4" style="display: flex; justify-content: flex-end; gap: 10px;">
@@ -71,7 +68,7 @@ const props = defineProps({
   isOpen: Boolean,
   eventId: [Number, String],
   eventName: String,
-  eventGroups: Array // Array von Objekten: {id, name}
+  eventGroups: Array
 })
 
 const emit = defineEmits(['close', 'saved'])
@@ -82,7 +79,6 @@ const subjectForm = ref({ identifier: '', first_name: '', last_name: '', date_of
 
 watch(() => props.isOpen, (newVal) => {
   if (newVal) {
-    // Formular zurücksetzen beim Öffnen
     subjectForm.value = { identifier: '', first_name: '', last_name: '', date_of_birth: '', gender: null }
     selectedGroupId.value = null
   }
@@ -93,24 +89,21 @@ const saveSubjectAndAssign = async () => {
   isSaving.value = true
 
   try {
-    // 1. Subjekt erstellen
     const payload = { ...subjectForm.value }
     if (!payload.date_of_birth) payload.date_of_birth = null
     const subRes = await api.post('subjects/', payload)
     const newSubject = subRes.data
 
-    // 2. Subjekt dem Event zuweisen (mit oder ohne EventGroup)
     await api.post('event-management/subject-assignments/', {
       event: props.eventId,
       subject: newSubject.id,
       group: selectedGroupId.value || null
     })
 
-    // 3. Dem Parent Bescheid geben
     emit('saved', newSubject)
     emit('close')
   } catch (error) {
-    console.error("Error creating subject or assignment:", error)
+    console.error(error)
   } finally {
     isSaving.value = false
   }

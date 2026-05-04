@@ -307,7 +307,36 @@
       "finish": "Abschließen",
       "upload_skip_title": "Keine Datei ausgewählt",
       "upload_skip_message": "Du hast keine neue Datei ausgewählt. Möchtest du ohne Upload fortfahren? Eine eventuell bereits bestehende Datei für diesen Slot bleibt dabei erhalten.",
-      "upload_skip_confirm": "Trotzdem fortfahren"
+      "upload_skip_confirm": "Trotzdem fortfahren",
+      "new_recording_instance": "Neue Aufnahme-Instanz",
+      "check_quality_settings": "Bitte überprüfe die Kanalqualität und die Geräteeinstellungen für diese spezifische Aufnahme.",
+      "channel_quality": "Kanal-Qualität",
+      "no_specific_channels": "Keine spezifischen Kanäle für dieses Gerät geplant.",
+      "status_good": "🟢 Good",
+      "status_noisy": "🟡 Noisy",
+      "status_disconnected": "🔴 Disconnected",
+      "device_settings_overwrite": "Geräte-Einstellungen (Overwrite)",
+      "save_use_instance": "Instanz speichern & Verwenden",
+      "loading_device_context": "Lade Geräte-Kontext...",
+      "select_recording_device": "Aufnahme-Gerät auswählen",
+      "planned_devices_phase": "Geplante Geräte für diese Phase (Tier 3)",
+      "please_select_device": "-- Bitte Gerät wählen --",
+      "add_other_device_pool": "Anderes Gerät aus Pool hinzufügen?",
+      "existing_instances_found": "✅ Bestehende Instanz(en) gefunden!",
+      "choose_or_create_instance": "Wähle die gewünschte Instanz oder erstelle eine neue für diese Aufnahme.",
+      "instance_id": "Instance ID: {id} (Erstellt: {time})",
+      "create_new": "+ Neue erstellen",
+      "configure_new_instance": "⚠️ Neue Instanz konfigurieren",
+      "configure_channels_settings_first": "Bevor du hochladen kannst, müssen Kanäle und Settings für diese Session festgelegt werden.",
+      "start_setup": "⚙️ Setup starten",
+      "add_device_from_pool": "Gerät aus Pool hinzufügen",
+      "loading_event_pool": "Lade Event-Pool...",
+      "no_more_devices_in_pool": "Keine weiteren Geräte im Event-Pool verfügbar.",
+      "select_pool_device_spontaneous": "Wähle ein Gerät aus dem Pool dieses Events, das spontan für diese Aufnahme verwendet werden soll.",
+      "adding": "Füge hinzu...",
+      "add": "+ Hinzufügen",
+      "warning_select_configure_device": "Bitte wähle ein Gerät aus und konfiguriere die Instanz, bevor du hochlädst.",
+      "warning_device_missing": "Gerät fehlt"
     },
     "launcher": {
       "select_event": "1. Event / Studie auswählen",
@@ -330,7 +359,11 @@
       "no_group_warning": "Keine Gruppe zugewiesen! (Pflicht für Sessions)",
       "select_group": "Bitte Gruppe wählen...",
       "group_auto_selected": "Gruppe automatisch gewählt:",
-      "no_group_assigned": "⚠️ Dieses Subjekt hat keine Event-Gruppe. Eine Session kann nicht gestartet werden."
+      "no_group_assigned": "⚠️ Dieses Subjekt hat keine Event-Gruppe. Eine Session kann nicht gestartet werden.",
+      "subject_auto_assign_event": "Dieses Subjekt wird automatisch dem Event <strong>{eventName}</strong> zugewiesen.",
+      "experimental_group_optional": "Experimentelle Gruppe (Optional)",
+      "assign_subject_to_group": "Subjekt einer Gruppe zuweisen...",
+      "no_group_warning_subtext": "Wenn keine Gruppe gewählt wird, kann später keine Session gestartet werden."
     },
     "events": {
       "start": "Startdatum",
@@ -417,7 +450,10 @@
       "already_assigned": "Bereits zugewiesen",
       "assign": "Hinzufügen",
       "no_channels_defined": "Keine Kanäle im Gerätmodell definiert.",
-      "no_settings": "Keine Default-Settings für dieses Gerät hinterlegt."
+      "no_settings": "Keine Default-Settings für dieses Gerät hinterlegt.",
+      "no_devices_assigned_yet": "Noch keine Geräte zugewiesen.",
+      "all_devices_assigned_or_filtered": "Alle verfügbaren Geräte sind dieser Phase bereits zugewiesen oder entsprechen nicht dem Filter.",
+      "locked": "Gesperrt"
     },
     "triggers": {
       "available": "Verfügbar",

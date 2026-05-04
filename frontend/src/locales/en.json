@@ -309,7 +309,36 @@
       "finish": "Finish",
       "upload_skip_title": "No file selected",
       "upload_skip_message": "You haven't selected a new file. Do you want to continue without uploading? Any existing file for this slot will be kept safe.",
-      "upload_skip_confirm": "Continue anyway"
+      "upload_skip_confirm": "Continue anyway",
+      "new_recording_instance": "New Recording Instance",
+      "check_quality_settings": "Please check the channel quality and device settings for this specific recording.",
+      "channel_quality": "Channel Quality",
+      "no_specific_channels": "No specific channels planned for this device.",
+      "status_good": "🟢 Good",
+      "status_noisy": "🟡 Noisy",
+      "status_disconnected": "🔴 Disconnected",
+      "device_settings_overwrite": "Device Settings (Overwrite)",
+      "save_use_instance": "Save & Use Instance",
+      "loading_device_context": "Loading device context...",
+      "select_recording_device": "Select Recording Device",
+      "planned_devices_phase": "Planned devices for this phase (Tier 3)",
+      "please_select_device": "-- Please select a device --",
+      "add_other_device_pool": "Add another device from pool?",
+      "existing_instances_found": "✅ Existing instance(s) found!",
+      "choose_or_create_instance": "Choose the desired instance or create a new one for this recording.",
+      "instance_id": "Instance ID: {id} (Created: {time})",
+      "create_new": "+ Create new",
+      "configure_new_instance": "⚠️ Configure new instance",
+      "configure_channels_settings_first": "Before uploading, you must configure channels and settings for this session.",
+      "start_setup": "⚙️ Start Setup",
+      "add_device_from_pool": "Add device from pool",
+      "loading_event_pool": "Loading event pool...",
+      "no_more_devices_in_pool": "No more devices available in the event pool.",
+      "select_pool_device_spontaneous": "Select a device from the pool of this event to use spontaneously for this recording.",
+      "adding": "Adding...",
+      "add": "+ Add",
+      "warning_select_configure_device": "Please select a device and configure the instance before uploading.",
+      "warning_device_missing": "Device missing"
     },
     "launcher": {
       "select_event": "1. Select Event / Study",
@@ -332,7 +361,11 @@
       "no_group_warning": "No group assigned! (Required for sessions)",
       "select_group": "Please select a group...",
       "group_auto_selected": "Group auto-selected:",
-      "no_group_assigned": "⚠️ This subject has no event group. A session cannot be started."
+      "no_group_assigned": "⚠️ This subject has no event group. A session cannot be started.",
+      "subject_auto_assign_event": "This subject will be automatically assigned to the event <strong>{eventName}</strong>.",
+      "experimental_group_optional": "Experimental Group (Optional)",
+      "assign_subject_to_group": "Assign subject to a group...",
+      "no_group_warning_subtext": "If no group is selected, a session cannot be started later."
     },
     "events": {
       "start": "Start Date",
@@ -419,7 +452,10 @@
       "already_assigned": "Already assigned",
       "assign": "Add",
       "no_channels_defined": "No channels defined in master device.",
-      "no_settings": "No default settings are stored for this device."
+      "no_settings": "No default settings are stored for this device.",
+      "no_devices_assigned_yet": "No devices assigned yet.",
+      "all_devices_assigned_or_filtered": "All available devices have already been assigned to this phase or do not match the filter.",
+      "locked": "Locked"
     },
     "triggers": {
       "available": "Available",

@@ -39,7 +39,7 @@
         </div>
 
         <div v-if="getConfigsForPhase(pgId).length === 0" class="text-muted" style="margin-top: 10px; font-size: 0.9rem;">
-          Noch keine Geräte zugewiesen.
+          {{ $t('views.events.no_devices_assigned_yet') }}
         </div>
 
         <div class="config-accordion" v-for="config in getConfigsForPhase(pgId)" :key="config.id" :class="{ 'is-archived': config.is_archived }">
@@ -47,7 +47,7 @@
           <div class="accordion-header" @click="toggleAccordion(config.id)">
             <div class="header-title">
               <strong>{{ config.device_name }}</strong>
-              <span v-if="config.is_locked" class="badge warning-badge">🔒 Locked</span>
+              <span v-if="config.is_locked" class="badge warning-badge">🔒 {{ $t('views.events.locked') }}</span>
               <span v-if="config.is_archived" class="badge default-badge">{{ $t('views.events.archived_badge') }}</span>
             </div>
             <div style="display: flex; align-items: center; gap: 15px;">
@@ -152,7 +152,7 @@
           </div>
           
           <div v-if="filteredModalDevices.length === 0" class="text-center text-muted" style="padding: 20px;">
-            Alle verfügbaren Geräte sind dieser Phase bereits zugewiesen oder entsprechen nicht dem Filter.
+            {{ $t('views.events.all_devices_assigned_or_filtered') }}
           </div>
         </div>
 
@@ -282,7 +282,7 @@ const loadPhaseConfigs = async () => {
     const res = await api.get(`event-management/phase-device-configs/?phase__event_group=${selectedGroupId.value}`)
     phaseConfigs.value = res.data
   } catch (error) {
-    console.error("Backend Error Response:", error.response?.data || error)
+    console.error(error.response?.data || error)
   }
 }
 
