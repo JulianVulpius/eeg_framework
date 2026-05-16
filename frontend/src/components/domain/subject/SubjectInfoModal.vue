@@ -3,11 +3,9 @@
     :isOpen="isOpen" 
     :title="$t('modal.subject_infos', { name: subject?.identifier || '' })" 
     @close="closeModal"
-    width="700px"
+    customClass="large-modal"
   >
     <div class="chat-layout">
-      <button class="modal-close-x" @click="closeModal" title="Schließen">✕</button>
-
       <div class="filter-section">
         <SubjectInfoFilter 
           :categories="categories" 
@@ -103,7 +101,7 @@ import { useFormatters } from '@/composables/useFormatters'
 
 import BaseModal from '@/components/ui/BaseModal.vue'
 import BaseInputError from '@/components/ui/BaseInputError.vue'
-import SubjectInfoFilter from '@/components/domain/SubjectInfoFilter.vue'
+import SubjectInfoFilter from '@/components/domain/subject/SubjectInfoFilter.vue'
 
 const props = defineProps({
   isOpen: { type: Boolean, required: true },
@@ -211,184 +209,3 @@ const closeModal = () => {
   emit('close')
 }
 </script>
-
-<style scoped>
-.chat-layout {
-  display: flex;
-  flex-direction: column;
-  height: 60vh;
-  position: relative; 
-}
-
-.modal-close-x {
-  position: absolute;
-  top: 0;
-  right: 0;
-  background: none;
-  border: none;
-  font-size: 1.2rem;
-  cursor: pointer;
-  color: #888;
-  z-index: 10;
-  padding: 5px;
-  line-height: 1;
-}
-.modal-close-x:hover { 
-  color: #333; 
-}
-
-.filter-section {
-  padding-right: 30px;
-  margin-bottom: 15px;
-}
-
-.chat-history {
-  flex: 1;
-  overflow-y: auto;
-  background-color: #f0f2f5;
-  padding: 15px;
-  border-radius: 8px;
-  margin-bottom: 15px;
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-  scroll-behavior: smooth;
-}
-
-.chat-bubble {
-  background-color: #dcf8c6;
-  border-radius: 8px;
-  padding: 10px 12px;
-  padding-right: 22px;
-  position: relative; 
-  max-width: 90%;
-  align-self: flex-start;
-  box-shadow: 0 1px 2px rgba(0,0,0,0.1);
-  display: flex;
-  flex-direction: column;
-  word-wrap: break-word;
-  overflow-wrap: anywhere;
-  word-break: break-word;
-  transition: background-color 0.3s;
-}
-
-.chat-bubble.is-deleting {
-  background-color: #ffebee;
-  border: 1px solid #ffcdd2;
-}
-
-.delete-bubble-btn {
-  position: absolute;
-  top: 4px;
-  right: 4px;
-  background: transparent;
-  border: none;
-  color: #555;
-  font-size: 0.9rem;
-  font-weight: bold;
-  line-height: 1;
-  cursor: pointer;
-  opacity: 0.15;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 50%;
-  width: 16px;
-  height: 16px;
-  transition: opacity 0.2s, background-color 0.2s, color 0.2s;
-}
-
-.delete-bubble-btn:hover {
-  opacity: 1;
-  color: #d32f2f;
-  background-color: rgba(211, 47, 47, 0.1); 
-}
-
-.inline-confirm {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  padding: 4px 0;
-}
-.inline-confirm p {
-  margin: 0;
-  font-size: 0.85rem;
-  font-weight: 600;
-  color: #c62828;
-}
-.inline-confirm-actions {
-  display: flex;
-  gap: 8px;
-}
-.btn-cancel-sm, .btn-delete-sm {
-  border: none;
-  border-radius: 4px;
-  padding: 6px 10px;
-  font-size: 0.75rem;
-  cursor: pointer;
-  font-weight: 600;
-  transition: opacity 0.2s;
-}
-.btn-cancel-sm:hover, .btn-delete-sm:hover {
-  opacity: 0.8;
-}
-.btn-cancel-sm {
-  background: #e0e0e0;
-  color: #333;
-}
-.btn-delete-sm {
-  background: #c62828;
-  color: white;
-}
-
-.bubble-header {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-  align-items: baseline;
-  margin-bottom: 4px;
-}
-
-.bubble-category {
-  color: #075e54;
-  font-size: 0.75rem;
-  font-weight: 700;
-  text-transform: uppercase;
-}
-
-.bubble-body {
-  color: #303030;
-  font-size: 0.9rem;
-  line-height: 1.4;
-  white-space: pre-wrap;
-}
-
-.bubble-footer {
-  text-align: right;
-  font-size: 0.7rem;
-  color: #667781;
-  margin-top: 5px;
-}
-
-.chat-input-area {
-  background: white;
-  padding: 12px;
-  border-radius: 8px;
-  border: 1px solid #ddd;
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-.input-row { display: flex; gap: 8px; }
-.align-end { align-items: flex-end; }
-.category-select { width: 150px; }
-.title-input { flex: 1; }
-.send-btn { height: 38px; }
-
-.empty-state {
-  text-align: center;
-  color: #888;
-  margin: auto;
-}
-</style>

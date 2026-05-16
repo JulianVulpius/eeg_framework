@@ -150,8 +150,8 @@ import CrudHeader from '@/components/ui/CrudHeader.vue'
 
 import ColumnHeaderFilter from '@/components/table/ColumnHeaderFilter.vue'
 import TableActionButtons from '@/components/table/TableActionButtons.vue'
-import MetaDataManagerModal from '@/components/domain/MetaDataManagerModal.vue'
-import MetaDataFilterModal from '@/components/domain/MetaDataFilterModal.vue'
+import MetaDataManagerModal from '@/components/domain/metadata/MetaDataManagerModal.vue'
+import MetaDataFilterModal from '@/components/domain/metadata/MetaDataFilterModal.vue'
 
 const { t } = useI18n()
 const crud = useCrud()

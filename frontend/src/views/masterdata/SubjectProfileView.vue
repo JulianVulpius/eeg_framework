@@ -113,7 +113,7 @@ import BaseInputError from '@/components/ui/BaseInputError.vue'
 import CrudHeader from '@/components/ui/CrudHeader.vue'
 import ColumnHeaderFilter from '@/components/table/ColumnHeaderFilter.vue'
 import TableActionButtons from '@/components/table/TableActionButtons.vue'
-import SubjectInfoModal from '@/components/domain/SubjectInfoModal.vue'
+import SubjectInfoModal from '@/components/domain/subject/SubjectInfoModal.vue'
 
 const { t } = useI18n()
 const items = ref([])
