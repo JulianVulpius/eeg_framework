@@ -2,10 +2,10 @@ from rest_framework import viewsets, status
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from django.contrib.contenttypes.models import ContentType
-from eeg_api.models.metadata import EntityMetaDataRegistry, MetaDataDefinition, MetaDataGroup, MetaDataGroupInstance, MetaDataValue, MetaDataGroup
+from eeg_api.models.metadata import EntityMetaDataRegistry, MetaDataDefinition, MetaDataGroup, MetaDataGroupInstance, MetaDataValue
 from eeg_api.serializers.metadata import (
     ContentTypeSerializer, EntityMetaDataRegistrySerializer, 
-    MetaDataDefinitionSerializer, MetaDataGroupSerializer , MetaDataGroupInstanceSerializer, MetaDataValueWriteSerializer
+    MetaDataDefinitionSerializer, MetaDataGroupSerializer, MetaDataGroupInstanceSerializer, MetaDataValueWriteSerializer
 )
 
 class ContentTypeViewSet(viewsets.ReadOnlyModelViewSet):
@@ -52,6 +52,37 @@ class MetaDataGroupInstanceViewSet(viewsets.ModelViewSet):
         if content_type_id and object_id:
             queryset = queryset.filter(content_type_id=content_type_id, object_id=object_id)
         return queryset
+
+    @action(detail=False, methods=['get'], url_path='has-any')
+    def has_any(self, request):
+        """ Prüft, ob für diesen ContentType überhaupt Metadaten in der DB existieren """
+        content_type_id = request.query_params.get('content_type')
+        if not content_type_id:
+            return Response({'has_metadata': False})
+        
+        exists = MetaDataGroupInstance.objects.filter(content_type_id=content_type_id).exists()
+        return Response({'has_metadata': exists})
+
+    @action(detail=False, methods=['get'], url_path='used-ids')
+    def used_ids(self, request):
+        """ Gibt alle Gruppen- und Definitions-IDs zurück, die real verwendet werden """
+        content_type_id = request.query_params.get('content_type')
+        if not content_type_id:
+            return Response({'group_ids': [], 'definition_ids': []})
+        
+        # 1. Alle Gruppen-Instanzen für diesen ContentType holen
+        instances = MetaDataGroupInstance.objects.filter(content_type_id=content_type_id)
+        group_ids = list(instances.values_list('group_id', flat=True).distinct())
+        
+        # 2. Alle Definitions-IDs holen, für die tatsächlich Werte in der MetaDataValue Tabelle existieren
+        definition_ids = list(MetaDataValue.objects.filter(
+            instance__in=instances
+        ).values_list('definition_id', flat=True).distinct())
+        
+        return Response({
+            'group_ids': group_ids,
+            'definition_ids': definition_ids
+        })
 
     @action(detail=False, methods=['post'], url_path='save-manual-instance')
     def save_manual_instance(self, request):
@@ -100,8 +131,6 @@ class MetaDataGroupInstanceViewSet(viewsets.ModelViewSet):
     def bulk_check(self, request):
         """
         Fast bulk check for tables to avoid N+1 query problems.
-        Expects payload: {"content_type": 12, "object_ids": [1, 2, 3, 4, 5]}
-        Returns mapping: {"1": true, "2": false, "3": true, ...}
         """
         content_type_id = request.data.get('content_type')
         object_ids = request.data.get('object_ids', [])
@@ -124,7 +153,7 @@ class MetaDataGroupInstanceViewSet(viewsets.ModelViewSet):
     @action(detail=False, methods=['post'], url_path='search')
     def search(self, request):
         """ 
-        Expected Payload: {"content_type": 12, "match_type": "AND", "rules": [{"definition": 5, "operator": "exact", "value": "Herz"}]}
+        Such-Logik inklusive Unterstützung für Text- und numerische Operatoren.
         """
         content_type_id = request.data.get('content_type')
         match_type = request.data.get('match_type', 'AND') # 'AND' 'OR'
@@ -150,19 +179,42 @@ class MetaDataGroupInstanceViewSet(viewsets.ModelViewSet):
             for rule in rules:
                 def_id = rule.get('definition')
                 op = rule.get('operator', 'exact')
-                val = str(rule.get('value', '')).lower()
+                val_raw = rule.get('value', '')
                 
                 q = obj_values.filter(definition_id=def_id)
                 found = False
                 
                 for v in q:
-                    db_val = str(v.value).lower()
-                    if op == 'contains' and val in db_val:
-                        found = True
-                        break
-                    elif op == 'exact' and val == db_val:
-                        found = True
-                        break
+                    db_val_raw = v.value
+                    
+                    # 1. Mathematische Vergleiche (für Integer/Float Definitions)
+                    if op in ['gt', 'gte', 'lt', 'lte']:
+                        try:
+                            # Wir parsen beide Seiten in Float, um sie numerisch zu vergleichen
+                            db_num = float(db_val_raw)
+                            val_num = float(val_raw)
+                            
+                            if op == 'gt' and db_num > val_num:
+                                found = True; break
+                            elif op == 'gte' and db_num >= val_num:
+                                found = True; break
+                            elif op == 'lt' and db_num < val_num:
+                                found = True; break
+                            elif op == 'lte' and db_num <= val_num:
+                                found = True; break
+                        except (ValueError, TypeError):
+                            # Wenn der Wert nicht castbar ist (z.B. defekter Datensatz), überspringen wir den Vergleich
+                            continue
+                            
+                    # 2. Text-Vergleiche
+                    else:
+                        db_str = str(db_val_raw).lower()
+                        val_str = str(val_raw).lower()
+                        
+                        if op == 'contains' and val_str in db_str:
+                            found = True; break
+                        elif op == 'exact' and val_str == db_str:
+                            found = True; break
                         
                 rule_matches.append(found)
 

@@ -71,8 +71,9 @@
 
       <button class="btn-secondary mt-2" @click="addRule">+ {{ $t('metadata_filter.add_rule') }}</button>
 
-      <div class="modal-actions" style="margin-top: 2rem;">
-        <button class="btn-secondary" @click="clearFilter">{{ $t('metadata_filter.clear') }}</button>
+      <div class="modal-actions" style="margin-top: 2rem; display: flex; gap: 10px; justify-content: flex-end;">
+        <button class="btn-secondary" @click="closeModal">{{ $t('actions.cancel') }}</button>
+        <button class="btn-secondary" style="background-color: #f39c12; color: white; border-color: #e67e22;" @click="clearFilter">{{ $t('metadata_filter.clear') }}</button>
         <button class="btn-primary" @click="applyFilter" :disabled="!isValid">{{ $t('metadata_filter.apply') }}</button>
       </div>
 
@@ -101,6 +102,7 @@ const rules = ref([])
 
 const allGroups = ref([])
 const allDefinitions = ref([])
+const usedIds = ref({ group_ids: [], definition_ids: [] })
 
 const isValid = computed(() => {
   return rules.value.length > 0 && rules.value.every(r => r.definition && (r.value !== '' && r.value !== null))
@@ -109,9 +111,19 @@ const isValid = computed(() => {
 const formattedDefinitions = computed(() => {
   const result = []
   allGroups.value.forEach(group => {
-    if (group.assigned_definitions && group.assigned_definitions.length > 0) {
-      const defs = group.assigned_definitions.map(id => allDefinitions.value.find(d => d.id === id)).filter(Boolean)
-      result.push({ groupId: group.id, groupName: group.name, defs })
+    // 1. Prüfen, ob die Gruppe überhaupt mindestens einmal verwendet wird
+    if (usedIds.value.group_ids?.includes(group.id)) {
+      if (group.assigned_definitions && group.assigned_definitions.length > 0) {
+        // 2. Nur Definitionen mappen, die auch wirklich Werte in der DB besitzen
+        const defs = group.assigned_definitions
+          .map(id => allDefinitions.value.find(d => d.id === id))
+          .filter(Boolean)
+          .filter(def => usedIds.value.definition_ids?.includes(def.id))
+        
+        if (defs.length > 0) {
+          result.push({ groupId: group.id, groupName: group.name, defs })
+        }
+      }
     }
   })
   return result
@@ -128,12 +140,14 @@ const loadData = async () => {
   if (!props.contentTypeId) return
   isLoading.value = true
   try {
-    const [groupsRes, defsRes] = await Promise.all([
+    const [groupsRes, defsRes, usedIdsRes] = await Promise.all([
       api.get('metadata/groups/'),
-      api.get('metadata/definitions/')
+      api.get('metadata/definitions/'),
+      api.get('metadata-instances/used-ids/', { params: { content_type: props.contentTypeId } })
     ])
     allGroups.value = groupsRes.data
     allDefinitions.value = defsRes.data
+    usedIds.value = usedIdsRes.data
   } catch (e) {
     console.error(e)
   } finally {
@@ -142,7 +156,7 @@ const loadData = async () => {
 }
 
 watch(() => props.isOpen, (newVal) => {
-  if (newVal && allGroups.value.length === 0) {
+  if (newVal) {
     loadData()
   }
   if (newVal && rules.value.length === 0) {

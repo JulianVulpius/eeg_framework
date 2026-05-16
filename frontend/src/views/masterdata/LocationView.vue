@@ -5,7 +5,7 @@
       v-model="crud.showIdColumn.value" 
       @add="crud.openAddDialog(resetForm)" 
     >
-      <div v-if="tableSupportsMetadata || hasAnyMetadata" class="header-metadata-actions">
+      <div v-if="hasAnyMetadataInDb" class="header-metadata-actions">
         <div v-if="metaFilterState.isActive" class="active-filter-badge">
           <span>🔖 {{ $t('metadata_filter.active') }} <strong>{{ metaFilterState.ruleCount }} {{ $t('metadata_filter.rules') }}</strong></span>
           <button class="btn-clear" @click="clearMetaFilter" :title="$t('metadata_filter.clear')">✖</button>
@@ -162,9 +162,7 @@ const tableSupportsMetadata = ref(false)
 const metadataPresenceMap = ref({})
 const contentTypeId = ref(null)
 
-const hasAnyMetadata = computed(() => {
-  return Object.values(metadataPresenceMap.value).some(hasData => hasData === true)
-})
+const hasAnyMetadataInDb = ref(false)
 
 const isFilterModalOpen = ref(false)
 const metaFilterState = ref({
@@ -248,6 +246,18 @@ const loadData = async () => {
   } catch (error) {}
 }
 
+const checkGlobalMetadataExistence = async () => {
+  if (!contentTypeId.value) return
+  try {
+    const res = await api.get('metadata-instances/has-any/', {
+      params: { content_type: contentTypeId.value }
+    })
+    hasAnyMetadataInDb.value = res.data.has_metadata
+  } catch (error) {
+    hasAnyMetadataInDb.value = false
+  }
+}
+
 const initMetadataSystem = async () => {
   try {
     const ctRes = await api.get('content-types/')
@@ -257,6 +267,7 @@ const initMetadataSystem = async () => {
       contentTypeId.value = targetCt.id
       const allowedGroups = await getAvailableGroupsForTable(targetCt.id)
       tableSupportsMetadata.value = allowedGroups.length > 0
+      checkGlobalMetadataExistence()
     }
   } catch (error) {}
 }
@@ -279,6 +290,7 @@ const refreshMetadataIcons = async () => {
   if (items.value.length > 0 && contentTypeId.value) {
     const rowIds = items.value.map(row => row.id)
     metadataPresenceMap.value = await bulkCheckMetadata(contentTypeId.value, rowIds)
+    checkGlobalMetadataExistence()
   }
 }
 

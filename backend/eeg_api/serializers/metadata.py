@@ -97,7 +97,7 @@ class MetaDataGroupInstanceSerializer(serializers.ModelSerializer):
     class Meta:
         model = MetaDataGroupInstance
         fields = ['id', 'group', 'creation_source', 'content_type', 'object_id', 'values', 'created_at']
-        read_only_fields = ['created_at', 'creation_source', 'content_type', 'object_id']
+        read_only_fields = ['created_at']
 
     def update(self, instance, validated_data):
         values_data = validated_data.pop('values', None)
