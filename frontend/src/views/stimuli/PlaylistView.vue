@@ -11,22 +11,29 @@
         <thead>
           <tr>
             <th v-if="crud.showIdColumn.value" class="id-column">{{ $t('common.id') }}</th>
-            <th style="width: 25%;">
+            <th style="width: 20%;">
               <ColumnHeaderFilter 
                 :title="$t('common.name')" 
                 v-model="columnFilters.name" 
                 :placeholder="$t('common.search')" 
               />
             </th>
-            <th style="width: 20%;">
+            <th style="width: 15%;">
               <ColumnHeaderFilter 
                 :title="$t('master_data.category')" 
                 v-model="columnFilters.category" 
                 :placeholder="$t('common.search')" 
               />
             </th>
-            <th style="width: 25%;">Items in Playlist</th>
             <th style="width: 20%;">
+              <ColumnHeaderFilter 
+                :title="$t('common.description')" 
+                v-model="columnFilters.description" 
+                :placeholder="$t('common.search')" 
+              />
+            </th>
+            <th style="width: 15%;">Items in Playlist</th>
+            <th style="width: 15%;">
               <ColumnHeaderFilter 
                 :title="$t('common.creator')" 
                 v-model="columnFilters.creator" 
@@ -38,12 +45,13 @@
         </thead>
         <tbody>
           <tr v-if="filteredItems.length === 0">
-            <td :colspan="crud.showIdColumn.value ? 6 : 5" class="empty-state">{{ $t('common.no_data') }}</td>
+            <td :colspan="crud.showIdColumn.value ? 7 : 6" class="empty-state">{{ $t('common.no_data') }}</td>
           </tr>
           <tr v-for="item in filteredItems" :key="item.id">
             <td v-if="crud.showIdColumn.value" class="id-column">{{ item.id }}</td>
             <td><strong>{{ item.name }}</strong></td>
             <td><span class="badge category-badge">{{ getCategoryName(item.category) }}</span></td>
+            <td>{{ item.description || '-' }}</td>
             <td>{{ item.stimuli ? item.stimuli.length : 0 }} Items</td>
             <td>{{ item.creator || '-' }}</td>
             <TableActionButtons 
@@ -81,6 +89,11 @@
               :nullLabel="$t('master_data.none')" 
             />
           </div>
+        </div>
+
+        <div class="form-group" style="margin-bottom: 15px;">
+          <label>{{ $t('common.description') }}</label>
+          <textarea v-model="formData.description" class="form-control" rows="3" :placeholder="$t('modal.desc_placeholder')"></textarea>
         </div>
         
         <div class="form-group">
@@ -130,6 +143,7 @@ const { requireConfirmation } = useGlobalModal()
 const columnFilters = ref({
   name: '',
   category: '',
+  description: '',
   creator: '' 
 })
 
@@ -151,6 +165,12 @@ const filteredItems = computed(() => {
       if (!cName.includes(q)) return false
     }
 
+    if (columnFilters.value.description) {
+      const q = columnFilters.value.description.toLowerCase()
+      const desc = item.description ? item.description.toLowerCase() : ''
+      if (!desc.includes(q)) return false
+    }
+
     if (columnFilters.value.creator) {
       const q = columnFilters.value.creator.toLowerCase()
       const creatorName = item.creator ? item.creator.toLowerCase() : ''
@@ -161,14 +181,19 @@ const filteredItems = computed(() => {
   })
 })
 
-const formData = ref({ name: '', category: null, stimuli: [] })
+const formData = ref({ name: '', category: null, description: '', stimuli: [] })
 
 const resetForm = () => { 
-  formData.value = { name: '', category: null, stimuli: [] } 
+  formData.value = { name: '', category: null, description: '', stimuli: [] } 
 }
 
 const populateForm = (item) => { 
-  formData.value = { name: item.name, category: item.category || null, stimuli: item.stimuli ? [...item.stimuli] : [] }
+  formData.value = { 
+    name: item.name, 
+    category: item.category || null, 
+    description: item.description || '',
+    stimuli: item.stimuli ? [...item.stimuli] : [] 
+  }
 }
 
 const loadData = async () => {

@@ -23,7 +23,7 @@
         <div v-for="(rule, index) in rules" :key="index" class="rule-row">
           
           <div class="rule-col flex-2">
-            <select v-model="rule.definition" class="form-control" @change="rule.value = ''">
+            <select v-model="rule.definition" class="form-control" @change="handleDefinitionChange(rule)">
               <option :value="null">{{ $t('metadata_filter.select_def') }}</option>
               <optgroup v-for="group in formattedDefinitions" :key="group.groupId" :label="group.groupName">
                 <option v-for="def in group.defs" :key="def.id" :value="def.id">
@@ -35,8 +35,16 @@
 
           <div class="rule-col flex-1">
             <select v-model="rule.operator" class="form-control" :disabled="!rule.definition || getDefType(rule.definition) === 'BOOLEAN'">
-              <option value="exact">{{ $t('metadata_filter.op_exact') }}</option>
-              <option value="contains">{{ $t('metadata_filter.op_contains') }}</option>
+              <option value="exact">== ({{ $t('metadata_filter.op_exact') }})</option>
+              
+              <option v-if="getDefType(rule.definition) === 'STRING'" value="contains">{{ $t('metadata_filter.op_contains') }}</option>
+              
+              <template v-if="['INTEGER', 'FLOAT'].includes(getDefType(rule.definition))">
+                <option value="gt">&gt; (Größer als)</option>
+                <option value="gte">&gt;= (Größer gleich)</option>
+                <option value="lt">&lt; (Kleiner als)</option>
+                <option value="lte">&lt;= (Kleiner gleich)</option>
+              </template>
             </select>
           </div>
 
@@ -48,7 +56,7 @@
               </select>
               <input 
                 v-else
-                :type="getDefType(rule.definition) === 'INTEGER' ? 'number' : 'text'"
+                :type="['INTEGER', 'FLOAT'].includes(getDefType(rule.definition)) ? 'number' : 'text'"
                 v-model="rule.value"
                 class="form-control"
                 :placeholder="$t('metadata_filter.value')"
@@ -110,6 +118,11 @@ const formattedDefinitions = computed(() => {
 })
 
 const getDefType = (id) => allDefinitions.value.find(d => d.id === id)?.expected_data_type || 'STRING'
+
+const handleDefinitionChange = (rule) => {
+  rule.value = ''
+  rule.operator = 'exact'
+}
 
 const loadData = async () => {
   if (!props.contentTypeId) return

@@ -11,17 +11,20 @@
         <thead>
           <tr>
             <th v-if="crud.showIdColumn.value" class="id-column">{{ $t('common.id') }}</th>
-            <th style="width: 20%;">
+            <th style="width: 15%;">
               <ColumnHeaderFilter :title="$t('common.name')" v-model="columnFilters.name" :placeholder="$t('common.search')" />
             </th>
             <th style="width: 15%;">
               <ColumnHeaderFilter :title="$t('master_data.category')" v-model="columnFilters.category" :placeholder="$t('common.search')" />
             </th>
-            <th style="width: 15%;">
+            <th style="width: 10%;">
               <ColumnHeaderFilter :title="$t('views.stimulus.type')" v-model="columnFilters.type" :placeholder="$t('common.search')" />
             </th>
-            <th style="width: 20%;">
+            <th style="width: 15%;">
               <ColumnHeaderFilter :title="$t('views.stimulus.file')" v-model="columnFilters.file" :placeholder="$t('common.search')" />
+            </th>
+            <th style="width: 20%;">
+              <ColumnHeaderFilter :title="$t('common.description')" v-model="columnFilters.description" :placeholder="$t('common.search')" />
             </th>
             <th style="width: 15%;">
               <ColumnHeaderFilter :title="$t('common.creator')" v-model="columnFilters.creator" :placeholder="$t('common.search')" />
@@ -31,7 +34,7 @@
         </thead>
         <tbody>
           <tr v-if="filteredItems.length === 0">
-            <td :colspan="crud.showIdColumn.value ? 7 : 6" class="empty-state">{{ $t('common.no_data') }}</td>
+            <td :colspan="crud.showIdColumn.value ? 8 : 7" class="empty-state">{{ $t('common.no_data') }}</td>
           </tr>
           <tr v-for="item in filteredItems" :key="item.id">
             <td v-if="crud.showIdColumn.value" class="id-column">{{ item.id }}</td>
@@ -45,6 +48,7 @@
               </a>
               <span v-else class="text-muted">-</span>
             </td>
+            <td>{{ item.description || '-' }}</td>
             <td>{{ item.creator || '-' }}</td>
             <TableActionButtons @edit="crud.openEditDialog(item.id, () => populateForm(item))" @delete="confirmAndDelete(item.id)" />
           </tr>
@@ -181,7 +185,7 @@ const acceptedFileTypes = computed(() => {
   return '*'
 })
 
-const columnFilters = ref({ name: '', type: '', category: '', file: '', creator: '' })
+const columnFilters = ref({ name: '', type: '', category: '', file: '', description: '', creator: '' })
 
 const getTypeName = (typeId) => {
   const tObj = typeOptions.value.find(o => o.id === typeId)
@@ -203,6 +207,11 @@ const filteredItems = computed(() => {
     }
 
     if (columnFilters.value.file && (!item.file || !item.file.toLowerCase().includes(columnFilters.value.file.toLowerCase()))) return false
+    
+    if (columnFilters.value.description) {
+      const desc = item.description ? item.description.toLowerCase() : ''
+      if (!desc.includes(columnFilters.value.description.toLowerCase())) return false
+    }
     
     if (columnFilters.value.creator) {
       const creatorName = item.creator ? item.creator.toLowerCase() : ''

@@ -4,15 +4,17 @@
       :title="$t('nav.locations')" 
       v-model="crud.showIdColumn.value" 
       @add="crud.openAddDialog(resetForm)" 
-    />
-
-    <MetaDataFilterToolbar 
-      :table-supports-metadata="tableSupportsMetadata"
-      :has-any-metadata="hasAnyMetadata"
-      :filter-state="metaFilterState"
-      @open="isFilterModalOpen = true"
-      @clear="clearMetaFilter"
-    />
+    >
+      <div v-if="tableSupportsMetadata || hasAnyMetadata" class="header-metadata-actions">
+        <div v-if="metaFilterState.isActive" class="active-filter-badge">
+          <span>🔖 {{ $t('metadata_filter.active') }} <strong>{{ metaFilterState.ruleCount }} {{ $t('metadata_filter.rules') }}</strong></span>
+          <button class="btn-clear" @click="clearMetaFilter" :title="$t('metadata_filter.clear')">✖</button>
+        </div>
+        <button class="btn-meta-filter" @click="isFilterModalOpen = true">
+          🔖 {{ $t('metadata_filter.button') }}
+        </button>
+      </div>
+    </CrudHeader>
 
     <div class="table-container">
       <table class="data-table">
@@ -149,8 +151,6 @@ import CrudHeader from '@/components/ui/CrudHeader.vue'
 import ColumnHeaderFilter from '@/components/table/ColumnHeaderFilter.vue'
 import TableActionButtons from '@/components/table/TableActionButtons.vue'
 import MetaDataManagerModal from '@/components/domain/MetaDataManagerModal.vue'
-
-import MetaDataFilterToolbar from '@/components/domain/MetaDataFilterToolbar.vue'
 import MetaDataFilterModal from '@/components/domain/MetaDataFilterModal.vue'
 
 const { t } = useI18n()
@@ -194,9 +194,7 @@ const getCategoryName = (id) => {
   return cat ? cat.name : '-'
 }
 
-// WICHTIG: Die angepasste Intersection Filter-Logik
 const filteredItems = computed(() => {
-  // 1. Normale Text/Kategorien-Filter anwenden
   let res = items.value.filter(item => {
     if (columnFilters.value.name) {
       const q = columnFilters.value.name.toLowerCase()
@@ -340,3 +338,56 @@ onMounted(() => {
   initMetadataSystem()
 })
 </script>
+
+<style scoped>
+.header-metadata-actions {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.btn-meta-filter {
+  background-color: #f1a6a6; 
+  color: #ffffff; 
+  font-weight: bold;
+  border: 2px solid #f1a6a6;
+  padding: 0.5rem 1rem;
+  border-radius: 4px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  transition: all 0.2s ease;
+}
+
+.btn-meta-filter:hover {
+  background-color: #da624d;
+  transform: translateY(-1px);
+}
+
+.active-filter-badge {
+  background-color: var(--primary-color, #3498db);
+  color: white;
+  padding: 0.5rem 1rem;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  font-size: 0.95rem;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.btn-clear {
+  background: none;
+  border: none;
+  color: white;
+  font-weight: bold;
+  cursor: pointer;
+  padding: 0;
+  font-size: 1.1rem;
+}
+
+.btn-clear:hover {
+  color: #ffcccc;
+}
+</style>
