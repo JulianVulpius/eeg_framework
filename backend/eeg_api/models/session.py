@@ -1,7 +1,9 @@
 from django.db import models
 from .base import AuditBaseModel
 from .subject import SubjectProfile
-from .ui import Event, PageGroup, Location
+from .event import Event
+from .page import PageGroup
+from .masterdata import Location
 
 class Session(AuditBaseModel):
     subject = models.ForeignKey(SubjectProfile, on_delete=models.PROTECT, related_name='sessions')

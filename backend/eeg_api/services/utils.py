@@ -22,7 +22,7 @@ def custom_exception_handler(exc, context):
     return response
 
 from django.contrib.contenttypes.models import ContentType
-from .models.metadata import MetaDataGroupInstance, MetaDataValue
+from eeg_api.models import MetaDataGroupInstance, MetaDataValue
 
 def clone_metadata_group_instance(source_instance, target_object):
     """

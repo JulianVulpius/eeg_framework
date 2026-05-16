@@ -1,20 +1,35 @@
-from django.db.models import Exists, OuterRef
-from django.db.models import ProtectedError
+from django.db.models import Exists, OuterRef, ProtectedError
 from rest_framework import viewsets, status
 from rest_framework.response import Response
-from eeg_api.models.device import DeviceInstance
 
-from eeg_api.utils import clone_metadata_group_instance
+from eeg_api.services.utils import clone_metadata_group_instance
+from eeg_api.models import (
+    Event, EventGallery, EventRole, EventGroup, 
+    EventSubjectAssignment, EventStaffAssignment,
+    EventDeviceModel, EventGroupPageGroupDevice, DeviceInstance
+)
+from eeg_api.serializers.event import (
+    EventSerializer, EventGallerySerializer, EventRoleSerializer,
+    EventGroupSerializer, EventSubjectAssignmentSerializer,
+    EventStaffAssignmentSerializer, EventDeviceModelSerializer,
+    EventGroupPageGroupDeviceSerializer
+)
 
-from eeg_api.models.event_management import (
-    EventRole, EventGroup, EventSubjectAssignment, EventStaffAssignment, 
-    EventDeviceModel, EventGroupPageGroupDevice
-)
-from eeg_api.serializers.event_management import (
-    EventRoleSerializer, EventGroupSerializer, 
-    EventSubjectAssignmentSerializer, EventStaffAssignmentSerializer,
-    EventDeviceModelSerializer, EventGroupPageGroupDeviceSerializer
-)
+class EventViewSet(viewsets.ModelViewSet):
+    """Handles CRUD operations for experimental events and studies."""
+    queryset = Event.objects.prefetch_related('sessions').all().order_by('-created_at')
+    serializer_class = EventSerializer
+
+class EventGalleryViewSet(viewsets.ModelViewSet):
+    """Handles media assets associated with an event gallery."""
+    serializer_class = EventGallerySerializer
+
+    def get_queryset(self):
+        queryset = EventGallery.objects.all().order_by('display_order', 'id')
+        event_id = self.request.query_params.get('event')
+        if event_id:
+            queryset = queryset.filter(event_id=event_id)
+        return queryset
 
 class EventRoleViewSet(viewsets.ModelViewSet):
     serializer_class = EventRoleSerializer
@@ -81,6 +96,7 @@ class EventGroupPageGroupDeviceViewSet(viewsets.ModelViewSet):
         return queryset
 
     def destroy(self, request, *args, **kwargs):
+        """Archives configuration if protected relations exist."""
         instance = self.get_object()
         try:
             return super().destroy(request, *args, **kwargs)
@@ -93,6 +109,7 @@ class EventGroupPageGroupDeviceViewSet(viewsets.ModelViewSet):
             )
 
     def perform_create(self, serializer):
+        """Clones default device settings to the phase configuration."""
         phase_device_config = serializer.save()
         master_model = phase_device_config.device_from_pool.device_model
         

@@ -1,22 +1,8 @@
 from rest_framework import serializers
 from django.contrib.contenttypes.models import ContentType
-from eeg_api.models.device import DeviceModel, Manufacturer, EEGChannel, DeviceModelEEGChannel, FrequencyBand, DeviceInstance
+
+from eeg_api.models import DeviceModel, DeviceModelEEGChannel, DeviceInstance, EEGChannel
 from eeg_api.models.metadata import MetaDataGroup, MetaDataGroupInstance
-
-class FrequencyBandSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = FrequencyBand
-        fields = '__all__'
-
-class EEGChannelSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = EEGChannel
-        fields = '__all__'
-
-class ManufacturerSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Manufacturer
-        fields = '__all__'
 
 class DeviceModelSerializer(serializers.ModelSerializer):
     is_locked = serializers.BooleanField(read_only=True, default=False)
@@ -99,10 +85,8 @@ class DeviceModelSerializer(serializers.ModelSerializer):
 
     def update(self, instance, validated_data):
         channels = validated_data.pop('channels', None)
-        
         has_hw = 'hardware_specs_group_id' in validated_data
         hw_group = validated_data.pop('hardware_specs_group_id', None)
-        
         has_ds = 'default_settings_group_id' in validated_data
         ds_group = validated_data.pop('default_settings_group_id', None)
 

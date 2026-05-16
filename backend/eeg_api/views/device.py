@@ -1,29 +1,15 @@
-from django.db.models import Exists, OuterRef
+from django.db.models import Exists, OuterRef, ProtectedError
 from django.contrib.contenttypes.models import ContentType
-from django.db.models import ProtectedError
-from eeg_api.utils import clone_metadata_group_instance
 from rest_framework import viewsets, status
-from eeg_api.models.device import DeviceModel, Manufacturer, EEGChannel, FrequencyBand, DeviceInstance
+from rest_framework.response import Response
+from rest_framework.request import Request
+
+from eeg_api.models import DeviceModel, DeviceInstance
 from eeg_api.models.metadata import MetaDataGroupInstance, MetaDataValue, MetaDataDefinition
-from eeg_api.serializers.device import (
-    DeviceModelSerializer, ManufacturerSerializer, 
-    EEGChannelSerializer, FrequencyBandSerializer,
-    DeviceInstanceSerializer
-)
-
-class FrequencyBandViewSet(viewsets.ModelViewSet):
-    queryset = FrequencyBand.objects.all().order_by('id')
-    serializer_class = FrequencyBandSerializer
-
-class ManufacturerViewSet(viewsets.ModelViewSet):
-    queryset = Manufacturer.objects.all().order_by('name')
-    serializer_class = ManufacturerSerializer
-
-class EEGChannelViewSet(viewsets.ModelViewSet):
-    queryset = EEGChannel.objects.all().order_by('name')
-    serializer_class = EEGChannelSerializer
+from eeg_api.serializers.device import DeviceModelSerializer, DeviceInstanceSerializer
 
 class DeviceModelViewSet(viewsets.ModelViewSet):
+    """Handles CRUD operations for device templates (Device Models)."""
     serializer_class = DeviceModelSerializer
 
     def get_queryset(self):
@@ -31,7 +17,8 @@ class DeviceModelViewSet(viewsets.ModelViewSet):
             is_locked=Exists(DeviceInstance.objects.filter(device_model=OuterRef('pk')))
         ).order_by('name')
 
-    def destroy(self, request, *args, **kwargs):
+    def destroy(self, request: Request, *args, **kwargs) -> Response:
+        """Archives the device model if it is protected by existing relations."""
         instance = self.get_object()
         try:
             return super().destroy(request, *args, **kwargs)
@@ -44,6 +31,7 @@ class DeviceModelViewSet(viewsets.ModelViewSet):
             )
 
 class DeviceInstanceViewSet(viewsets.ModelViewSet):
+    """Handles concrete device instances utilized during an active session."""
     queryset = DeviceInstance.objects.all()
     serializer_class = DeviceInstanceSerializer
 
@@ -55,8 +43,8 @@ class DeviceInstanceViewSet(viewsets.ModelViewSet):
         return queryset
 
     def perform_create(self, serializer):
+        """Creates a device instance and conditionally clones phase-specific metadata."""
         metadata_overwrite_values = self.request.data.get('metadata_overwrite_values', None)
-        
         instance = serializer.save()
 
         if instance.phase_config and instance.phase_config.metadata_instance:

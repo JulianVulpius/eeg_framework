@@ -1,14 +1,67 @@
 from django.db import models
 from django.conf import settings
-from .ui import Event, PageGroup
+from .base import AuditBaseModel
+from .masterdata import Location
+from .page import PageGroup
 from .subject import SubjectProfile
-from .device import DeviceModel
+
+class EventCategory(models.Model):
+    name = models.CharField(max_length=100, unique=True)
+    description = models.TextField(blank=True, null=True)
+
+    class Meta:
+        db_table = 'EventCategory'
+
+    def __str__(self):
+        return self.name
+
+class Event(AuditBaseModel):
+    name = models.CharField(max_length=150, unique=True)
+    category = models.ForeignKey(EventCategory, on_delete=models.PROTECT, null=True, blank=True)
+    description = models.TextField(blank=True, null=True)
+    event_start = models.DateTimeField(null=True, blank=True)
+    event_end = models.DateTimeField(null=True, blank=True)
+
+    logo = models.ForeignKey('eeg_api.MediaAsset', on_delete=models.SET_NULL, null=True, blank=True, related_name='event_logos')
+    poster = models.ForeignKey('eeg_api.MediaAsset', on_delete=models.SET_NULL, null=True, blank=True, related_name='event_posters')
+    location = models.ForeignKey(Location, on_delete=models.SET_NULL, null=True, blank=True, related_name='events')
+
+    page_groups = models.ManyToManyField(
+        PageGroup, 
+        through='EventPageGroup',
+        related_name='events'
+    )
+
+    class Meta:
+        db_table = 'Event'
+
+    def __str__(self):
+        return self.name
+
+class EventGallery(models.Model):
+    event = models.ForeignKey(Event, on_delete=models.CASCADE, related_name='gallery')
+    media = models.ForeignKey('eeg_api.MediaAsset', on_delete=models.CASCADE)
+    display_order = models.IntegerField(default=0)
+
+    class Meta:
+        unique_together = ('event', 'media')
+        ordering = ['display_order']
+        db_table = 'Event_MediaAsset'
+
+class EventPageGroup(models.Model):
+    event = models.ForeignKey(Event, on_delete=models.CASCADE)
+    page_group = models.ForeignKey(PageGroup, on_delete=models.CASCADE)
+
+    class Meta:
+        db_table = 'Event_PageGroup'
+        unique_together = ('event', 'page_group') 
+
+    def __str__(self):
+        return f"{self.event.name} -> {self.page_group.name}"
 
 class EventRole(models.Model):
     event = models.ForeignKey(Event, on_delete=models.CASCADE, related_name='roles')
     name = models.CharField(max_length=100)
-    
-    # stores permission flags for later use
     permissions = models.JSONField(default=dict, blank=True)
 
     class Meta:
@@ -17,17 +70,6 @@ class EventRole(models.Model):
 
     def __str__(self):
         return f"{self.name} ({self.event.name})"
-
-class EventGroupPageGroup(models.Model):
-    event_group = models.ForeignKey('EventGroup', on_delete=models.CASCADE)
-    page_group = models.ForeignKey(PageGroup, on_delete=models.CASCADE)
-
-    class Meta:
-        db_table = 'EventGroup_PageGroup'
-        unique_together = ('event_group', 'page_group')
-
-    def __str__(self):
-        return f"{self.event_group.name} -> {self.page_group.name}"
 
 class EventGroup(models.Model):
     event = models.ForeignKey(Event, on_delete=models.CASCADE, related_name='groups')
@@ -47,6 +89,17 @@ class EventGroup(models.Model):
 
     def __str__(self):
         return f"{self.name} ({self.event.name})"
+
+class EventGroupPageGroup(models.Model):
+    event_group = models.ForeignKey(EventGroup, on_delete=models.CASCADE)
+    page_group = models.ForeignKey(PageGroup, on_delete=models.CASCADE)
+
+    class Meta:
+        db_table = 'EventGroup_PageGroup'
+        unique_together = ('event_group', 'page_group')
+
+    def __str__(self):
+        return f"{self.event_group.name} -> {self.page_group.name}"
 
 class EventSubjectAssignment(models.Model):
     event = models.ForeignKey(Event, on_delete=models.CASCADE, related_name='subject_assignments')
@@ -79,16 +132,15 @@ class EventDeviceModel(models.Model):
     device_model = models.ForeignKey('eeg_api.DeviceModel', on_delete=models.CASCADE, related_name='event_pools')
 
     class Meta:
-        db_table = 'Event_DeviceModel'
         unique_together = ('event', 'device_model')
+        db_table = 'Event_DeviceModel'
 
     def __str__(self):
         return f"{self.device_model.name} allowed in {self.event.name}"
 
-
 class EventGroupPageGroupDevice(models.Model):
-    phase = models.ForeignKey('EventGroupPageGroup', on_delete=models.CASCADE, related_name='device_configs')
-    device_from_pool = models.ForeignKey('EventDeviceModel', on_delete=models.CASCADE, related_name='phase_configs')
+    phase = models.ForeignKey(EventGroupPageGroup, on_delete=models.CASCADE, related_name='device_configs')
+    device_from_pool = models.ForeignKey(EventDeviceModel, on_delete=models.CASCADE, related_name='phase_configs')
     
     metadata_instance = models.OneToOneField(
         'eeg_api.MetaDataGroupInstance', 

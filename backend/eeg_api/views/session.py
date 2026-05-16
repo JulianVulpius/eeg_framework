@@ -1,15 +1,22 @@
+import django.utils.timezone
+from typing import Optional
+
 from rest_framework import viewsets, status
 from rest_framework.decorators import action
+from rest_framework.request import Request
 from rest_framework.response import Response
-import django.utils.timezone
 from django.contrib.contenttypes.models import ContentType
 
-from eeg_api.models.session import Session
-from eeg_api.models.metadata import MetaDataGroup, MetaDataGroupInstance, MetaDataValue, MetaDataDefinition
+from eeg_api.models import Session, MetaDataGroup, MetaDataGroupInstance, MetaDataValue, MetaDataDefinition
 from eeg_api.serializers.session import SessionSerializer
-from eeg_api.models.event_management import EventSubjectAssignment
+from eeg_api.services.session_service import generate_blueprint, generate_report
+
 
 class SessionViewSet(viewsets.ModelViewSet):
+    """
+    Handles CRUD operations for EEG sessions.
+    Provides custom actions for generating UI blueprints and session reports.
+    """
     serializer_class = SessionSerializer
 
     def get_queryset(self):
@@ -28,7 +35,7 @@ class SessionViewSet(viewsets.ModelViewSet):
             
         return queryset
 
-    def create(self, request, *args, **kwargs):
+    def create(self, request: Request, *args, **kwargs) -> Response:
         event_id = request.data.get('event')
         subject_id = request.data.get('subject')
         page_group_id = request.data.get('page_group')
@@ -51,65 +58,23 @@ class SessionViewSet(viewsets.ModelViewSet):
             session.save()
         
         serializer = self.get_serializer(session)
-        from rest_framework import status
-        return Response(serializer.data, status=status.HTTP_201_CREATED if created else status.HTTP_200_OK)
+        return Response(
+            serializer.data, 
+            status=status.HTTP_201_CREATED if created else status.HTTP_200_OK
+        )
 
     @action(detail=True, methods=['get'])
-    def blueprint(self, request, pk=None):
+    def blueprint(self, request: Request, pk: Optional[int] = None) -> Response:
+        """Builds a UI blueprint for the frontend runner."""
         session = self.get_object()
-        pg = session.page_group
-
         scope = request.query_params.get('scope', 'ALL').upper()
-
-        event_group_id = None
-        if session.subject and session.event:
-            assignment = EventSubjectAssignment.objects.filter(
-                subject=session.subject, 
-                event=session.event
-            ).first()
-            
-            if assignment and assignment.group:
-                event_group_id = assignment.group.id
         
-        blueprint_data = {
-            "session_id": session.id,
-            "event_name": session.event.name,
-            "page_group_name": pg.name,
-            "page_group_id": pg.id,
-            "event_id": session.event.id,
-            "event_group_id": event_group_id,
-            "event_logo": session.event.logo.file.url if getattr(session.event, 'logo', None) and session.event.logo.file else None,
-            "pages": []
-        }
-        
-        pgps = pg.pagegrouppage_set.all().order_by('order')
-        for pgp in pgps:
-            page = pgp.page
-            
-            page_scope = getattr(page, 'scope', 'ALL') or 'ALL'
-            
-            if scope == 'ADMIN' and page_scope != 'ADMIN':
-                continue
-            
-            if scope == 'SUBJECT' and page_scope == 'ADMIN':
-                continue
-
-            page_data = {"id": page.id, "name": page.name, "components": []}
-            
-            pcs = page.pagecomponent_set.all().order_by('order')
-            for pc in pcs:
-                comp = pc.component
-                page_data["components"].append({
-                    "id": comp.id,
-                    "type": comp.component_type.identifier,
-                    "parameters": comp.parameter
-                })
-            blueprint_data["pages"].append(page_data)
-            
+        blueprint_data = generate_blueprint(session, scope)
         return Response(blueprint_data)
 
     @action(detail=True, methods=['post', 'put'])
-    def save_metadata(self, request, pk=None):
+    def save_metadata(self, request: Request, pk: Optional[int] = None) -> Response:
+        """Saves metadata answers provided during the active session."""
         session = self.get_object()
         group_id = request.data.get('group_id')
         values = request.data.get('values', [])
@@ -121,9 +86,7 @@ class SessionViewSet(viewsets.ModelViewSet):
             group=group,
             content_type=session_ct,
             object_id=session.id,
-            defaults={
-                'creation_source': MetaDataGroupInstance.CreationSource.COMPONENT
-            }
+            defaults={'creation_source': MetaDataGroupInstance.CreationSource.COMPONENT}
         )
         
         for val in values:
@@ -137,7 +100,8 @@ class SessionViewSet(viewsets.ModelViewSet):
         return Response({"status": "success", "updated": not created})
 
     @action(detail=True, methods=['get'])
-    def saved_metadata(self, request, pk=None):
+    def saved_metadata(self, request: Request, pk: Optional[int] = None) -> Response:
+        """Retrieves currently saved metadata answers for the session."""
         session = self.get_object()
         session_ct = ContentType.objects.get_for_model(Session)
         
@@ -146,15 +110,18 @@ class SessionViewSet(viewsets.ModelViewSet):
             object_id=session.id
         )
         
-        saved_data = {}
-        for inst in instances:
-            for val in inst.values.all():
-                saved_data[val.definition.id] = val.value
+        # Flatten saved data into a dictionary
+        saved_data = {
+            val.definition.id: val.value 
+            for inst in instances 
+            for val in inst.values.all()
+        }
                 
         return Response(saved_data)
         
     @action(detail=True, methods=['post'])
-    def reset(self, request, pk=None):
+    def reset(self, request: Request, pk: Optional[int] = None) -> Response:
+        """Resets the session by deleting metadata and updating the start time."""
         session = self.get_object()
         session_ct = ContentType.objects.get_for_model(Session)
         
@@ -163,88 +130,14 @@ class SessionViewSet(viewsets.ModelViewSet):
             object_id=session.id
         ).delete()
         
-        import django.utils.timezone
         session.start_datetime = django.utils.timezone.now()
         session.save()
         
         return Response({"status": "session_reset"})
 
     @action(detail=True, methods=['get'])
-    def report(self, request, pk=None):
-        import os
-        from django.contrib.contenttypes.models import ContentType
-        from eeg_api.models.metadata import MetaDataGroupInstance
-        from eeg_api.models.recordings import EEGDataFile, HeartRateDataFile, GenericRecording
-        
+    def report(self, request: Request, pk: Optional[int] = None) -> Response:
+        """Generates a complete summary report for the session, including uploaded files."""
         session = self.get_object()
-        session_ct = ContentType.objects.get_for_model(session)
-        
-        instances = MetaDataGroupInstance.objects.filter(
-            content_type=session_ct, 
-            object_id=session.id
-        ).order_by('created_at')
-        
-        report_data = []
-        for inst in instances:
-            group_data = {
-                "group_name": inst.group.name,
-                "timestamp": inst.created_at,
-                "answers": []
-            }
-            for val in inst.values.all().order_by('definition__name'):
-                group_data["answers"].append({
-                    "question": val.definition.name,
-                    "answer": val.value,
-                    "type": val.definition.expected_data_type
-                })
-            report_data.append(group_data)
-
-        files_list = []
-
-        def get_filename(file_field):
-            if file_field and file_field.name:
-                return os.path.basename(file_field.name)
-            return "Unbenannt"
-
-        for eeg in EEGDataFile.objects.filter(session=session):
-            files_list.append({
-                "type": "EEG",
-                "category": "",  
-                "order": eeg.order,
-                "name": get_filename(eeg.file),
-                "description": eeg.description,
-                "url": eeg.file.url if eeg.file else None
-            })
-
-        for hr in HeartRateDataFile.objects.filter(session=session):
-            files_list.append({
-                "type": "Heart Rate",
-                "category": "", 
-                "order": hr.order,
-                "name": get_filename(hr.file),
-                "description": hr.description,
-                "url": hr.file.url if hr.file else None
-            })
-
-        for gen in GenericRecording.objects.filter(session=session).select_related('category'):
-            files_list.append({
-                "type": "Generic",
-                "category": gen.category.name if gen.category else "",
-                "order": gen.order,
-                "name": get_filename(gen.file),
-                "description": gen.description,
-                "url": gen.file.url if gen.file else None
-            })
-
-        sorted_files = sorted(files_list, key=lambda x: x['order'] if x['order'] is not None else 999)
-            
-        return Response({
-            "session_id": session.id,
-            "event_name": session.event.name if session.event else None,
-            "page_group_name": session.page_group.name if session.page_group else None,
-            "subject_identifier": session.subject.identifier if session.subject else None,
-            "start_time": session.start_datetime,
-            "location_name": session.location.name if session.location else None,
-            "metadata_groups": report_data,
-            "uploaded_files": sorted_files
-        })
+        report_data = generate_report(session)
+        return Response(report_data)
