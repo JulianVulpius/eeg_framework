@@ -1,7 +1,7 @@
 import socket
 import asyncio
 import os
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, WebSocket, WebSocketDisconnect
 from pydantic import BaseModel
 from typing import List, Optional
 import mutagen
@@ -9,7 +9,6 @@ import mutagen
 try:
     import pygame
 except ImportError:
-    print("WARNING: Pygame not installed. Audio playback disabled.")
     pygame = None
 
 router = APIRouter()
@@ -37,6 +36,9 @@ class ManualTriggerRequest(BaseModel):
     trigger_value: str
     description: Optional[str] = ""
 
+class SingleAudioRequest(BaseModel):
+    audio_file: str
+
 class EngineState:
     is_running: bool = False
     is_paused: bool = False
@@ -44,12 +46,11 @@ class EngineState:
 
 state = EngineState()
 
-def send_udp_trigger(value: str, desc: str):
+def send_udp_trigger(value: str, desc: str = ""):
     try:
         sock.sendto(value.encode('utf-8'), endpoint)
-        print(f"TRIGGER SENT: {value} ({desc})")
-    except Exception as e:
-        print(f"UDP ERROR: {e}")
+    except Exception:
+        pass
 
 def play_audio(filename: str):
     if pygame and filename:
@@ -57,9 +58,28 @@ def play_audio(filename: str):
         if os.path.exists(filepath):
             pygame.mixer.music.load(filepath)
             pygame.mixer.music.play()
-            print(f"PLAYING AUDIO: {filepath}")
-        else:
-            print(f"WARNING: Audio file not found at {filepath}")
+
+@router.websocket("/ws")
+async def websocket_endpoint(websocket: WebSocket):
+    await websocket.accept()
+    try:
+        while True:
+            data = await websocket.receive_json()
+            if "trigger_value" in data:
+                send_udp_trigger(data["trigger_value"], data.get("description", ""))
+    except WebSocketDisconnect:
+        pass
+
+@router.post("/play-single")
+async def play_single(req: SingleAudioRequest):
+    play_audio(req.audio_file)
+    return {"status": "playing"}
+
+@router.post("/stop-audio")
+async def stop_audio():
+    if pygame:
+        pygame.mixer.music.stop()
+    return {"status": "stopped"}
 
 async def schedule_trigger(delay_sec: float, value: str, desc: str):
     try:

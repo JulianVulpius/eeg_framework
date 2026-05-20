@@ -65,7 +65,6 @@
 
     <BaseModal :isOpen="crud.isDialogOpen.value" :title="crud.isEditing.value ? $t('modal.edit_record') : $t('modal.add_record')" @close="crud.closeDialog">
       <form @submit.prevent="saveRecord">
-        
         <div class="form-group">
           <label>{{ $t('common.name') }} *</label>
           <input type="text" v-model="formData.name" class="form-control" :class="{ 'input-invalid': crud.fieldErrors.value.name }" />
@@ -90,16 +89,13 @@
         />
 
         <template v-if="formData.type && formData.type !== 'CUSTOM'">
-          
           <div class="form-group">
             <label>{{ $t('views.stimulus.file') }} *</label>
             <div style="display: flex; align-items: center; gap: 10px; padding: 10px; border: 1px dashed #bdc3c7; border-radius: 4px; background: #fdfdfd;" :class="{ 'input-invalid': crud.fieldErrors.value.file }">
               <input type="file" ref="fileInput" style="display: none;" @change="handleFileUpload" :accept="acceptedFileTypes" />
-              
               <button type="button" class="btn-secondary" style="padding: 5px 15px; font-size: 0.85rem;" @click="$refs.fileInput.click()">
                 {{ (selectedFile || formData.file) ? $t('views.stimulus.replace_file') : $t('views.stimulus.select_file') }}
               </button>
-              
               <div style="font-size: 0.85rem; color: #2c3e50; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 250px;">
                 <strong v-if="selectedFile">{{ selectedFile.name }}</strong>
                 <a v-else-if="formData.file" :href="formData.file" target="_blank" style="color: #3498db; text-decoration: none;">
@@ -110,20 +106,19 @@
             </div>
             <BaseInputError :message="crud.fieldErrors.value.file" />
           </div>
-
-          <div class="form-group" style="margin-bottom: 15px;">
-            <label>
-              {{ $t('views.stimulus.duration') }} 
-              <span v-if="formData.type === 'AUDIO' || formData.type === 'VIDEO'">*</span>
-            </label>
-            <input type="text" v-model="durationDisplay" @blur="parseAndFormatDuration" class="form-control" :class="{ 'input-invalid': crud.fieldErrors.value.duration }" :placeholder="$t('views.stimulus.duration_placeholder')" />
-            <BaseInputError :message="crud.fieldErrors.value.duration" />
-            <small style="color: #7f8c8d; font-size: 0.8rem; display: block; margin-top: 5px;">
-              {{ $t('views.stimulus.duration_info') }}
-            </small>
-          </div>
-
         </template>
+
+        <div class="form-group" style="margin-bottom: 15px;">
+          <label>
+            {{ $t('views.stimulus.duration') }} 
+            <span v-if="formData.type === 'AUDIO' || formData.type === 'VIDEO'">*</span>
+          </label>
+          <input type="text" v-model="durationDisplay" @blur="parseAndFormatDuration" class="form-control" :class="{ 'input-invalid': crud.fieldErrors.value.duration }" :placeholder="$t('views.stimulus.duration_placeholder')" />
+          <BaseInputError :message="crud.fieldErrors.value.duration" />
+          <small style="color: #7f8c8d; font-size: 0.8rem; display: block; margin-top: 5px;">
+            {{ $t('views.stimulus.duration_info') }}
+          </small>
+        </div>
 
         <div class="form-group" style="margin-bottom: 15px;">
           <label>{{ $t('common.description') }}</label>
@@ -147,12 +142,10 @@ import { useI18n } from 'vue-i18n'
 import api from '@/services/api'
 import { useCrud } from '@/composables/useCrud'
 import { useGlobalModal } from '@/composables/useGlobalModal'
-
 import BaseModal from '@/components/ui/BaseModal.vue'
 import BaseInputError from '@/components/ui/BaseInputError.vue'
 import BaseSearchSelect from '@/components/ui/BaseSearchSelect.vue'
 import CrudHeader from '@/components/ui/CrudHeader.vue'
-
 import ColumnHeaderFilter from '@/components/table/ColumnHeaderFilter.vue'
 import TableActionButtons from '@/components/table/TableActionButtons.vue'
 import StimulusDeleteWarningModal from '@/components/domain/StimulusDeleteWarningModal.vue'
@@ -195,24 +188,19 @@ const getTypeName = (typeId) => {
 const filteredItems = computed(() => {
   return items.value.filter(item => {
     if (columnFilters.value.name && !item.name.toLowerCase().includes(columnFilters.value.name.toLowerCase())) return false
-    
     if (columnFilters.value.type) {
       const typeStr = getTypeName(item.type).toLowerCase()
       if (!typeStr.includes(columnFilters.value.type.toLowerCase())) return false
     }
-
     if (columnFilters.value.category) {
       const cName = getCategoryName(item.category).toLowerCase()
       if (!cName.includes(columnFilters.value.category.toLowerCase())) return false
     }
-
     if (columnFilters.value.file && (!item.file || !item.file.toLowerCase().includes(columnFilters.value.file.toLowerCase()))) return false
-    
     if (columnFilters.value.description) {
       const desc = item.description ? item.description.toLowerCase() : ''
       if (!desc.includes(columnFilters.value.description.toLowerCase())) return false
     }
-    
     if (columnFilters.value.creator) {
       const creatorName = item.creator ? item.creator.toLowerCase() : ''
       if (!creatorName.includes(columnFilters.value.creator.toLowerCase())) return false
@@ -229,7 +217,6 @@ const handleFileUpload = (event) => {
   if (file) {
     selectedFile.value = file
     crud.fieldErrors.value.file = null
-
     if (formData.value.type === 'AUDIO' || formData.value.type === 'VIDEO') {
       extractDuration(file)
     }
@@ -337,11 +324,12 @@ const saveRecord = async () => {
       crud.fieldErrors.value.file = t('errors.required_field'); 
       hasErrors = true 
     }
-    if (formData.value.type === 'AUDIO' || formData.value.type === 'VIDEO') {
-      if (formData.value.duration === null || formData.value.duration === '') { 
-        crud.fieldErrors.value.duration = t('errors.required_field'); 
-        hasErrors = true 
-      }
+  }
+
+  if (formData.value.type === 'AUDIO' || formData.value.type === 'VIDEO') {
+    if (formData.value.duration === null || formData.value.duration === '') { 
+      crud.fieldErrors.value.duration = t('errors.required_field'); 
+      hasErrors = true 
     }
   }
 
@@ -358,7 +346,7 @@ const saveRecord = async () => {
     if (formData.value.duration !== null) payload.append('duration', formData.value.duration)
     if (selectedFile.value) payload.append('file', selectedFile.value)
   } else {
-    payload.append('duration', '') 
+    if (formData.value.duration !== null) payload.append('duration', formData.value.duration)
   }
 
   try {
@@ -382,7 +370,6 @@ const confirmAndDelete = (id) => {
     try {
       const res = await api.get('playlists/')
       const playlists = res.data
-      
       const affected = playlists.filter(p => p.stimuli && p.stimuli.includes(id))
 
       if (affected.length > 0) {
@@ -393,7 +380,6 @@ const confirmAndDelete = (id) => {
         executeDelete(id)
       }
     } catch (error) {
-      console.error("Fehler beim Prüfen der Playlisten", error)
       executeDelete(id)
     }
   })
@@ -404,9 +390,7 @@ const executeDelete = async (id) => {
     await api.delete(`stimuli/${id}/`)
     isWarningModalOpen.value = false
     loadData()
-  } catch (error) {
-    console.error("Löschen fehlgeschlagen", error)
-  }
+  } catch (error) {}
 }
 
 onMounted(loadData)
