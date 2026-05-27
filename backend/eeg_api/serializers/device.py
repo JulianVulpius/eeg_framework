@@ -1,5 +1,6 @@
 from rest_framework import serializers
 from django.contrib.contenttypes.models import ContentType
+from django.core.exceptions import ObjectDoesNotExist
 
 from eeg_api.models import DeviceModel, DeviceModelEEGChannel, DeviceInstance, EEGChannel
 from eeg_api.models.metadata import MetaDataGroup, MetaDataGroupInstance
@@ -37,10 +38,16 @@ class DeviceModelSerializer(serializers.ModelSerializer):
         return list(obj.channels.values_list('name', flat=True))
 
     def get_current_hardware_specs_group_id(self, obj):
-        return obj.hardware_specs.group_id if obj.hardware_specs else None
+        try:
+            return obj.hardware_specs.group_id if obj.hardware_specs else None
+        except ObjectDoesNotExist:
+            return None
 
     def get_current_default_settings_group_id(self, obj):
-        return obj.default_settings.group_id if obj.default_settings else None
+        try:
+            return obj.default_settings.group_id if obj.default_settings else None
+        except ObjectDoesNotExist:
+            return None
 
     def _handle_metadata_instance(self, group, current_instance, device_model, creation_source):
         if not group:

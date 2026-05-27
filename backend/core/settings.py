@@ -131,5 +131,5 @@ CORS_ALLOWED_ORIGINS = [
 ]
 
 REST_FRAMEWORK = {
-    'EXCEPTION_HANDLER': 'eeg_api.utils.custom_exception_handler',
+    'EXCEPTION_HANDLER': 'eeg_api.services.utils.custom_exception_handler',
 }

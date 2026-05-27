@@ -101,11 +101,9 @@ const executeRandomizer = async () => {
     }
 
     await Promise.all(postPromises)
-    crudHelper.notifySuccess('updated', t)
     emit('saved')
     closeModal()
   } catch (error) {
-    crudHelper.parseApiError(error, t, 'errors.save_failed')
   }
 }
 </script>

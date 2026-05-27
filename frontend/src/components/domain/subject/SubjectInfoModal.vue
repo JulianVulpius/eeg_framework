@@ -1,7 +1,7 @@
 <template>
   <BaseModal 
     :isOpen="isOpen" 
-    :title="$t('modal.subject_infos', { name: subject?.identifier || '' })" 
+    :title="$t('modal.subject_infos', { name: subject?.identifier })" 
     @close="closeModal"
     customClass="large-modal"
   >
@@ -28,7 +28,7 @@
             <button 
               class="delete-bubble-btn" 
               @click="deletingInfoId = info.id" 
-              title="Löschen / Delete"
+              :title="$t('actions.delete')"
             >
               −
             </button>
@@ -48,10 +48,14 @@
           </template>
 
           <div v-else class="inline-confirm">
-            <p>Eintrag wirklich löschen? / Really delete entry?</p>
+            <p>{{ $t('actions.confirm_delete') }}</p>
             <div class="inline-confirm-actions">
-              <button type="button" class="btn-cancel-sm" @click="deletingInfoId = null">✕ Abbrechen / Cancel</button>
-              <button type="button" class="btn-delete-sm" @click="executeDelete(info.id)">✓ Löschen / Delete</button>
+              <button type="button" class="btn-cancel-sm" @click="deletingInfoId = null">
+                ✕ {{ $t('actions.cancel') }}
+              </button>
+              <button type="button" class="btn-delete-sm" @click="executeDelete(info.id)">
+                ✓ {{ $t('actions.delete') }}
+              </button>
             </div>
           </div>
         </div>
@@ -59,12 +63,6 @@
 
       <form class="chat-input-area" @submit.prevent="submitInfo">
         <div class="input-row">
-          <select v-model="formData.category" class="form-control category-select">
-            <option :value="null">{{ $t('master_data.no_category') }}</option>
-            <option v-for="cat in categories" :key="cat.id" :value="cat.id">
-              {{ cat.name }}
-            </option>
-          </select>
           <input 
             type="text" 
             v-model="formData.title" 
@@ -72,9 +70,16 @@
             :placeholder="$t('master_data.title')" 
             required 
           />
+          <BaseSearchSelect 
+            v-model="formData.category"
+            :options="categories"
+            :placeholder="$t('master_data.category')"
+            :nullLabel="$t('master_data.no_category')"
+            class="category-select"
+          />
         </div>
         
-        <div class="input-row align-end">
+        <div class="input-row">
           <textarea 
             v-model="formData.description" 
             class="form-control" 
@@ -82,10 +87,17 @@
             :placeholder="$t('master_data.description')" 
             required
           ></textarea>
+        </div>
+
+        <div class="input-row actions-row" style="justify-content: flex-end; gap: 10px; margin-top: 8px;">
+          <button type="button" class="btn-secondary cancel-btn" @click="closeModal">
+            {{ $t('actions.cancel') }}
+          </button>
           <button type="submit" class="btn-primary send-btn" :disabled="isSubmitting">
             {{ $t('actions.send') }}
           </button>
         </div>
+        
         <BaseInputError v-if="crud.fieldErrors.value.non_field_errors" :message="crud.fieldErrors.value.non_field_errors" />
       </form>
     </div>
@@ -101,6 +113,7 @@ import { useFormatters } from '@/composables/useFormatters'
 
 import BaseModal from '@/components/ui/BaseModal.vue'
 import BaseInputError from '@/components/ui/BaseInputError.vue'
+import BaseSearchSelect from '@/components/ui/BaseSearchSelect.vue'
 import SubjectInfoFilter from '@/components/domain/subject/SubjectInfoFilter.vue'
 
 const props = defineProps({
@@ -173,6 +186,11 @@ const getCategoryName = (categoryId) => {
   if (!categoryId) return ''
   const cat = categories.value.find(c => c.id === categoryId)
   return cat ? cat.name : ''
+}
+
+const resetForm = () => {
+  formData.value = { ...defaultForm }
+  crud.clearErrors()
 }
 
 const submitInfo = async () => {

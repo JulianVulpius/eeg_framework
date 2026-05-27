@@ -131,7 +131,11 @@
     "no_entries": "No entries yet.",
     "remove": "Remove",
     "all_categories": "All Categories",
-     "reset": "Reset"
+    "reset": "Reset",
+    "active":"active",
+    "inactive":"inactive",
+    "status":"Status",
+    "are_you_sure":"Are you sure?"
   },
   "actions": {
     "add_new": "+ Add New",
@@ -154,7 +158,8 @@
     "start": "START",
     "pause": "PAUSE",
     "resume": "RESUME",
-    "stop": "STOP"
+    "stop": "STOP",
+    "confirm_delete": "Confirm Delete?"
   },
   "errors": {
     "save_failed": "Error saving record.",
@@ -381,8 +386,8 @@
       "detail_title": "Event Details",
       "tab_general": "General",
       "tab_groups": "Event Groups",
-      "tab_roles": "Roles & Permissions",
-      "tab_staff": "Personal",
+      "tab_roles": "Roles & Permissions [WIP]",
+      "tab_staff": "Personal [WIP]",
       "tab_subjects": "Subjects",
       "mock_user": "Mock User:",
       "permission_denied": "No permissions for this area.",
@@ -428,7 +433,7 @@
       "logo_desc": "This logo will be displayed in the Session Runner and reports.",
       "poster_desc": "This poster is used as a preview image for the event.",
       "gallery_title": "Event Media Gallery",
-      "gallery_desc": "Upload images, videos, and audios that belong to this event here.",
+      "gallery_desc": "Upload all kinds of files that belong to the event but not a specific session.",
       "upload_media": "Upload Media",
       "unsupported_media": "Unsupported format. Please select an image, audio, or video.",
       "select_media_category": "Category (Optional)",

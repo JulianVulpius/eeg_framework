@@ -108,11 +108,9 @@ const saveAssignments = async () => {
     }
 
     await Promise.all(promises)
-    crudHelper.notifySuccess('updated', t)
     emit('saved')
     closeModal()
   } catch (error) {
-    crudHelper.parseApiError(error, t, 'errors.save_failed')
   }
 }
 </script>

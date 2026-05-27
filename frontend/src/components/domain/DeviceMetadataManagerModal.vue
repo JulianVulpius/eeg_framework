@@ -182,7 +182,7 @@ const saveAllMetadata = async () => {
 
     if (props.device.hardware_specs && tabsState.value.hardware_specs.definitions.length > 0) {
       savePromises.push(
-        api.put(`metadata-instances/${props.device.hardware_specs}/`, {
+        api.patch(`metadata-instances/${props.device.hardware_specs}/`, {
           group: props.device.current_hardware_specs_group_id,
           values: formatValuesForApi(tabsState.value.hardware_specs.values)
         })
@@ -191,7 +191,7 @@ const saveAllMetadata = async () => {
 
     if (props.device.default_settings && tabsState.value.default_settings.definitions.length > 0) {
       savePromises.push(
-        api.put(`metadata-instances/${props.device.default_settings}/`, {
+        api.patch(`metadata-instances/${props.device.default_settings}/`, {
           group: props.device.current_default_settings_group_id,
           values: formatValuesForApi(tabsState.value.default_settings.values)
         })
@@ -199,8 +199,6 @@ const saveAllMetadata = async () => {
     }
 
     await Promise.all(savePromises)
-    
-    toast.success('Erfolgreich gespeichert.')
     emit('close')
   } catch (error) {
   } finally {

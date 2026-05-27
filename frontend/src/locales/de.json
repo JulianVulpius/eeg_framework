@@ -131,7 +131,11 @@
     "no_entries": "Noch keine Einträge vorhanden.",
     "remove": "Entfernen",
     "all_categories": "Alle Kategorien",
-    "reset": "Zurücksetzen"
+    "reset": "Zurücksetzen",
+    "active":"Aktiv",
+    "inactive":"Inaktiv",
+    "status":"Status",
+    "are_you_sure":"Bist du dir sicher?"
   },
   "actions": {
     "add_new": "+ Neu hinzufügen",
@@ -154,7 +158,8 @@
     "start": "START",
     "pause": "PAUSE",
     "resume": "RESUME",
-    "stop": "STOP"
+    "stop": "STOP",
+    "confirm_delete": "Wirklich Löschen?"
   },
   "errors": {
     "save_failed": "Fehler beim Speichern des Datensatzes.",
@@ -379,8 +384,8 @@
       "detail_title": "Event Details",
       "tab_general": "Allgemein",
       "tab_groups": "EventGruppen",
-      "tab_roles": "Rollen & Rechte",
-      "tab_staff": "Personal",
+      "tab_roles": "Rollen & Rechte [WIP]",
+      "tab_staff": "Personal [WIP]",
       "tab_subjects": "Probanden",
       "mock_user": "Simulierter User:",
       "permission_denied": "Du hast keine Berechtigung für diesen Bereich.",
@@ -426,7 +431,7 @@
       "logo_desc": "Dieses Logo wird im Session-Runner und in den Reports angezeigt.",
       "poster_desc": "Dieses Poster wird als Vorschaubild für das Event genutzt.",
       "gallery_title": "Event Media Gallery",
-      "gallery_desc": "Lade hier Bilder, Videos und Audios hoch, die zu diesem Event gehören.",
+      "gallery_desc": "Lade alle Arten von Dateien hoch, die zum Event gehören, jedoch keiner spezifischen Session zugeordnet sind.",
       "upload_media": "Medium hochladen",
       "unsupported_media": "Nicht unterstütztes Format. Bitte Bild, Audio oder Video wählen.",
       "select_media_category": "Kategorie (Optional)",

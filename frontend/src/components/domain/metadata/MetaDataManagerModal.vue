@@ -6,11 +6,6 @@
     @close="closeModal"
   >
     <div class="metadata-manager" v-if="!isLoading">
-      
-      <div class="sticky-header">
-        <button class="modal-sticky-close" @click="closeModal" :title="$t('metadata_tool.close')">✖</button>
-      </div>
-      
       <div class="mode-toggle" v-if="hasAnyData">
         <button class="btn-secondary" :class="{ active: currentMode === 'view' }" @click="currentMode = 'view'">
           🏷️ {{ $t('metadata_tool.view') }}
@@ -212,7 +207,6 @@ const activeDraftDefinitions = ref([])
 
 const editValues = ref({})
 
-// NEU: Greift jetzt ebenfalls strikt auf das metadata-JSON zu
 const modalTitle = computed(() => {
   const prefix = currentMode.value === 'view' ? t('metadata_tool.title_view') : t('metadata_tool.title_manage')
   return `${prefix} ${props.objectName || `ID ${props.objectId}`}`
